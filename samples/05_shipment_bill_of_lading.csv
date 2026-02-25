@@ -1,0 +1,28 @@
+Template Name,Field Name,Label Name,Position X,Position Y,Width,Height,Rank,Font Size,Alignment
+Shipment Bill of Lading,,,50,24,694,52,1,14,center
+Shipment Bill of Lading,shipper,Shipper,50,76,347,85,2,10,left
+Shipment Bill of Lading,consignee,Consignee,397,76,347,85,3,10,left
+Shipment Bill of Lading,notify_party,Notify Party,50,161,347,85,4,10,left
+Shipment Bill of Lading,carrier_name,Carrier,397,161,347,85,5,10,left
+Shipment Bill of Lading,vessel,Vessel,50,246,231,85,6,10,left
+Shipment Bill of Lading,voyage_no,Voyage No.,281,246,231,85,7,10,left
+Shipment Bill of Lading,port_of_loading,POL,512,246,232,85,8,10,left
+Shipment Bill of Lading,port_of_discharge,POD,50,331,231,85,9,10,left
+Shipment Bill of Lading,place_of_receipt,Place of Receipt,281,331,231,85,10,10,left
+Shipment Bill of Lading,place_of_delivery,Place of Delivery,512,331,232,85,11,10,left
+Shipment Bill of Lading,b_l_number,B/L Number,50,416,231,85,12,10,left
+Shipment Bill of Lading,booking_ref,Booking Reference,281,416,231,85,13,10,left
+Shipment Bill of Lading,container_seal,Container / Seal No.,512,416,232,85,14,10,left
+Shipment Bill of Lading,marks,Marks & Nos.,50,501,200,140,15,9,left
+Shipment Bill of Lading,packages,No. of Pkgs,250,501,120,140,16,9,center
+Shipment Bill of Lading,package_type,Kind of Pkgs,370,501,164,140,17,9,left
+Shipment Bill of Lading,description,Description of Goods,534,501,210,140,18,9,left
+Shipment Bill of Lading,gross_weight,Gross Weight,50,641,180,85,19,9,center
+Shipment Bill of Lading,measurement,Measurement,230,641,180,85,20,9,center
+Shipment Bill of Lading,freight,Freight,410,641,200,85,21,9,left
+Shipment Bill of Lading,rate,Rate,610,641,134,85,22,9,left
+Shipment Bill of Lading,prepaid,Prepaid,50,726,231,85,23,9,left
+Shipment Bill of Lading,collect,Collect,281,726,231,85,24,9,left
+Shipment Bill of Lading,issued_at,Issued at,512,726,232,85,25,9,left
+Shipment Bill of Lading,carrier_signature,For Carrier,50,811,347,186,26,10,left
+Shipment Bill of Lading,date_signed,Date,397,811,347,186,27,10,left

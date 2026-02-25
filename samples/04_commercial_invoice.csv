@@ -1,0 +1,26 @@
+Template Name,Field Name,Label Name,Position X,Position Y,Width,Height,Rank,Font Size,Alignment
+Commercial Invoice,,,50,24,694,52,1,14,center
+Commercial Invoice,invoice_no,Invoice No.,50,76,231,79,2,9,left
+Commercial Invoice,invoice_date,Date,281,76,174,79,3,9,left
+Commercial Invoice,reference,Reference No.,455,76,289,79,4,9,left
+Commercial Invoice,seller_name,Seller / Exporter,50,155,347,79,5,9,left
+Commercial Invoice,buyer_name,Buyer / Importer,397,155,347,79,7,9,left
+Commercial Invoice,seller_address,Seller Address,50,234,347,93,6,9,left
+Commercial Invoice,buyer_address,Buyer Address,397,234,347,93,8,9,left
+Commercial Invoice,consignee,Consignee (if different),50,327,694,79,9,9,left
+Commercial Invoice,country_of_origin,Country of Origin,50,406,231,79,10,9,left
+Commercial Invoice,country_of_destination,Country of Destination,281,406,231,79,11,9,left
+Commercial Invoice,terms_of_payment,Terms of Payment,512,406,232,79,12,9,left
+Commercial Invoice,port_of_loading,Port of Loading,50,485,347,79,13,9,left
+Commercial Invoice,port_of_discharge,Port of Discharge,397,485,347,79,14,9,left
+Commercial Invoice,item_no,Item No.,50,564,70,79,15,9,center
+Commercial Invoice,description,Description of Goods,120,564,318,79,16,9,left
+Commercial Invoice,quantity,Quantity,438,564,90,79,17,9,center
+Commercial Invoice,unit,Unit,528,564,86,79,18,9,center
+Commercial Invoice,unit_price,Unit Price,614,564,130,79,19,9,right
+Commercial Invoice,amount,Amount,50,643,694,79,20,9,right
+Commercial Invoice,total_amount,Total Amount,50,722,347,79,21,9,left
+Commercial Invoice,amount_in_words,Amount in Words,397,722,347,79,22,9,left
+Commercial Invoice,bank_details,Bank Details,50,801,694,115,23,9,left
+Commercial Invoice,authorized_signature,Authorized Signature,50,916,347,86,24,9,left
+Commercial Invoice,place_and_date,Place and Date,397,916,347,86,25,9,left

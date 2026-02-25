@@ -1,0 +1,38 @@
+{
+  "standardizedFormat": {
+    "name": "Bill of Lading",
+    "slug": "bill-of-lading",
+    "description": "Standard BOL key-value set",
+    "keyValuePairs": [
+      { "key": "shipper", "label": "Shipper" },
+      { "key": "consignee", "label": "Consignee" },
+      { "key": "notify_party", "label": "Notify Party" },
+      { "key": "place_of_receipt", "label": "Place of Receipt" },
+      { "key": "port_of_loading", "label": "Port of Loading" },
+      { "key": "port_of_discharge", "label": "Port of Discharge" },
+      { "key": "place_of_delivery", "label": "Place of Delivery" },
+      { "key": "description_of_goods", "label": "Description of Goods" },
+      { "key": "gross_weight", "label": "Gross Weight" },
+      { "key": "bill_of_lading_number", "label": "Bill of Lading No." }
+    ]
+  },
+  "templateDesigns": [
+    {
+      "name": "BOL simple layout",
+      "standardizedTemplateId": null,
+      "design": {
+        "pages": [
+          {
+            "pageNumber": 1,
+            "boxes": [
+              { "id": "box_1", "position": { "x": 50, "y": 100 }, "size": { "width": 200, "height": 22 }, "type": "text", "rank": 1 },
+              { "id": "box_2", "position": { "x": 50, "y": 130 }, "size": { "width": 200, "height": 22 }, "type": "text", "rank": 2 },
+              { "id": "box_3", "position": { "x": 50, "y": 160 }, "size": { "width": 300, "height": 40 }, "type": "text", "rank": 3 }
+            ]
+          }
+        ]
+      },
+      "settings": { "pageSize": "A4", "orientation": "portrait" }
+    }
+  ]
+}

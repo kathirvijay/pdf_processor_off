@@ -1,0 +1,23 @@
+---
+description: Restore point – when user says "move to restore point", restore code to saved state
+alwaysApply: true
+---
+
+# Restore Point
+
+This project has a **restore point** (latest baseline). Any previous restore point is superseded; this is the only active one. All future work starts from this state.
+
+When the user says any of the following:
+
+- "move to restore point"
+- "restore point"
+- "go to restore point"
+- "revert to restore point"
+
+**You must restore the codebase to the saved state:**
+
+1. Read `.cursor/restore-point/RESTORE_POINT.md` for the list of snapshot files and their target paths.
+2. Copy each file from `.cursor/restore-point/` to its target path, overwriting the current file.
+3. Treat the restore point as the source of truth; any changes made after the restore point are removed by this restore.
+
+Example: if the doc says `TemplateEditor.jsx` → `frontend/src/pages/TemplateEditor.jsx`, copy `.cursor/restore-point/TemplateEditor.jsx` to `frontend/src/pages/TemplateEditor.jsx`.

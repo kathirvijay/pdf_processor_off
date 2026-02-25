@@ -1,0 +1,30 @@
+Template Name,Field Name,Label Name,Position X,Position Y,Width,Height,Rank,Font Size,Alignment
+Bill of Lading,,,50,24,694,52,1,18,center
+Bill of Lading,shipper_name,Shipper,50,76,347,44,2,9,left
+Bill of Lading,consignee_name,Consignee,397,76,347,44,3,9,left
+Bill of Lading,notify_party,Notify Party,50,120,347,44,4,9,left
+Bill of Lading,vessel_voyage,Vessel / Voyage,397,120,347,44,5,9,left
+Bill of Lading,port_of_loading,Port of Loading,50,164,220,44,6,9,left
+Bill of Lading,port_of_discharge,Port of Discharge,270,164,220,44,7,9,left
+Bill of Lading,place_of_receipt,Place of Receipt,490,164,254,44,8,9,left
+Bill of Lading,place_of_delivery,Place of Delivery,50,208,220,44,9,9,left
+Bill of Lading,bill_of_lading_no,B/L No.,270,208,220,44,10,9,left
+Bill of Lading,reference_no,Reference No.,490,208,254,44,11,9,left
+Bill of Lading,marks_and_numbers,Marks & Numbers,50,252,200,72,12,9,left
+Bill of Lading,no_of_pkgs,No. of Pkgs,250,252,120,72,13,9,center
+Bill of Lading,description_of_goods,Description of Goods,370,252,374,72,14,9,left
+Bill of Lading,gross_weight,Gross Weight (kg),50,324,180,44,15,9,center
+Bill of Lading,measurement,Measurement (CBM),230,324,180,44,16,9,center
+Bill of Lading,freight_charges,Freight & Charges,410,324,200,44,17,9,left
+Bill of Lading,prepaid_at,Prepaid at,610,324,134,44,18,9,left
+Bill of Lading,payable_at,Payable at,50,368,230,44,19,9,left
+Bill of Lading,place_and_date,Place and Date of Issue,280,368,270,44,20,9,left
+Bill of Lading,signed_for_carrier,Signed for the Carrier,550,368,194,44,21,9,left
+Bill of Lading,additional_terms,Additional Terms & Conditions,50,412,694,220,22,9,left
+Bill of Lading,carrier_signature,For the Carrier,50,632,347,96,23,9,left
+Bill of Lading,date_signed,Date,397,632,347,96,24,9,left
+Bill of Lading,freight_prepaid,Freight Prepaid,50,728,347,44,25,9,left
+Bill of Lading,freight_collect,Freight Collect,397,728,347,44,26,9,left
+Bill of Lading,declared_value,Declared Value for Carriage,50,772,694,96,27,9,left
+Bill of Lading,authorized_signature,Authorized Signature,50,868,347,112,28,9,left
+Bill of Lading,place_date_issue,Place and Date of Issue,397,868,347,112,29,9,left

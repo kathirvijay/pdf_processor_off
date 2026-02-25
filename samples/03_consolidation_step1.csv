@@ -1,0 +1,23 @@
+Template Name,Field Name,Label Name,Position X,Position Y,Width,Height,Rank,Font Size,Alignment
+Step 1 - Consolidation Template,,,50,24,694,52,1,14,center
+Step 1 - Consolidation Template,master_bl_no,Master B/L No.,50,76,231,90,2,9,left
+Step 1 - Consolidation Template,consolidation_date,Consolidation Date,281,76,231,90,3,9,left
+Step 1 - Consolidation Template,vessel_voyage,Vessel / Voyage,512,76,232,90,4,9,left
+Step 1 - Consolidation Template,pol,Port of Loading,50,166,347,90,5,9,left
+Step 1 - Consolidation Template,pod,Port of Discharge,397,166,347,90,6,9,left
+Step 1 - Consolidation Template,consolidator_name,Consolidator Name,50,256,347,90,7,9,left
+Step 1 - Consolidation Template,shipper,Shipper,397,256,347,90,9,9,left
+Step 1 - Consolidation Template,consolidator_address,Consolidator Address,50,346,347,98,8,9,left
+Step 1 - Consolidation Template,consignee,Consignee,397,346,347,98,10,9,left
+Step 1 - Consolidation Template,house_bl_ref,House B/L Reference,50,444,231,90,11,9,left
+Step 1 - Consolidation Template,marks_numbers,Marks & Numbers,281,444,231,90,12,9,left
+Step 1 - Consolidation Template,package_count,No. of Packages,512,444,232,90,13,9,left
+Step 1 - Consolidation Template,description,Description of Goods,50,534,430,135,14,9,left
+Step 1 - Consolidation Template,gross_kg,Gross Weight (kg),480,534,134,135,15,11,center
+Step 1 - Consolidation Template,measurement_cbm,Measurement (CBM),614,534,130,135,16,11,center
+Step 1 - Consolidation Template,freight_terms,Freight Terms,50,669,347,90,17,9,left
+Step 1 - Consolidation Template,declared_value,Declared Value,397,669,347,90,18,9,left
+Step 1 - Consolidation Template,remarks,Remarks,50,759,694,120,19,9,left
+Step 1 - Consolidation Template,prepared_by,Prepared By,50,879,231,90,20,9,left
+Step 1 - Consolidation Template,approved_by,Approved By,281,879,231,90,21,9,left
+Step 1 - Consolidation Template,date_issued,Date Issued,512,879,232,90,22,9,left

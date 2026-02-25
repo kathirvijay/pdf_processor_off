@@ -1,0 +1,2 @@
+# For detect_template_cells.py - run: pip install -r requirements.txt
+pymupdf>=1.23.0

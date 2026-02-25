@@ -1,0 +1,22 @@
+Template Name,Field Name,Label Name,Position X,Position Y,Width,Height,Rank,Font Size,Alignment
+Shipping Booking Request,,,50,24,694,52,1,14,center
+Shipping Booking Request,booking_reference,Booking Reference,50,76,231,94,2,10,left
+Shipping Booking Request,booking_date,Date,281,76,174,94,3,10,left
+Shipping Booking Request,service_type,Service Type,455,76,289,94,4,10,left
+Shipping Booking Request,shipper_name,Shipper,50,170,347,94,5,10,left
+Shipping Booking Request,consignee_name,Consignee,397,170,347,94,7,10,left
+Shipping Booking Request,shipper_address,Shipper Address,50,264,347,111,6,9,left
+Shipping Booking Request,consignee_address,Consignee Address,397,264,347,111,8,9,left
+Shipping Booking Request,origin_port,Port of Origin,50,375,231,94,9,10,left
+Shipping Booking Request,destination_port,Port of Destination,281,375,231,94,10,10,left
+Shipping Booking Request,place_of_pickup,Place of Pickup,512,375,232,94,11,10,left
+Shipping Booking Request,place_of_delivery,Place of Delivery,50,469,347,94,12,10,left
+Shipping Booking Request,earliest_ship_date,Earliest Ship Date,397,469,347,94,13,10,left
+Shipping Booking Request,cargo_description,Cargo Description,50,563,694,111,14,9,left
+Shipping Booking Request,no_of_containers,No. of Containers,50,674,174,94,15,10,left
+Shipping Booking Request,container_type,Container Type,224,674,174,94,16,10,left
+Shipping Booking Request,gross_weight,Gross Weight (kg),398,674,174,94,17,10,left
+Shipping Booking Request,volume_cbm,Volume (CBM),572,674,172,94,18,10,left
+Shipping Booking Request,special_instructions,Special Instructions,50,768,694,137,19,9,left
+Shipping Booking Request,requested_by,Requested By,50,905,347,94,20,10,left
+Shipping Booking Request,contact_phone,Contact / Phone,397,905,347,94,21,10,left
