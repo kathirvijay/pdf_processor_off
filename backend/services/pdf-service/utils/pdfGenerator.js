@@ -56,8 +56,12 @@ const DATA_TABLE_HEADER_ROW_PX = 28;
 const DATA_TABLE_ROW_HEIGHT_PX = 30;
 /** Full-width boxed area (px) between first three table rows and remaining content. */
 const DATA_TABLE_SPACER_PX = 120;
-/** Height (px) of the empty box drawn directly below the data table when rowCount <= 3; full width. */
-const EMPTY_BOX_BELOW_TABLE_PX = 100;
+/** Height (px) of the empty gap inside the table when rowCount <= 3; full width. Kept smaller so gap to next field is 2–3px. */
+const EMPTY_BOX_BELOW_TABLE_PX = 90;
+/** Gap (px) between table bottom border and the next field (e.g. Total This Page); 2px only. */
+const GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX = 2;
+/** Gap (px) between fields above and the table top; 2px. */
+const GAP_ABOVE_TABLE_PX = 2;
 /** When item count exceeds this, first page shows only header + "Find details in attached list"; all rows on attachment pages. */
 const DATA_TABLE_ATTACHED_LIST_THRESHOLD = 3;
 /** Height (px) of the gap area inside the table when in attached list mode (header + this = first segment; message row uses this). */
@@ -171,7 +175,7 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx) {
     const tTop = t.position?.y ?? 0;
     const firstSegmentBottom = tTop + tEffective;
     const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-    const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : EMPTY_BOX_BELOW_TABLE_PX;
+    const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
     const spacerBottom = firstSegmentBottom + spacerPx;
     boxes.forEach((b) => {
       if (b.id === t.id || b.type === 'table') return;
@@ -219,7 +223,7 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx) {
       if (isDataTable && tEffective != null) {
         const firstSegmentBottom = tTop + tEffective;
         const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : EMPTY_BOX_BELOW_TABLE_PX;
+        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
         const spacerBottom = firstSegmentBottom + spacerPx;
         const minY = minYBelowTable[t.id];
         if (bTop >= firstSegmentBottom) {
@@ -232,6 +236,23 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx) {
       }
     });
     boxYOffset[b.id] = offset;
+  });
+  boxes.forEach((t) => {
+    if (!t?.tableConfig?.dynamicRowsFromData || !Array.isArray(t.tableConfig?.columnKeys)) return;
+    const tTop = t.position?.y ?? 0;
+    let maxBottomAbove = -Infinity;
+    boxes.forEach((b) => {
+      if (b.id === t.id) return;
+      const bH = effectiveHeightByBoxId[b.id] ?? (b.size?.height ?? 20);
+      const bBottom = (b.position?.y ?? 0) + bH;
+      if (bBottom <= tTop) maxBottomAbove = Math.max(maxBottomAbove, bBottom);
+    });
+    if (maxBottomAbove > -Infinity) {
+      const gapAbove = tTop - maxBottomAbove;
+      if (gapAbove > GAP_ABOVE_TABLE_PX) {
+        boxYOffset[t.id] = (boxYOffset[t.id] || 0) - (gapAbove - GAP_ABOVE_TABLE_PX);
+      }
+    }
   });
   let totalHeight = Math.max(
     editorPageHeightPx,
@@ -611,7 +632,6 @@ const generatePdf = async (template, data, uploadsDir) => {
           tableY += headerHeightPt;
           if (showAttachedListMessage) {
             const messageRowHeightPt = DATA_TABLE_ATTACHED_LIST_GAP_PX * pxToPt;
-            doc.rect(x, tableY, width, messageRowHeightPt).stroke();
             doc.fillColor(0.27, 0.27, 0.27).text('Find the details of elements in attached list.', x + 3, tableY + messageRowHeightPt - 14, { width: width - 6, align: 'center' });
             tableY += messageRowHeightPt;
           } else {
@@ -635,7 +655,6 @@ const generatePdf = async (template, data, uploadsDir) => {
               colX = x;
               for (let ci = 0; ci < colCount; ci++) {
                 const cw = colWidths[ci] || width / colCount;
-                doc.rect(colX, tableY, cw, rowH).stroke();
                 doc.save();
                 doc.rect(colX, tableY, cw, rowH).clip();
                 doc.fillColor(0, 0, 0).text(cellTexts[ci], colX + 3, tableY + 3, { width: Math.max(1, cw - 6), align: 'left' });
@@ -645,13 +664,13 @@ const generatePdf = async (template, data, uploadsDir) => {
               tableY += rowH;
             }
           }
+          let outerTableHeight = tableY - tableStartY;
           if (pageIndex === 0 && rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD) {
             const remainingHeight = Math.max(0, availableHeight - (tableY - contentStartY));
             const spacerHeightPt = Math.min(EMPTY_BOX_BELOW_TABLE_PX * pxToPt, remainingHeight);
-            if (spacerHeightPt > 0) {
-              doc.rect(x, tableY, width, spacerHeightPt).stroke();
-            }
+            if (spacerHeightPt > 0) outerTableHeight += spacerHeightPt;
           }
+          doc.rect(x, tableStartY, width, outerTableHeight).stroke();
           doc.restore();
           return;
         }
@@ -694,9 +713,12 @@ const generatePdf = async (template, data, uploadsDir) => {
         const displayLabel = getDisplayLabel(box);
         const labelOnly = !!box.properties?.labelOnly;
         const valueOnly = !!box.properties?.valueOnly;
+        const emptyBox = !!box.properties?.emptyBox;
         const value = box.content || `{{${box.fieldName || 'field'}}}`;
         const valueStr = replacePlaceholders(value, dataWithPages);
-        if (valueOnly) {
+        if (emptyBox) {
+          content = '';
+        } else if (valueOnly) {
           content = valueStr != null ? String(valueStr) : '';
         } else if (labelOnly && displayLabel) {
           content = displayLabel;

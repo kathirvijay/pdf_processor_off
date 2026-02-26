@@ -109,6 +109,16 @@ function transformBoxesForNewCanvas(boxes, oldWidth, oldHeight, newWidth, newHei
   });
 }
 
+/** Extract all {{key}} placeholder names from a content string. */
+function extractPlaceholderKeys(content) {
+  if (!content || typeof content !== 'string') return [];
+  const keys = [];
+  const re = /\{\{\s*([^}\s]+)\s*\}\}/g;
+  let m;
+  while ((m = re.exec(content)) !== null) keys.push(m[1].trim());
+  return keys;
+}
+
 /** Replace {{key}} placeholders in content with values from data (for demo/preview). */
 function replacePlaceholdersInContent(content, data) {
   if (!content || typeof content !== 'string') return '';
@@ -174,8 +184,12 @@ const DATA_TABLE_HEADER_ROW_PX = 28;
 const DATA_TABLE_ROW_HEIGHT_PX = 30;
 /** Full-width boxed area (px) between first three table rows and remaining content; 120px height, full width. */
 const DATA_TABLE_SPACER_PX = 120;
-/** Height (px) of the empty box drawn directly below the data table when rowCount <= 3; full width, no gap above it. */
-const EMPTY_BOX_BELOW_TABLE_PX = 100;
+/** Height (px) of the empty gap inside the table when rowCount <= 3; full width. */
+const EMPTY_BOX_BELOW_TABLE_PX = 90;
+/** Gap (px) between table bottom and next field (e.g. Total This Page); 2px only. */
+const GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX = 2;
+/** Gap (px) between fields above and the table top; 2px. */
+const GAP_ABOVE_TABLE_PX = 2;
 /** When item count exceeds this, first page shows only header + "Find details in attached list"; all rows go on attachment pages. */
 const DATA_TABLE_ATTACHED_LIST_THRESHOLD = 3;
 /** Height (px) of the gap inside the table when in attached list mode (message row uses this). */
@@ -386,6 +400,8 @@ const TemplateEditor = () => {
   const [savingDesign, setSavingDesign] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showExportVariablesModal, setShowExportVariablesModal] = useState(false);
+  const [exportVariablesJson, setExportVariablesJson] = useState('');
 
   const toast = useToast();
 
@@ -424,7 +440,7 @@ const TemplateEditor = () => {
         const tTop = t.position?.y ?? 0;
         const firstSegmentBottom = tTop + tEffective;
         const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : EMPTY_BOX_BELOW_TABLE_PX;
+        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
         const spacerBottom = firstSegmentBottom + spacerPx;
         boxes.forEach((b) => {
           if (b.id === t.id || b.type === 'table') return;
@@ -472,7 +488,7 @@ const TemplateEditor = () => {
           if (isDataTable && tEffective != null) {
             const firstSegmentBottom = tTop + tEffective;
             const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-            const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : EMPTY_BOX_BELOW_TABLE_PX;
+            const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
             const spacerBottom = firstSegmentBottom + spacerPx;
             const minY = minYBelowTable[t.id];
             if (bTop >= firstSegmentBottom) {
@@ -485,6 +501,23 @@ const TemplateEditor = () => {
           }
         });
         boxYOffset[b.id] = offset;
+      });
+      boxes.forEach((t) => {
+        if (t.type !== 'table' || !t.tableConfig?.dynamicRowsFromData || !Array.isArray(t.tableConfig?.columnKeys)) return;
+        const tTop = t.position?.y ?? 0;
+        let maxBottomAbove = -Infinity;
+        boxes.forEach((b) => {
+          if (b.id === t.id) return;
+          const bH = effectiveHeightByBoxId[b.id] ?? Math.max(20, Number(b.size?.height) || 20);
+          const bBottom = (b.position?.y ?? 0) + bH;
+          if (bBottom <= tTop) maxBottomAbove = Math.max(maxBottomAbove, bBottom);
+        });
+        if (maxBottomAbove > -Infinity) {
+          const gapAbove = tTop - maxBottomAbove;
+          if (gapAbove > GAP_ABOVE_TABLE_PX) {
+            boxYOffset[t.id] = (boxYOffset[t.id] || 0) - (gapAbove - GAP_ABOVE_TABLE_PX);
+          }
+        }
       });
       let totalHeight = Math.max(
         pageHeight,
@@ -558,7 +591,7 @@ const TemplateEditor = () => {
       const dataTables = boxes.filter((b) => b.type === 'table' && b.tableConfig?.dynamicRowsFromData && Array.isArray(b.tableConfig?.columnKeys));
       const firstDataTable = dataTables.length > 0 ? dataTables.reduce((min, b) => ((b.position?.y ?? 0) + (dataTableLayout.boxYOffset[b.id] || 0)) < ((min.position?.y ?? 0) + (dataTableLayout.boxYOffset[min.id] || 0)) ? b : min) : null;
       const rowCount = firstDataTable ? getDataTableRowCount(demoData && typeof demoData === 'object' && !Array.isArray(demoData) ? demoData : {}, firstDataTable.tableConfig?.columnKeys || []) : 0;
-      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : EMPTY_BOX_BELOW_TABLE_PX;
+      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
       spacerBottom = dataTableLayout.dataTableSpacerTop + spacerPx;
     }
     return boxes
@@ -1318,7 +1351,7 @@ const TemplateEditor = () => {
       const tTop = t.position?.y ?? 0;
       const firstSegmentBottom = tTop + tEffective;
       const rowCount = getDataTableRowCount(data, t.tableConfig.columnKeys);
-      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : EMPTY_BOX_BELOW_TABLE_PX;
+      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
       const spacerBottom = firstSegmentBottom + spacerPx;
       boxes.forEach((b) => {
         if (b.id === t.id || b.type === 'table') return;
@@ -1366,7 +1399,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         if (isDataTable && tEffective != null) {
           const firstSegmentBottom = tTop + tEffective;
           const rowCount = getDataTableRowCount(data, t.tableConfig.columnKeys);
-          const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : EMPTY_BOX_BELOW_TABLE_PX;
+          const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
           const spacerBottom = firstSegmentBottom + spacerPx;
           const minY = minYBelowTableExport[t.id];
           if (bTop >= firstSegmentBottom) {
@@ -1463,11 +1496,15 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       const label = (rawLabel && String(rawLabel).trim().endsWith('...') && box.fieldName) ? String(box.fieldName).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : rawLabel;
       const labelOnly = !!box.properties?.labelOnly;
       const valueOnly = !!box.properties?.valueOnly;
+      const emptyBox = !!box.properties?.emptyBox;
       const rawPlaceholder = box.content || `{{${box.fieldName || 'field'}}}`;
       const dataWithPages = { ...(data && typeof data === 'object' ? data : {}), pages: `${(pageIndex ?? 0) + 1} of ${totalPages ?? 1}` };
       const displayValue = replacePlaceholdersInContent(rawPlaceholder, dataWithPages) || rawPlaceholder;
       const valueEmpty = String(displayValue).trim() === '';
-      const content = valueOnly ? (valueEmpty ? '' : escape(displayValue)) : (labelOnly && label ? escape(label) : (label ? (valueEmpty ? `${escape(label)}:` : `${escape(label)}: ${escape(displayValue)}`) : (valueEmpty ? '' : escape(displayValue))));
+      const showPlaceholderWhenEmpty = rawPlaceholder && /\{\{/.test(rawPlaceholder);
+      const valueToShow = valueEmpty && showPlaceholderWhenEmpty ? rawPlaceholder : displayValue;
+      const valueToShowEmpty = String(valueToShow).trim() === '';
+      const content = emptyBox ? '' : (valueOnly ? (valueToShowEmpty ? '' : escape(valueToShow)) : (labelOnly && label ? escape(label) : (label ? (valueToShowEmpty ? `${escape(label)}:` : `${escape(label)}: ${escape(valueToShow)}`) : (valueToShowEmpty ? '' : escape(valueToShow)))));
       const exportLayout = { boxYOffset, effectiveHeightByBoxId };
       const edges = getBoxEdgeVisibility(box, boxes, ADJACENT_EPS, exportLayout);
       const borderLeft = edges.left ? '1px solid #000' : 'none';
@@ -1865,13 +1902,17 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           var label = (rawLabel && String(rawLabel).trim().slice(-3) === '...' && box.fieldName) ? String(box.fieldName).replace(/_/g, ' ').replace(/\\b\\w/g, function(ch) { return ch.toUpperCase(); }) : rawLabel;
           var labelOnly = !!(box.properties && box.properties.labelOnly);
           var valueOnly = !!(box.properties && box.properties.valueOnly);
+          var emptyBox = !!(box.properties && box.properties.emptyBox);
           var rawPlaceholder = box.content || '{{' + (box.fieldName || 'field') + '}}';
           var dataWithPages = {};
           for (var dk in data) { if (Object.prototype.hasOwnProperty.call(data, dk)) dataWithPages[dk] = data[dk]; }
           dataWithPages.pages = (pageIndex + 1) + ' of ' + numPages;
           var displayValue = replacePlaceholders(rawPlaceholder, dataWithPages) || rawPlaceholder;
           var valueEmpty = String(displayValue).trim() === '';
-          var content = valueOnly ? (valueEmpty ? '' : escapeHtml(displayValue)) : (labelOnly && label ? escapeHtml(label) : (label ? (valueEmpty ? escapeHtml(label) + ':' : escapeHtml(label) + ': ' + escapeHtml(displayValue)) : (valueEmpty ? '' : escapeHtml(displayValue))));
+          var showPlaceholderWhenEmpty = rawPlaceholder && /\\{\\{/.test(rawPlaceholder);
+          var valueToShow = valueEmpty && showPlaceholderWhenEmpty ? rawPlaceholder : displayValue;
+          var valueToShowEmpty = String(valueToShow).trim() === '';
+          var content = emptyBox ? '' : (valueOnly ? (valueToShowEmpty ? '' : escapeHtml(valueToShow)) : (labelOnly && label ? escapeHtml(label) : (label ? (valueToShowEmpty ? escapeHtml(label) + ':' : escapeHtml(label) + ': ' + escapeHtml(valueToShow)) : (valueToShowEmpty ? '' : escapeHtml(valueToShow)))));
           var border = '1px solid #000';
           boxDivs.push('<div class="template-box" style="position:absolute;left:' + left + 'px;top:' + localTop + 'px;width:' + width + 'px;height:' + height + 'px;font-size:' + (box.properties && box.properties.fontSize != null ? box.properties.fontSize : 10) + 'px;font-family:' + escapeHtml(box.properties && box.properties.fontFamily || 'Arial') + ';color:' + escapeHtml(box.properties && box.properties.fontColor || '#000') + ';border-left:' + border + ';border-right:' + border + ';border-top:' + border + ';border-bottom:' + border + ';padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;overflow:visible;text-overflow:clip;">' + content + '</div>');
         }
@@ -1938,6 +1979,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
   Option 2 - Data is in the script tag id="template-data". Replace that JSON in the file to change default data.
   Option 3 - In console: window.loadTemplateDataFromJson('{"port_of_loading":"NY","marks_and_numbers_1":"1-UP",...}'); or set window.templateData then window.applyTemplateData();
   -->
+  <!-- Load custom data / Apply data section commented out - export shows template only
   <div id="template-data-panel" style="max-width:900px;margin:10px auto;padding:12px;background:#f5f5f5;border:1px solid #ccc;border-radius:6px;font-family:Arial,sans-serif;">
     <button type="button" id="template-data-toggle" style="padding:8px 14px;cursor:pointer;background:#333;color:#fff;border:none;border-radius:4px;font-size:14px;">Load custom data (paste JSON)</button>
     <div id="template-data-form" style="display:none;margin-top:12px;">
@@ -1946,10 +1988,12 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       <span id="template-data-msg" style="margin-left:10px;font-size:13px;"></span>
     </div>
   </div>
+  -->
   <div id="template-root">${pageDivs}</div>
   <script type="application/json" id="template-data">${templateDataJson}</script>
   <script type="application/json" id="template-config">${templateConfigJson}</script>
   <script>${embeddedScript}</script>
+  <!-- Apply data / Load custom data panel script commented out - export shows template only
   <script>
     (function(){
       var toggle = document.getElementById('template-data-toggle');
@@ -1979,6 +2023,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       });
     })();
   </script>
+  -->
 </body>
 </html>`;
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
@@ -1989,6 +2034,64 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
     a.click();
     URL.revokeObjectURL(url);
     toast.success('HTML exported successfully.');
+  };
+
+  /** Collect only variable names that are actually present in this template (from boxes on canvas). No demo-data or other extra fields. */
+  const handleExportVariables = () => {
+    const data = demoData && typeof demoData === 'object' && !Array.isArray(demoData) ? demoData : {};
+    const nameSet = new Set();
+    const nameToLabel = {};
+    boxes.forEach((box) => {
+      if (box.type === 'table' && box.tableConfig && Array.isArray(box.tableConfig.columnKeys)) {
+        (box.tableConfig.columnKeys || []).forEach((baseKey) => {
+          const k = String(baseKey || '').trim();
+          if (k) {
+            nameSet.add(k);
+            const header = (box.tableConfig.headers && box.tableConfig.headers[box.tableConfig.columnKeys.indexOf(baseKey)]) || k.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+            if (!nameToLabel[k]) nameToLabel[k] = header;
+          }
+        });
+      } else if (box.type === 'logo' || box.type === 'text') {
+        const hasExplicitField = box.fieldName && String(box.fieldName).trim();
+        const content = box.content || (hasExplicitField ? `{{${box.fieldName}}}` : '');
+        const placeholderKeys = extractPlaceholderKeys(content);
+        placeholderKeys.forEach((key) => {
+          const isDefaultPlaceholder = key === 'field' && !hasExplicitField;
+          if (!isDefaultPlaceholder && key) {
+            nameSet.add(key);
+            const label = box.labelName || key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+            if (!nameToLabel[key]) nameToLabel[key] = label;
+          }
+        });
+        if (hasExplicitField) {
+          const k = box.fieldName.trim();
+          nameSet.add(k);
+          if (!nameToLabel[k]) nameToLabel[k] = box.labelName || box.fieldName.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+        }
+      }
+    });
+    const humanize = (name) => nameToLabel[name] || name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const variables = Array.from(nameSet)
+      .sort((a, b) => a.localeCompare(b))
+      .map((name) => {
+        let example = data[name];
+        if (example == null && data[`${name}_1`] != null) example = data[`${name}_1`];
+        const item = { name, required: false, description: humanize(name) };
+        if (example != null && String(example).trim() !== '') item.example = String(example).trim();
+        return item;
+      });
+    const json = JSON.stringify(variables, null, 2);
+    setExportVariablesJson(json);
+    setShowExportVariablesModal(true);
+  };
+
+  const handleCopyExportVariables = async () => {
+    try {
+      await navigator.clipboard.writeText(exportVariablesJson);
+      toast.success('Variables copied to clipboard.');
+    } catch (e) {
+      toast.error('Copy failed.');
+    }
   };
 
   const handleCsvStructureImport = async (event) => {
@@ -2492,6 +2595,9 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       <button type="button" className="toolbar-button export-html-btn" onClick={handleExportToHtml} disabled={!boxes.length} title="Export as HTML">
         🌐 Export HTML
       </button>
+      <button type="button" className="toolbar-button export-variables-btn" onClick={handleExportVariables} disabled={!boxes.length} title="Export template variables (JSON for application)">
+        📤 Export Variables
+      </button>
     </div>
   );
 
@@ -2897,23 +3003,31 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                   </div>
                   <div className="property-group">
                     <label>Content:</label>
-                    <textarea value={selectedBoxData.content || ''} onChange={(e) => updateBox(selectedBox, { content: e.target.value })} placeholder="Text or {{field_name}}" rows={3} />
+                    <textarea value={selectedBoxData.content || ''} onChange={(e) => updateBox(selectedBox, { content: e.target.value })} placeholder={'e.g. {{shipperName}}\n{{shipperAddress}} or text'} rows={3} />
+                    <span className="property-hint" style={{ display: 'block', fontSize: 11, color: '#666', marginTop: 2 }}>One box can show multiple values: use {'{{key1}}'} and {'{{key2}}'} (e.g. {'{{shipperName}}'}, {'{{shipperAddress}}'}).</span>
                   </div>
                   {selectedBoxData.type !== 'table' && selectedBoxData.type !== 'logo' && (
                     <>
                       <div className="property-group">
                         <div className="checkbox-row">
-                          <input id="prop-label-only" type="checkbox" checked={!!selectedBoxData.properties?.labelOnly} onChange={(e) => updateBox(selectedBox, { properties: { ...selectedBoxData.properties, labelOnly: e.target.checked, ...(e.target.checked ? { valueOnly: false } : {}) } })} />
+                          <input id="prop-label-only" type="checkbox" checked={!!selectedBoxData.properties?.labelOnly} onChange={(e) => updateBox(selectedBox, { properties: { ...selectedBoxData.properties, labelOnly: e.target.checked, ...(e.target.checked ? { valueOnly: false, emptyBox: false } : {}) } })} />
                           <label htmlFor="prop-label-only">Label only</label>
                         </div>
                         <span className="property-hint" style={{ display: 'block', fontSize: 11, color: '#666', marginTop: 2 }}>Show only the label (no value)</span>
                       </div>
                       <div className="property-group">
                         <div className="checkbox-row">
-                          <input id="prop-value-only" type="checkbox" checked={!!selectedBoxData.properties?.valueOnly} onChange={(e) => updateBox(selectedBox, { properties: { ...selectedBoxData.properties, valueOnly: e.target.checked, ...(e.target.checked ? { labelOnly: false } : {}) } })} />
+                          <input id="prop-value-only" type="checkbox" checked={!!selectedBoxData.properties?.valueOnly} onChange={(e) => updateBox(selectedBox, { properties: { ...selectedBoxData.properties, valueOnly: e.target.checked, ...(e.target.checked ? { labelOnly: false, emptyBox: false } : {}) } })} />
                           <label htmlFor="prop-value-only">Value only</label>
                         </div>
                         <span className="property-hint" style={{ display: 'block', fontSize: 11, color: '#666', marginTop: 2 }}>Show only the value from data (no label)</span>
+                      </div>
+                      <div className="property-group">
+                        <div className="checkbox-row">
+                          <input id="prop-empty-box" type="checkbox" checked={!!selectedBoxData.properties?.emptyBox} onChange={(e) => updateBox(selectedBox, { properties: { ...selectedBoxData.properties, emptyBox: e.target.checked, ...(e.target.checked ? { labelOnly: false, valueOnly: false } : {}) } })} />
+                          <label htmlFor="prop-empty-box">Empty box</label>
+                        </div>
+                        <span className="property-hint" style={{ display: 'block', fontSize: 11, color: '#666', marginTop: 2 }}>Box shows no field or value (empty)</span>
                       </div>
                     </>
                   )}
@@ -3141,7 +3255,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                               backgroundColor: box.properties?.backgroundColor || 'transparent',
                               textAlign: box.properties?.alignment || 'left',
                               cursor: isDragging && draggingBox === box.id ? 'grabbing' : 'grab',
-                              zIndex: draggingBox === box.id ? 1000 : 1,
+                              zIndex: draggingBox === box.id ? 1000 : (selectedBoxIds.includes(box.id) ? 100 : 1),
                               ...(box.properties?.border !== false ? (() => {
                                 const pageBoxes = boxes.filter((b) => {
                                   if (pageIndex >= 1 && sequenceSectionBoxIds.includes(b.id)) return false;
@@ -3284,11 +3398,13 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                                   const label = (rawLabel && String(rawLabel).trim().endsWith('...') && box.fieldName) ? String(box.fieldName).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : rawLabel;
                                   const labelOnly = !!box.properties?.labelOnly;
                                   const valueOnly = !!box.properties?.valueOnly;
+                                  const emptyBox = !!box.properties?.emptyBox;
                                   const placeholder = box.content || `{{${box.fieldName || 'field'}}}`;
                                   const numP = Math.max(1, Math.min(100, dataTableLayout.numPages || 1));
                                   const dataWithPages = { ...(typeof demoData === 'object' && demoData ? demoData : {}), pages: `${pageIndex + 1} of ${numP}` };
                                   const displayText = replacePlaceholdersInContent(placeholder, dataWithPages) || placeholder;
                                   const valueEmpty = displayText.trim() === '' || displayText === placeholder;
+                                  if (emptyBox) return <span></span>;
                                   if (valueOnly) return <span>{valueEmpty ? '\u00A0' : displayText}</span>;
                                   if (labelOnly && label) return <span>{label}</span>;
                                   if (label) return <span><strong>{label}:</strong>{valueEmpty ? '' : ` ${displayText}`}</span>;
@@ -3391,7 +3507,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                     backgroundColor: box.properties?.backgroundColor || 'transparent',
                     textAlign: box.properties?.alignment || 'left',
                     cursor: isDragging && draggingBox === box.id ? 'grabbing' : 'grab',
-zIndex: draggingBox === box.id ? 1000 : 1,
+                    zIndex: draggingBox === box.id ? 1000 : (selectedBoxIds.includes(box.id) ? 100 : 1),
                               ...(box.properties?.border !== false ? (() => {
                       const edges = getBoxEdgeVisibility(box, boxes, ADJACENT_EPS, dataTableLayout);
                       const line = '1px solid #3b82f6';
@@ -3484,6 +3600,7 @@ zIndex: draggingBox === box.id ? 1000 : 1,
                         const label = (rawLabel && String(rawLabel).trim().endsWith('...') && box.fieldName) ? String(box.fieldName).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : rawLabel;
                         const labelOnly = !!box.properties?.labelOnly;
                         const valueOnly = !!box.properties?.valueOnly;
+                        const emptyBox = !!box.properties?.emptyBox;
                         const placeholder = box.content || `{{${box.fieldName || 'field'}}}`;
                         const numP = Math.max(1, Math.min(100, dataTableLayout.numPages || 1));
                         const boxGlobalTop = (box.position?.y ?? 0) + (dataTableLayout.boxYOffset[box.id] || 0);
@@ -3491,6 +3608,7 @@ zIndex: draggingBox === box.id ? 1000 : 1,
                         const dataWithPages = { ...(typeof demoData === 'object' && demoData ? demoData : {}), pages: `${boxPageIndex + 1} of ${numP}` };
                         const displayText = replacePlaceholdersInContent(placeholder, dataWithPages) || placeholder;
                         const valueEmpty = displayText.trim() === '' || displayText === placeholder;
+                        if (emptyBox) return <span></span>;
                         if (valueOnly) return <span>{valueEmpty ? '\u00A0' : displayText}</span>;
                         if (labelOnly && label) return <span>{label}</span>;
                         if (label) return <span><strong>{label}:</strong>{valueEmpty ? '' : ` ${displayText}`}</span>;
@@ -3605,6 +3723,30 @@ zIndex: draggingBox === box.id ? 1000 : 1,
               <button type="button" className="toolbar-button save-template-modal-save" onClick={handleSaveDesignModalSave} disabled={savingDesign}>
                 {savingDesign ? 'Saving…' : 'Save'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showExportVariablesModal && (
+        <div className="save-template-modal-overlay" onClick={() => setShowExportVariablesModal(false)}>
+          <div className="save-template-modal export-variables-modal" onClick={(e) => e.stopPropagation()}>
+            <h2 className="save-template-modal-title">Export Variables</h2>
+            <p className="save-template-section-hint">Template variables in JSON format. Use Copy to paste into your application.</p>
+            <div className="export-variables-content">
+              <textarea
+                className="export-variables-textarea"
+                readOnly
+                value={exportVariablesJson}
+                spellCheck={false}
+                aria-label="Variables JSON"
+              />
+            </div>
+            <div className="save-template-modal-actions">
+              <button type="button" className="toolbar-button export-variables-copy-btn" onClick={handleCopyExportVariables} title="Copy all to clipboard">
+                📋 Copy
+              </button>
+              <button type="button" className="toolbar-button save-template-modal-cancel" onClick={() => setShowExportVariablesModal(false)}>Close</button>
             </div>
           </div>
         </div>
