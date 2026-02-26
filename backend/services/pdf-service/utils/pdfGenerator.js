@@ -59,13 +59,13 @@ const DATA_TABLE_SPACER_PX = 120;
 /** Height (px) of the empty gap inside the table when rowCount <= 3; full width. Kept smaller so gap to next field is 2–3px. */
 const EMPTY_BOX_BELOW_TABLE_PX = 90;
 /** Gap (px) between table bottom border and the next field (e.g. Total This Page); 2px only. */
-const GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX = 2;
+const GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX = 8;
 /** Gap (px) between fields above and the table top; 2px. */
 const GAP_ABOVE_TABLE_PX = 2;
 /** When item count exceeds this, first page shows only header + "Find details in attached list"; all rows on attachment pages. */
 const DATA_TABLE_ATTACHED_LIST_THRESHOLD = 3;
 /** Height (px) of the gap area inside the table when in attached list mode (header + this = first segment; message row uses this). */
-const DATA_TABLE_ATTACHED_LIST_GAP_PX = 110;
+const DATA_TABLE_ATTACHED_LIST_GAP_PX = 100;
 /** Height (px) reserved for document title on each page; table content uses page height minus this for row-range. */
 const EDITOR_TITLE_AREA_PX = 90;
 
@@ -147,13 +147,22 @@ function getDataTablePageCount(box, rowCount, pageHeightPx) {
   }
 }
 
-/** Build multi-page layout: effective heights (first segment only for data tables so content below flows on page 1), per-box Y offset, total height, and number of pages. Remaining table rows are on attachment pages; totalHeight includes them. */
-function buildMultiPageLayout(boxes, data, editorPageHeightPx) {
+/**
+ * @param {object} [layoutOverrides] - Optional. When provided by Puppeteer: effectiveHeightByBoxId, tablePageCountByBoxId.
+ *   Use these for data tables so layout matches dynamic row heights and page count.
+ */
+function buildMultiPageLayout(boxes, data, editorPageHeightPx, layoutOverrides) {
   const contentHeightPx = editorPageHeightPx - EDITOR_TITLE_AREA_PX;
   const effectiveHeightByBoxId = {};
   let totalExtraHeight = 0;
+  const effectiveOverrides = layoutOverrides?.effectiveHeightByBoxId;
+  const tablePageCountOverrides = layoutOverrides?.tablePageCountByBoxId;
   boxes.forEach((box) => {
     const designHeight = box.size?.height ?? 20;
+    if (effectiveOverrides != null && effectiveOverrides[box.id] != null) {
+      effectiveHeightByBoxId[box.id] = effectiveOverrides[box.id];
+      return;
+    }
     let effective;
     if (box?.tableConfig?.dynamicRowsFromData && Array.isArray(box.tableConfig?.columnKeys)) {
       effective = getDataTableFirstSegmentHeight(box, data);
@@ -175,7 +184,7 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx) {
     const tTop = t.position?.y ?? 0;
     const firstSegmentBottom = tTop + tEffective;
     const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-    const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+    const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
     const spacerBottom = firstSegmentBottom + spacerPx;
     boxes.forEach((b) => {
       if (b.id === t.id || b.type === 'table') return;
@@ -223,7 +232,7 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx) {
       if (isDataTable && tEffective != null) {
         const firstSegmentBottom = tTop + tEffective;
         const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
         const spacerBottom = firstSegmentBottom + spacerPx;
         const minY = minYBelowTable[t.id];
         if (bTop >= firstSegmentBottom) {
@@ -266,9 +275,10 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx) {
     if (box?.tableConfig?.dynamicRowsFromData && Array.isArray(box.tableConfig?.columnKeys)) {
       const tableTop = (box.position?.y ?? 0) + (boxYOffset[box.id] || 0);
       const firstSegmentHeight = effectiveHeightByBoxId[box.id] ?? 0;
+      totalHeight = Math.max(totalHeight, tableTop + firstSegmentHeight);
+      if (effectiveOverrides != null && effectiveOverrides[box.id] != null) return;
       const rowCount = getDataTableRowCount(data || {}, box.tableConfig.columnKeys);
       const useAttachedListMode = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
-      totalHeight = Math.max(totalHeight, tableTop + firstSegmentHeight);
       if (useAttachedListMode && rowCount > 0) {
         let tablePageIndex = 1;
         while (true) {
@@ -289,6 +299,10 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx) {
   let numPages = Math.max(1, Math.ceil(totalHeight / editorPageHeightPx));
   boxes.forEach((box) => {
     if (!box?.tableConfig?.dynamicRowsFromData || !Array.isArray(box.tableConfig?.columnKeys)) return;
+    if (tablePageCountOverrides != null && tablePageCountOverrides[box.id] != null) {
+      numPages = Math.max(numPages, tablePageCountOverrides[box.id]);
+      return;
+    }
     const rowCount = getDataTableRowCount(data || {}, box.tableConfig?.columnKeys);
     const tablePages = getDataTablePageCount(box, rowCount, editorPageHeightPx);
     numPages = Math.max(numPages, tablePages);
@@ -807,4 +821,20 @@ const generatePdf = async (template, data, uploadsDir) => {
   }
 };
 
-module.exports = { generatePdf, replacePlaceholders, parseColor };
+module.exports = {
+  generatePdf,
+  replacePlaceholders,
+  parseColor,
+  buildMultiPageLayout,
+  getDataTableRowCount,
+  getDataTableCell,
+  getDataTableRowRangeForPage,
+  getEditorPageHeight,
+  EDITOR_PAGE_DIMENSIONS,
+  EDITOR_TITLE_AREA_PX,
+  DATA_TABLE_HEADER_ROW_PX,
+  DATA_TABLE_ROW_HEIGHT_PX,
+  DATA_TABLE_ATTACHED_LIST_THRESHOLD,
+  EMPTY_BOX_BELOW_TABLE_PX,
+  GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX,
+};

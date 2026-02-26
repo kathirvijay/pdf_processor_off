@@ -1,6 +1,7 @@
 const { initializeModels } = require('../../../shared/models');
 const { getStaticUserId } = require('../../../shared/config/staticUser');
 const { generatePdf } = require('../utils/pdfGenerator');
+const { generatePdfPuppeteer } = require('../utils/pdfGeneratorPuppeteer');
 const { pdfToTemplate } = require('../utils/pdfToTemplate');
 const path = require('path');
 const fs = require('fs');
@@ -98,7 +99,10 @@ const pdfController = {
         pages,
       };
 
-      const result = await generatePdf(templatePlain, data, uploadsDir);
+      const usePuppeteer = process.env.USE_PUPPETEER_PDF !== '0';
+      const result = usePuppeteer
+        ? await generatePdfPuppeteer(templatePlain, data, uploadsDir)
+        : await generatePdf(templatePlain, data, uploadsDir);
       if (!result || typeof result !== 'object') {
         throw new Error('PDF generation did not return file info');
       }
