@@ -166,6 +166,12 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx, layoutOverrides) 
     let effective;
     if (box?.tableConfig?.dynamicRowsFromData && Array.isArray(box.tableConfig?.columnKeys)) {
       effective = getDataTableFirstSegmentHeight(box, data);
+      if (effective != null) {
+        const rowCount = getDataTableRowCount(data || {}, box.tableConfig.columnKeys);
+        const rowsOnFirst = Math.max(1, Number(box?.tableConfig?.rowsOnFirstPage) || 3);
+        const useAttachedListMode = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
+        if (!useAttachedListMode && rowCount <= rowsOnFirst) effective += EMPTY_BOX_BELOW_TABLE_PX;
+      }
     }
     if (effective == null) effective = getDataTableEffectiveHeight(box, data);
     if (effective == null) effective = designHeight;
@@ -184,7 +190,9 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx, layoutOverrides) 
     const tTop = t.position?.y ?? 0;
     const firstSegmentBottom = tTop + tEffective;
     const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-    const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+    const rowsOnFirst = Math.max(1, Number(t?.tableConfig?.rowsOnFirstPage) || 3);
+    const tableIncludesGap = rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
+    const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (tableIncludesGap ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX));
     const spacerBottom = firstSegmentBottom + spacerPx;
     boxes.forEach((b) => {
       if (b.id === t.id || b.type === 'table') return;
@@ -232,7 +240,9 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx, layoutOverrides) 
       if (isDataTable && tEffective != null) {
         const firstSegmentBottom = tTop + tEffective;
         const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+        const rowsOnFirst = Math.max(1, Number(t?.tableConfig?.rowsOnFirstPage) || 3);
+        const tableIncludesGap = rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
+        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (tableIncludesGap ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX));
         const spacerBottom = firstSegmentBottom + spacerPx;
         const minY = minYBelowTable[t.id];
         if (bTop >= firstSegmentBottom) {
