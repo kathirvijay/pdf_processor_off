@@ -187,13 +187,13 @@ const DATA_TABLE_SPACER_PX = 120;
 /** Height (px) of the empty gap inside the table when rowCount <= 3; full width. */
 const EMPTY_BOX_BELOW_TABLE_PX = 90;
 /** Gap (px) between table bottom and next field (e.g. Total This Page); 2px only. */
-const GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX = 2;
+const GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX = 8;
 /** Gap (px) between fields above and the table top; 2px. */
 const GAP_ABOVE_TABLE_PX = 2;
 /** When item count exceeds this, first page shows only header + "Find details in attached list"; all rows go on attachment pages. */
 const DATA_TABLE_ATTACHED_LIST_THRESHOLD = 3;
 /** Height (px) of the gap inside the table when in attached list mode (message row uses this). */
-const DATA_TABLE_ATTACHED_LIST_GAP_PX = 110;
+const DATA_TABLE_ATTACHED_LIST_GAP_PX = 100;
 
 function getDataTableEffectiveHeight(box, data) {
   try {
@@ -402,8 +402,23 @@ const TemplateEditor = () => {
   const [deleting, setDeleting] = useState(false);
   const [showExportVariablesModal, setShowExportVariablesModal] = useState(false);
   const [exportVariablesJson, setExportVariablesJson] = useState('');
+  const [lastSavedDesignSnapshot, setLastSavedDesignSnapshot] = useState(null);
 
   const toast = useToast();
+
+  const getDesignSnapshot = (boxesData, docTitle, name, pSize, orient, outlineMode, tMode, maxCols) =>
+    JSON.stringify({
+      boxes: boxesData !== undefined ? boxesData : boxes,
+      documentTitle: docTitle !== undefined ? docTitle : documentTitle,
+      templateName: name !== undefined ? name : templateName,
+      pageSize: pSize !== undefined ? pSize : pageSize,
+      orientation: orient !== undefined ? orient : orientation,
+      templateOutlineMode: outlineMode !== undefined ? outlineMode : templateOutlineMode,
+      tableMode: tMode !== undefined ? tMode : tableMode,
+      maxDynamicColumns: maxCols !== undefined ? maxCols : maxDynamicColumns,
+    });
+  const currentDesignSnapshot = getDesignSnapshot(boxes, documentTitle, templateName, pageSize, orientation, templateOutlineMode, tableMode, maxDynamicColumns);
+  const hasUnsavedChanges = Boolean(currentTemplateId && lastSavedDesignSnapshot != null && currentDesignSnapshot !== lastSavedDesignSnapshot);
 
   const getCanvasDimensions = () => {
     const dimensions = pageSizeDimensions[pageSize] || pageSizeDimensions.A4;
@@ -440,7 +455,7 @@ const TemplateEditor = () => {
         const tTop = t.position?.y ?? 0;
         const firstSegmentBottom = tTop + tEffective;
         const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
         const spacerBottom = firstSegmentBottom + spacerPx;
         boxes.forEach((b) => {
           if (b.id === t.id || b.type === 'table') return;
@@ -488,7 +503,7 @@ const TemplateEditor = () => {
           if (isDataTable && tEffective != null) {
             const firstSegmentBottom = tTop + tEffective;
             const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-            const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+            const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
             const spacerBottom = firstSegmentBottom + spacerPx;
             const minY = minYBelowTable[t.id];
             if (bTop >= firstSegmentBottom) {
@@ -591,7 +606,7 @@ const TemplateEditor = () => {
       const dataTables = boxes.filter((b) => b.type === 'table' && b.tableConfig?.dynamicRowsFromData && Array.isArray(b.tableConfig?.columnKeys));
       const firstDataTable = dataTables.length > 0 ? dataTables.reduce((min, b) => ((b.position?.y ?? 0) + (dataTableLayout.boxYOffset[b.id] || 0)) < ((min.position?.y ?? 0) + (dataTableLayout.boxYOffset[min.id] || 0)) ? b : min) : null;
       const rowCount = firstDataTable ? getDataTableRowCount(demoData && typeof demoData === 'object' && !Array.isArray(demoData) ? demoData : {}, firstDataTable.tableConfig?.columnKeys || []) : 0;
-      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
       spacerBottom = dataTableLayout.dataTableSpacerTop + spacerPx;
     }
     return boxes
@@ -1351,7 +1366,7 @@ const TemplateEditor = () => {
       const tTop = t.position?.y ?? 0;
       const firstSegmentBottom = tTop + tEffective;
       const rowCount = getDataTableRowCount(data, t.tableConfig.columnKeys);
-      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
       const spacerBottom = firstSegmentBottom + spacerPx;
       boxes.forEach((b) => {
         if (b.id === t.id || b.type === 'table') return;
@@ -1399,7 +1414,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         if (isDataTable && tEffective != null) {
           const firstSegmentBottom = tTop + tEffective;
           const rowCount = getDataTableRowCount(data, t.tableConfig.columnKeys);
-          const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? 0 : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+          const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
           const spacerBottom = firstSegmentBottom + spacerPx;
           const minY = minYBelowTableExport[t.id];
           if (bTop >= firstSegmentBottom) {
@@ -1475,21 +1490,27 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       if (box.type === 'table' && box.tableConfig && Array.isArray(box.tableConfig.columnKeys)) {
         const columnKeys = box.tableConfig.columnKeys;
         const rowCount = getDataTableRowCount(data, columnKeys);
-        const headers = (box.tableConfig.headers || []).map((hd) => `<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">${escape(hd || '')}</th>`).join('');
+        const colCount = columnKeys.length;
+        const colWidths = (box.tableConfig.columnWidths && Array.isArray(box.tableConfig.columnWidths) && box.tableConfig.columnWidths.length === colCount)
+          ? box.tableConfig.columnWidths
+          : Array.from({ length: colCount }, () => 100 / colCount);
+        const cellWrap = 'word-break:break-word;overflow-wrap:break-word;white-space:normal;';
+        const colgroup = colWidths.map((pct) => `<col style="width:${Math.max(1, Math.min(100, Number(pct) || 100 / colCount))}%">`).join('');
+        const headers = (box.tableConfig.headers || []).map((hd) => `<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;${cellWrap}">${escape(hd || '')}</th>`).join('');
         const range = tableRowRange || { startRow: 0, endRow: rowCount };
         let bodyRows = '';
         if (rowCount === 0) {
-          bodyRows = `<tr><td colspan="${columnKeys.length}" style="border:1px solid #000;padding:8px;">No data rows</td></tr>`;
+          bodyRows = `<tr><td colspan="${columnKeys.length}" style="border:none;padding:8px;">No data rows</td></tr>`;
         } else if (rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD && range.endRow === range.startRow) {
-          bodyRows = `<tr style="height:${DATA_TABLE_ATTACHED_LIST_GAP_PX}px"><td colspan="${columnKeys.length}" style="border:1px solid #000;padding:8px;font-style:italic;text-align:center;vertical-align:bottom;height:${DATA_TABLE_ATTACHED_LIST_GAP_PX}px;">Find the details of elements in attached list.</td></tr>`;
+          bodyRows = `<tr style="height:${DATA_TABLE_ATTACHED_LIST_GAP_PX}px"><td colspan="${columnKeys.length}" style="border:none;padding:8px;font-style:italic;text-align:center;vertical-align:bottom;height:${DATA_TABLE_ATTACHED_LIST_GAP_PX}px;">Find the details of elements in attached list.</td></tr>`;
         } else {
           bodyRows = Array.from({ length: range.endRow - range.startRow }).map((_, i) => {
             const ri = range.startRow + i;
-            const cells = columnKeys.map((_, ci) => escape(getDataTableCell(data, columnKeys, ri + 1, ci))).map((cell) => `<td style="border:1px solid #000;padding:4px;">${cell}</td>`).join('');
+            const cells = columnKeys.map((_, ci) => escape(getDataTableCell(data, columnKeys, ri + 1, ci))).map((cell) => `<td style="border:none;padding:4px;${cellWrap}">${cell}</td>`).join('');
             return `<tr>${cells}</tr>`;
           }).join('');
         }
-        const tableHtml = `<table style="width:100%;border-collapse:collapse;font-size:${box.properties?.fontSize ?? 11}px;"><thead><tr>${headers}</tr></thead><tbody>${bodyRows}</tbody></table>`;
+        const tableHtml = `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:${box.properties?.fontSize ?? 11}px;"><colgroup>${colgroup}</colgroup><thead><tr>${headers}</tr></thead><tbody>${bodyRows}</tbody></table>`;
         return `<div class="template-box template-box-table" style="position:absolute;left:${box.position?.x ?? 0}px;top:${top}px;width:${width}px;height:${height}px;padding:4px;box-sizing:border-box;overflow:visible;">${tableHtml}</div>`;
       }
       const rawLabel = box.labelName || (box.fieldName ? String(box.fieldName).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : '');
@@ -1883,19 +1904,23 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         if (box.type === 'table' && box.tableConfig && Array.isArray(box.tableConfig.columnKeys)) {
           var columnKeys = box.tableConfig.columnKeys;
           var rowCount = getDataTableRowCount(data, columnKeys);
-          var headers = (box.tableConfig.headers || []).map(function(hd) { return '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">' + escapeHtml(hd || '') + '</th>'; }).join('');
+          var colCount = columnKeys.length;
+          var colWidths = (box.tableConfig.columnWidths && Array.isArray(box.tableConfig.columnWidths) && box.tableConfig.columnWidths.length === colCount) ? box.tableConfig.columnWidths : Array.from({ length: colCount }, function() { return 100 / colCount; });
+          var cellWrap = 'word-break:break-word;overflow-wrap:break-word;white-space:normal;';
+          var colgroup = colWidths.map(function(pct) { return '<col style="width:' + Math.max(1, Math.min(100, Number(pct) || 100 / colCount)) + '%">'; }).join('');
+          var headers = (box.tableConfig.headers || []).map(function(hd) { return '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;' + cellWrap + '">' + escapeHtml(hd || '') + '</th>'; }).join('');
           var r = tableRowRange || { startRow: 0, endRow: rowCount };
           var bodyRows = '';
-          if (rowCount === 0) bodyRows = '<tr><td colspan="' + columnKeys.length + '" style="border:1px solid #000;padding:8px;">No data rows</td></tr>';
-          else if (rowCount > THRESH && r.endRow === r.startRow) bodyRows = '<tr style="height:' + GAP_PX + 'px"><td colspan="' + columnKeys.length + '" style="border:1px solid #000;padding:8px;font-style:italic;text-align:center;vertical-align:bottom;height:' + GAP_PX + 'px;">Find the details of elements in attached list.</td></tr>';
+          if (rowCount === 0) bodyRows = '<tr><td colspan="' + columnKeys.length + '" style="border:none;padding:8px;">No data rows</td></tr>';
+          else if (rowCount > THRESH && r.endRow === r.startRow) bodyRows = '<tr style="height:' + GAP_PX + 'px"><td colspan="' + columnKeys.length + '" style="border:none;padding:8px;font-style:italic;text-align:center;vertical-align:bottom;height:' + GAP_PX + 'px;">Find the details of elements in attached list.</td></tr>';
           else {
             for (var ri = r.startRow; ri < r.endRow; ri++) {
               var cells = [];
-              for (var ci = 0; ci < columnKeys.length; ci++) cells.push('<td style="border:1px solid #000;padding:4px;">' + escapeHtml(getDataTableCell(data, columnKeys, ri + 1, ci)) + '</td>');
+              for (var ci = 0; ci < columnKeys.length; ci++) cells.push('<td style="border:none;padding:4px;' + cellWrap + '">' + escapeHtml(getDataTableCell(data, columnKeys, ri + 1, ci)) + '</td>');
               bodyRows += '<tr>' + cells.join('') + '</tr>';
             }
           }
-          var tableHtml = '<table style="width:100%;border-collapse:collapse;font-size:' + (box.properties && box.properties.fontSize != null ? box.properties.fontSize : 11) + 'px;"><thead><tr>' + headers + '</tr></thead><tbody>' + bodyRows + '</tbody></table>';
+          var tableHtml = '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:' + (box.properties && box.properties.fontSize != null ? box.properties.fontSize : 11) + 'px;"><colgroup>' + colgroup + '</colgroup><thead><tr>' + headers + '</tr></thead><tbody>' + bodyRows + '</tbody></table>';
           boxDivs.push('<div class="template-box template-box-table" style="position:absolute;left:' + left + 'px;top:' + localTop + 'px;width:' + width + 'px;height:' + height + 'px;padding:4px;box-sizing:border-box;overflow:visible;">' + tableHtml + '</div>');
         } else {
           var rawLabel = box.labelName || (box.fieldName ? String(box.fieldName).replace(/_/g, ' ').replace(/\\b\\w/g, function(ch) { return ch.toUpperCase(); }) : '');
@@ -2193,18 +2218,30 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       setTemplateOutlineMode(t.settings?.outlineMode || 'none');
       setTableMode(t.settings?.tableMode || 'static');
       setMaxDynamicColumns(t.settings?.maxDynamicColumns ?? 10);
+      let designBoxes = [];
       if (t.pages?.[0]?.boxes) {
-        setBoxes(t.pages[0].boxes.map((b) => {
+        designBoxes = t.pages[0].boxes.map((b) => {
           const base = { ...b, properties: { ...b.properties, contentPosition: { x: 0, y: 0 } } };
           if (b.type === 'table' && b.tableConfig?.dynamicRowsFromData && b.tableConfig) {
             base.tableConfig = { ...b.tableConfig, rowsOnFirstPage: b.tableConfig.rowsOnFirstPage ?? 3 };
           }
           return base;
-        }));
-        setNextRank(Math.max(...t.pages[0].boxes.map((b) => b.rank || 0), 0) + 1);
+        });
+        setBoxes(designBoxes);
+        setNextRank(Math.max(...designBoxes.map((b) => b.rank || 0), 0) + 1);
       } else setBoxes([]);
       setSelection([]);
       setCurrentTemplateId(t.id);
+      setLastSavedDesignSnapshot(JSON.stringify({
+        boxes: designBoxes,
+        documentTitle: t.settings?.title ?? t.name,
+        templateName: t.name,
+        pageSize: t.settings?.pageSize ?? 'A4',
+        orientation: t.settings?.orientation ?? 'portrait',
+        templateOutlineMode: t.settings?.outlineMode ?? 'none',
+        tableMode: t.settings?.tableMode ?? 'static',
+        maxDynamicColumns: t.settings?.maxDynamicColumns ?? 10,
+      }));
       if (t.standardizedTemplateId) {
         setEditorMode('standardized');
         setSelectedStandardizedId(t.standardizedTemplateId);
@@ -2303,6 +2340,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         setCurrentTemplateId(res.data.id);
         toast.success('Template saved.');
       }
+      setLastSavedDesignSnapshot(currentDesignSnapshot);
       fetchTemplateCount();
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Failed to save';
@@ -2426,6 +2464,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         setCurrentTemplateId(res.data.id);
         toast.success('Template saved.');
       }
+      setLastSavedDesignSnapshot(getDesignSnapshot(updatedBoxes, docName, name, pageSize, orientation, templateOutlineMode, tableMode, maxDynamicColumns));
       fetchTemplateCount();
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Failed to save';
@@ -2589,7 +2628,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       <button type="button" className="toolbar-button save-button" onClick={handleSave} disabled={saving}>
         💾 Save
       </button>
-      <button type="button" className="toolbar-button generate-button" onClick={handleGenerate} disabled={loading || !currentTemplateId}>
+      <button type="button" className="toolbar-button generate-button" onClick={handleGenerate} disabled={loading || !currentTemplateId || hasUnsavedChanges} title={hasUnsavedChanges ? 'Save the template first so PDF reflects your changes.' : ''}>
         📄 Create PDF
       </button>
       <button type="button" className="toolbar-button export-html-btn" onClick={handleExportToHtml} disabled={!boxes.length} title="Export as HTML">
@@ -3093,6 +3132,42 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                           title="Fixed rows per page after the first (0 or empty = fit by page height)"
                         />
                       </div>
+                      {(selectedBoxData.tableConfig.headers || selectedBoxData.tableConfig.columnKeys || []).length > 0 && (
+                        <div className="property-group">
+                          <label>Column widths (%):</label>
+                          <div className="column-widths-editor">
+                            {(() => {
+                              const headers = selectedBoxData.tableConfig.headers || (selectedBoxData.tableConfig.columnKeys || []).map((k) => String(k).replace(/_/g, ' '));
+                              const colCount = headers.length || 1;
+                              const widths = (selectedBoxData.tableConfig.columnWidths && Array.isArray(selectedBoxData.tableConfig.columnWidths) && selectedBoxData.tableConfig.columnWidths.length === colCount)
+                                ? selectedBoxData.tableConfig.columnWidths
+                                : Array.from({ length: colCount }, () => Math.round(10000 / colCount) / 100);
+                              return headers.map((header, i) => (
+                                <div key={i} className="column-width-row">
+                                  <span className="column-width-label" title={header}>{String(header).slice(0, 18)}{String(header).length > 18 ? '…' : ''}</span>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={100}
+                                    step={1}
+                                    value={widths[i] ?? 100 / colCount}
+                                    onChange={(e) => {
+                                      const val = parseFloat(e.target.value);
+                                      if (Number.isNaN(val)) return;
+                                      const next = [...(selectedBoxData.tableConfig.columnWidths && selectedBoxData.tableConfig.columnWidths.length === colCount ? selectedBoxData.tableConfig.columnWidths : widths)];
+                                      next[i] = Math.max(1, Math.min(100, val));
+                                      updateBox(selectedBox, { tableConfig: { ...selectedBoxData.tableConfig, columnWidths: next } });
+                                    }}
+                                    title={`Width % for ${header}`}
+                                  />
+                                  <span className="column-width-unit">%</span>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                          <span className="property-hint">Content wraps within column width; adjust to resize columns.</span>
+                        </div>
+                      )}
                     </>
                   )}
                   <button type="button" className="delete-button" onClick={() => deleteBox(selectedBox)}>🗑️ Delete Box</button>
@@ -3327,12 +3402,22 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                           >
                             <div className="box-handle">⋮⋮</div>
                             {box.type === 'table' && box.tableConfig ? (
+                              (() => {
+                                const colCount = (box.tableConfig.headers || []).length || 1;
+                                const widths = (box.tableConfig.columnWidths && Array.isArray(box.tableConfig.columnWidths) && box.tableConfig.columnWidths.length === colCount)
+                                  ? box.tableConfig.columnWidths
+                                  : Array.from({ length: colCount }, () => 100 / colCount);
+                                const cellWrapStyle = { wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' };
+                                return (
                               <div className="table-preview" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', padding: '4px 4px 0 4px', boxSizing: 'border-box', overflow: 'visible' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, tableLayout: 'fixed' }}>
+                                  <colgroup>
+                                    {widths.map((pct, i) => <col key={i} style={{ width: `${Math.max(1, Math.min(100, Number(pct) || 100 / colCount))}%` }} />)}
+                                  </colgroup>
                                   <thead>
                                     <tr>
                                       {box.tableConfig.headers.map((h, i) => (
-                                        <th key={i} style={{ border: '1px solid #ccc', padding: 4, textAlign: 'left', backgroundColor: '#f0f0f0' }}>{h || `H${i + 1}`}</th>
+                                        <th key={i} style={{ border: '1px solid #ccc', padding: 4, textAlign: 'left', backgroundColor: '#f0f0f0', ...cellWrapStyle }}>{h || `H${i + 1}`}</th>
                                       ))}
                                     </tr>
                                   </thead>
@@ -3342,7 +3427,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                                         const rowCount = getDataTableRowCount(demoData, box.tableConfig.columnKeys);
                                         if (rowCount === 0) {
                                           return (
-                                            <tr><td colSpan={box.tableConfig.headers?.length || 1} style={{ border: '1px solid #ccc', padding: 8, color: '#666' }}>No demo data rows</td></tr>
+                                            <tr><td colSpan={box.tableConfig.headers?.length || 1} style={{ border: 'none', padding: 8, color: '#666' }}>No demo data rows</td></tr>
                                           );
                                         }
                                         const globalTop = (box.position?.y ?? 0) + (dataTableLayout.boxYOffset[box.id] || 0);
@@ -3353,7 +3438,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                                         if (tablePageIndex === 0 && useAttachedListMode) {
                                           return (
                                             <tr style={{ height: DATA_TABLE_ATTACHED_LIST_GAP_PX }}>
-                                              <td colSpan={box.tableConfig.headers?.length || 1} style={{ border: '1px solid #ccc', padding: 8, fontStyle: 'italic', color: '#444', textAlign: 'center', verticalAlign: 'bottom', height: DATA_TABLE_ATTACHED_LIST_GAP_PX }}>Find the details of elements in attached list.</td>
+                                              <td colSpan={box.tableConfig.headers?.length || 1} style={{ border: 'none', padding: 8, fontStyle: 'italic', color: '#444', textAlign: 'center', verticalAlign: 'bottom', height: DATA_TABLE_ATTACHED_LIST_GAP_PX }}>Find the details of elements in attached list.</td>
                                             </tr>
                                           );
                                         }
@@ -3368,7 +3453,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                                           return (
                                             <tr key={ri}>
                                               {(box.tableConfig.columnKeys || box.tableConfig.headers || []).map((_, ci) => (
-                                                <td key={ci} style={{ border: '1px solid #ccc', padding: 4 }}>{getDataTableCell(demoData, box.tableConfig.columnKeys, ri + 1, ci)}</td>
+                                                <td key={ci} style={{ border: 'none', padding: 4, ...cellWrapStyle }}>{getDataTableCell(demoData, box.tableConfig.columnKeys, ri + 1, ci)}</td>
                                               ))}
                                             </tr>
                                           );
@@ -3378,7 +3463,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                                       Array.from({ length: box.tableConfig.rows || 1 }).map((_, ri) => (
                                         <tr key={ri}>
                                           {box.tableConfig.headers.map((_, ci) => (
-                                            <td key={ci} style={{ border: '1px solid #ccc', padding: 4 }}>{ri === 0 && ci === 0 ? 'Data' : ''}</td>
+                                            <td key={ci} style={{ border: 'none', padding: 4, ...cellWrapStyle }}>{ri === 0 && ci === 0 ? 'Data' : ''}</td>
                                           ))}
                                         </tr>
                                       ))
@@ -3386,6 +3471,8 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                                   </tbody>
                                 </table>
                               </div>
+                                );
+                              })()
                             ) : box.type === 'logo' ? (
                               <div className="box-content box-content-logo" style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', padding: 4, cursor: 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
                                 <span className="logo-placeholder-icon" aria-hidden>🖼</span>
@@ -3548,13 +3635,13 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                               const rowCount = getDataTableRowCount(demoData, box.tableConfig.columnKeys);
                               if (rowCount === 0) {
                                 return (
-                                  <tr><td colSpan={box.tableConfig.headers?.length || 1} style={{ border: '1px solid #ccc', padding: 8, color: '#666' }}>No demo data rows (use keys like marks_and_numbers_1, marks_and_numbers_2, …)</td></tr>
+                                  <tr><td colSpan={box.tableConfig.headers?.length || 1} style={{ border: 'none', padding: 8, color: '#666' }}>No demo data rows (use keys like marks_and_numbers_1, marks_and_numbers_2, …)</td></tr>
                                 );
                               }
                               return Array.from({ length: rowCount }).map((_, ri) => (
                                 <tr key={ri}>
                                   {(box.tableConfig.columnKeys || box.tableConfig.headers || []).map((_, ci) => (
-                                    <td key={ci} style={{ border: '1px solid #ccc', padding: 4 }}>{getDataTableCell(demoData, box.tableConfig.columnKeys, ri + 1, ci)}</td>
+                                    <td key={ci} style={{ border: 'none', padding: 4 }}>{getDataTableCell(demoData, box.tableConfig.columnKeys, ri + 1, ci)}</td>
                                   ))}
                                 </tr>
                               ));
@@ -3563,7 +3650,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                             Array.from({ length: box.tableConfig.rows || 1 }).map((_, ri) => (
                               <tr key={ri}>
                                 {box.tableConfig.headers.map((_, ci) => (
-                                  <td key={ci} style={{ border: '1px solid #ccc', padding: 4 }}>{ri === 0 && ci === 0 ? 'Data' : ''}</td>
+                                  <td key={ci} style={{ border: 'none', padding: 4 }}>{ri === 0 && ci === 0 ? 'Data' : ''}</td>
                                 ))}
                               </tr>
                             ))
