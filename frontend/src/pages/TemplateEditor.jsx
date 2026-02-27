@@ -29,6 +29,15 @@ const pageSizeDimensions = {
   A5: { portrait: { width: 559, height: 794 }, landscape: { width: 794, height: 559 } },
 };
 
+const sortKvByKey = (a, b) => {
+  const ak = String(a?.key ?? '').trim().toLowerCase();
+  const bk = String(b?.key ?? '').trim().toLowerCase();
+  if (!ak && !bk) return 0;
+  if (!ak) return 1;
+  if (!bk) return -1;
+  return ak.localeCompare(bk);
+};
+
 /**
  * Compacts boxes vertically so rows sit one under the other with minimal gap (no big spaces).
  * Groups boxes by similar Y into rows, then stacks rows with ROW_GAP.
@@ -119,15 +128,15 @@ function extractPlaceholderKeys(content) {
   return keys;
 }
 
-/** Replace {{key}} placeholders in content with values from data (for demo/preview). */
+/** Replace {{key}} placeholders in content with values from data (for demo/preview). Missing keys render as empty, not as literal {{key}}. */
 function replacePlaceholdersInContent(content, data) {
   if (!content || typeof content !== 'string') return '';
-  let result = content;
-  Object.keys(data || {}).forEach((key) => {
-    const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'gi');
-    result = result.replace(regex, data[key] != null ? String(data[key]) : '');
+  const dataObj = data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+  return content.replace(/\{\{\s*([^}\s]+)\s*\}\}/g, (match, key) => {
+    const k = String(key).trim();
+    const val = dataObj[k];
+    return (val !== undefined && val !== null) ? String(val) : '';
   });
-  return result;
 }
 
 /** Resolved value for a text box (placeholder replaced). Used to hide key-value boxes when value is empty. */
@@ -504,10 +513,10 @@ const TemplateEditor = () => {
             const rowsOnFirst = Math.max(3, Math.max(1, Number(box?.tableConfig?.rowsOnFirstPage) || 3));
             const useAttachedListMode = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
             if (!useAttachedListMode && rowCount <= rowsOnFirst) effective += EMPTY_BOX_BELOW_TABLE_PX;
-            effective = Math.max(20, Math.min(8000, Number(effective)));
+            effective = Math.max(20, Math.min(8000, Math.max(Number(effective), designHeight)));
           }
         }
-        const h = effective != null ? effective : designHeight;
+        const h = effective != null ? Math.max(effective, designHeight) : designHeight;
         effectiveHeightByBoxId[box.id] = h;
         if (effective != null) totalExtraHeight += Math.max(0, effective - designHeight);
       });
@@ -1431,9 +1440,10 @@ const TemplateEditor = () => {
           const rowsOnFirst = Math.max(3, Math.max(1, Number(box?.tableConfig?.rowsOnFirstPage) || 3));
           const useAttachedListMode = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
           if (!useAttachedListMode && rowCount <= rowsOnFirst) effective += EMPTY_BOX_BELOW_TABLE_PX;
+          effective = Math.max(Number(effective), designHeight);
         }
       }
-      const heightVal = effective != null ? effective : designHeight;
+      const heightVal = effective != null ? Math.max(effective, designHeight) : designHeight;
       effectiveHeightByBoxId[box.id] = heightVal;
       if (effective != null) totalExtraHeight += Math.max(0, effective - designHeight);
     });
@@ -1623,10 +1633,9 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       const emptyBox = !!box.properties?.emptyBox;
       const rawPlaceholder = box.content || `{{${box.fieldName || 'field'}}}`;
       const dataWithPages = { ...(data && typeof data === 'object' ? data : {}), pages: `${(pageIndex ?? 0) + 1} of ${totalPages ?? 1}` };
-      const displayValue = replacePlaceholdersInContent(rawPlaceholder, dataWithPages) || rawPlaceholder;
+      const displayValue = replacePlaceholdersInContent(rawPlaceholder, dataWithPages);
       const valueEmpty = String(displayValue).trim() === '';
-      const showPlaceholderWhenEmpty = rawPlaceholder && /\{\{/.test(rawPlaceholder);
-      const valueToShow = valueEmpty && showPlaceholderWhenEmpty ? rawPlaceholder : displayValue;
+      const valueToShow = displayValue;
       const valueToShowEmpty = String(valueToShow).trim() === '';
       const content = emptyBox ? '' : (valueOnly ? (valueToShowEmpty ? '' : escape(valueToShow)) : (labelOnly && label ? escape(label) : (label ? (valueToShowEmpty ? `${escape(label)}:` : `${escape(label)}: ${escape(valueToShow)}`) : (valueToShowEmpty ? '' : escape(valueToShow)))));
       const exportLayout = { boxYOffset, effectiveHeightByBoxId };
@@ -1865,11 +1874,12 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       b = boxes[i];
       var designH = Math.max(20, b.size && b.size.height != null ? b.size.height : 20);
       var eff = getDataTableFirstSegmentHeight(b, data);
-      effectiveHeightByBoxId[b.id] = eff != null ? eff : designH;
+      effectiveHeightByBoxId[b.id] = eff != null ? Math.max(eff, designH) : designH;
       if (eff != null && b.type === 'table' && b.tableConfig && Array.isArray(b.tableConfig.columnKeys)) {
         rowCount = getDataTableRowCount(data, b.tableConfig.columnKeys);
         var rowsOnFirstB = Math.max(3, Math.max(1, Number(b.tableConfig.rowsOnFirstPage) || 3));
         if (rowCount <= THRESH && rowCount <= rowsOnFirstB) effectiveHeightByBoxId[b.id] += SPACER_PX;
+        effectiveHeightByBoxId[b.id] = Math.max(effectiveHeightByBoxId[b.id], designH);
       }
     }
     var isEmpty = function(b) {
@@ -2105,10 +2115,9 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           var dataWithPages = {};
           for (var dk in data) { if (Object.prototype.hasOwnProperty.call(data, dk)) dataWithPages[dk] = data[dk]; }
           dataWithPages.pages = (pageIndex + 1) + ' of ' + numPages;
-          var displayValue = replacePlaceholders(rawPlaceholder, dataWithPages) || rawPlaceholder;
+          var displayValue = replacePlaceholders(rawPlaceholder, dataWithPages);
           var valueEmpty = String(displayValue).trim() === '';
-          var showPlaceholderWhenEmpty = rawPlaceholder && /\\{\\{/.test(rawPlaceholder);
-          var valueToShow = valueEmpty && showPlaceholderWhenEmpty ? rawPlaceholder : displayValue;
+          var valueToShow = displayValue;
           var valueToShowEmpty = String(valueToShow).trim() === '';
           var content = emptyBox ? '' : (valueOnly ? (valueToShowEmpty ? '' : escapeHtml(valueToShow)) : (labelOnly && label ? escapeHtml(label) : (label ? (valueToShowEmpty ? escapeHtml(label) + ':' : escapeHtml(label) + ': ' + escapeHtml(valueToShow)) : (valueToShowEmpty ? '' : escapeHtml(valueToShow)))));
           var border = '1px solid #000';
@@ -2699,11 +2708,12 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
   const canvasDims = getCanvasDimensions();
 
   const sortedTemplateDesigns = useMemo(() => {
-    if (!selectedStandardizedId) return templateDesignsList;
+    const byName = (a, b) => (a.name || '').localeCompare(b.name || '');
+    if (!selectedStandardizedId) return [...templateDesignsList].sort(byName);
     const selectedId = (selectedStandardizedId ?? '').toString().toLowerCase();
     const recommended = templateDesignsList.filter((d) => ((d.standardizedTemplateId ?? d.standardized_template_id) ?? '').toString().toLowerCase() === selectedId);
     const other = templateDesignsList.filter((d) => ((d.standardizedTemplateId ?? d.standardized_template_id) ?? '').toString().toLowerCase() !== selectedId);
-    return [...recommended, ...other];
+    return [...recommended.sort(byName), ...other.sort(byName)];
   }, [templateDesignsList, selectedStandardizedId]);
 
   const recommendedDesigns = useMemo(() => {
@@ -2757,7 +2767,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
               }}
             >
               <option value="">Open template...</option>
-              {templatesList.map((t) => (
+              {[...templatesList].sort((a, b) => (a.name || '').localeCompare(b.name || '')).map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name}
                 </option>
@@ -2849,7 +2859,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                 style={{ width: '100%', marginBottom: 8 }}
               >
                 <option value="">Select format...</option>
-                {standardizedTemplatesList.map((st) => (
+                {[...standardizedTemplatesList].sort((a, b) => (a.name || '').localeCompare(b.name || '')).map((st) => (
                   <option key={st.id} value={st.id}>{st.name}</option>
                 ))}
               </select>
@@ -2875,10 +2885,12 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                     <span className="standardized-key-label">Logo</span>
                     <span className="standardized-key-key">logo</span>
                   </div>
-                  {standardizedKeyValuePairs.length > 0 && (
+                  {standardizedKeyValuePairs.length > 0 && (() => {
+                    const sortedKv = [...standardizedKeyValuePairs].sort(sortKvByKey);
+                    return (
                     <>
                       <div className="standardized-keys-unboxed" aria-label="First three keys">
-                        {standardizedKeyValuePairs.slice(0, 3).map((kv, idx) => (
+                        {sortedKv.slice(0, 3).map((kv, idx) => (
                           <div
                             key={kv.key ? `key-${kv.key}-${idx}` : `std-${idx}`}
                             className="standardized-key-item"
@@ -2902,7 +2914,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                           </div>
                         ))}
                       </div>
-                      {standardizedKeyValuePairs.slice(3).map((kv, idx) => (
+                      {sortedKv.slice(3).map((kv, idx) => (
                         <div
                           key={kv.key ? `key-${kv.key}-${idx + 3}` : `std-${idx + 3}`}
                           className="standardized-key-item"
@@ -2926,7 +2938,8 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                         </div>
                       ))}
                     </>
-                  )}
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -3205,7 +3218,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                         style={{ width: '100%' }}
                       >
                         <option value="">— Select key —</option>
-                        {standardizedKeyValuePairs.map((kv) => (
+                        {[...standardizedKeyValuePairs].sort(sortKvByKey).map((kv) => (
                           <option key={kv.key} value={kv.key}>{kv.label || kv.key}</option>
                         ))}
                       </select>
@@ -3664,13 +3677,13 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                                   const placeholder = box.content || `{{${box.fieldName || 'field'}}}`;
                                   const numP = Math.max(1, Math.min(100, dataTableLayout.numPages || 1));
                                   const dataWithPages = { ...(typeof demoData === 'object' && demoData ? demoData : {}), pages: `${pageIndex + 1} of ${numP}` };
-                                  const displayText = replacePlaceholdersInContent(placeholder, dataWithPages) || placeholder;
-                                  const valueEmpty = displayText.trim() === '' || displayText === placeholder;
+                                  const displayText = replacePlaceholdersInContent(placeholder, dataWithPages);
+                                  const valueEmpty = displayText.trim() === '';
                                   if (emptyBox) return <span></span>;
                                   if (valueOnly) return <span>{valueEmpty ? '\u00A0' : displayText}</span>;
                                   if (labelOnly && label) return <span>{label}</span>;
                                   if (label) return <span><strong>{label}:</strong>{valueEmpty ? '' : ` ${displayText}`}</span>;
-                                  if (box.content && String(box.content).trim()) return replacePlaceholdersInContent(box.content, dataWithPages) || box.content;
+                                  if (box.content && String(box.content).trim()) return replacePlaceholdersInContent(box.content, dataWithPages);
                                   if (box.fieldName) return valueEmpty ? '\u00A0' : displayText;
                                   return '\u00A0';
                                 })()}
@@ -3868,13 +3881,13 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                         const boxGlobalTop = (box.position?.y ?? 0) + (dataTableLayout.boxYOffset[box.id] || 0);
                         const boxPageIndex = Math.min(Math.max(0, Math.floor(boxGlobalTop / canvasDims.height)), numP - 1);
                         const dataWithPages = { ...(typeof demoData === 'object' && demoData ? demoData : {}), pages: `${boxPageIndex + 1} of ${numP}` };
-                        const displayText = replacePlaceholdersInContent(placeholder, dataWithPages) || placeholder;
-                        const valueEmpty = displayText.trim() === '' || displayText === placeholder;
+                        const displayText = replacePlaceholdersInContent(placeholder, dataWithPages);
+                        const valueEmpty = displayText.trim() === '';
                         if (emptyBox) return <span></span>;
                         if (valueOnly) return <span>{valueEmpty ? '\u00A0' : displayText}</span>;
                         if (labelOnly && label) return <span>{label}</span>;
                         if (label) return <span><strong>{label}:</strong>{valueEmpty ? '' : ` ${displayText}`}</span>;
-                        if (box.content && String(box.content).trim()) return replacePlaceholdersInContent(box.content, dataWithPages) || box.content;
+                        if (box.content && String(box.content).trim()) return replacePlaceholdersInContent(box.content, dataWithPages);
                         if (box.fieldName) return valueEmpty ? '\u00A0' : displayText;
                         return '\u00A0';
                       })()}
@@ -4058,13 +4071,16 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                         </tr>
                       </thead>
                       <tbody>
-                        {saveModalKeyValues.map((kv, index) => (
-                          <tr key={kv.boxId ? `box-${kv.boxId}` : `row-${index}`}>
+                        {saveModalKeyValues
+                          .map((kv, index) => ({ ...kv, _idx: index }))
+                          .sort((a, b) => sortKvByKey(a, b))
+                          .map((kv) => (
+                          <tr key={kv.boxId ? `box-${kv.boxId}` : `row-${kv._idx}`}>
                             <td>
                               <input
                                 type="text"
                                 value={kv.key || ''}
-                                onChange={(e) => updateSaveModalKeyValue(index, 'key', e.target.value)}
+                                onChange={(e) => updateSaveModalKeyValue(kv._idx, 'key', e.target.value)}
                                 placeholder="field_name"
                                 className="save-template-kv-input"
                                 title="Edit key"
@@ -4074,7 +4090,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                               <input
                                 type="text"
                                 value={kv.value || ''}
-                                onChange={(e) => updateSaveModalKeyValue(index, 'value', e.target.value)}
+                                onChange={(e) => updateSaveModalKeyValue(kv._idx, 'value', e.target.value)}
                                 placeholder="{{field_name}} or text"
                                 className="save-template-kv-input"
                                 title="Edit value"
@@ -4092,7 +4108,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                               <button
                                 type="button"
                                 className="save-template-row-btn save-template-delete-btn"
-                                onClick={() => removeSaveModalRow(index)}
+                                onClick={() => removeSaveModalRow(kv._idx)}
                                 title="Delete row"
                               >
                                 🗑

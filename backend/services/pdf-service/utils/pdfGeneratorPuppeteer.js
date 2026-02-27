@@ -217,7 +217,8 @@ async function generatePdfPuppeteer(template, data, uploadsDir) {
           ? (cache.ranges[pageIndex] ?? { startRow: 0, endRow: 0 })
           : getDataTableRowRangeForPage({ ...box, tableConfig: { ...box.tableConfig, rowsOnOtherPages: null } }, pageIndex, rowCount, contentHeightPx);
         const showAttachedListMessage = pageIndex === 0 && rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
-        if (range.endRow <= range.startRow && !showAttachedListMessage) continue;
+        /* On page 0 always draw table (at least header); on later pages skip only when no rows on this page */
+        if (range.endRow <= range.startRow && !showAttachedListMessage && pageIndex > 0) continue;
       } else {
         if (boxH <= 0) continue;
         const wouldBeOnPageAfterLastTable = lastTablePageIndex >= 0 && globalY >= (lastTablePageIndex + 1) * editorPageHeightPx;

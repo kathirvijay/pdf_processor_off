@@ -327,9 +327,8 @@
   background: var(--color-bg);
 }
 
-/* First three key items in one unboxed container: 120px height, full width, automatic click/drag */
+/* First three key items in one unboxed container: full width, automatic click/drag; min height so all keys stay visible */
 .standardized-keys-unboxed {
-  height: 120px;
   width: 100%;
   min-height: 120px;
   box-sizing: border-box;
@@ -341,19 +340,28 @@
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 .standardized-keys-unboxed .standardized-key-item {
   flex: 1;
-  min-height: 0;
+  min-height: 32px;
   margin-bottom: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  overflow: visible;
 }
 .standardized-keys-unboxed .standardized-key-item:hover {
   background: rgba(59, 130, 246, 0.12);
   border-color: var(--color-primary);
+}
+.standardized-keys-unboxed .standardized-key-label,
+.standardized-keys-unboxed .standardized-key-key {
+  color: var(--color-text);
+  visibility: visible;
+}
+.standardized-keys-unboxed .standardized-key-key {
+  color: var(--color-text-muted);
 }
 
 .standardized-key-item {

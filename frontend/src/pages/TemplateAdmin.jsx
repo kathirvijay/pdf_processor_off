@@ -5,6 +5,15 @@ import { boxesToLayoutOnly } from '../utils/designUtils';
 import DesignThumbnail from '../components/DesignThumbnail';
 import './TemplateAdmin.css';
 
+const sortKvByKey = (a, b) => {
+  const ak = String(a?.key ?? '').trim().toLowerCase();
+  const bk = String(b?.key ?? '').trim().toLowerCase();
+  if (!ak && !bk) return 0;
+  if (!ak) return -1; /* empty key (e.g. new row) at top */
+  if (!bk) return 1;
+  return ak.localeCompare(bk);
+};
+
 const TemplateAdmin = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -108,7 +117,7 @@ const TemplateAdmin = () => {
   };
 
   const addKeyValueRow = () => {
-    setKeyValuePairs((p) => [...p, { key: '', label: '' }]);
+    setKeyValuePairs((p) => [{ key: '', label: '' }, ...p]);
   };
 
   const updateKeyValue = (index, field, value) => {
@@ -149,7 +158,7 @@ const TemplateAdmin = () => {
   };
 
   const addEditKeyValueRow = () => {
-    setEditKeyValuePairs((p) => [...p, { key: '', label: '' }]);
+    setEditKeyValuePairs((p) => [{ key: '', label: '' }, ...p]);
   };
 
   const removeEditKeyValueRow = (index) => {
@@ -335,7 +344,15 @@ const TemplateAdmin = () => {
                 <h2>Standardized industry name</h2>
                 <p className="admin-hint">Key-value pairs from the uploaded template. Key on the left (e.g. description_of_goods), value on the right (e.g. Description of goods). Edit and use below to save as standardized format.</p>
                 <div className="admin-kv-toolbar">
-                  <button type="button" className="admin-btn admin-btn-secondary" onClick={addKeyValueRow}>+ Add row</button>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-secondary"
+                    onClick={addKeyValueRow}
+                    disabled={keyValuePairs.some((kv) => !String(kv?.key ?? '').trim())}
+                    title={keyValuePairs.some((kv) => !String(kv?.key ?? '').trim()) ? 'Fill in the key of the empty row before adding another' : 'Add a new row'}
+                  >
+                    + Add row
+                  </button>
                 </div>
                 <div className="admin-kv-table-wrap">
                   <table className="admin-kv-table">
@@ -347,13 +364,16 @@ const TemplateAdmin = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(keyValuePairs.length ? keyValuePairs : [{ key: '', label: '' }]).map((kv, i) => (
-                        <tr key={i}>
+                      {(keyValuePairs.length ? keyValuePairs : [{ key: '', label: '' }])
+                        .map((kv, i) => ({ ...kv, _idx: i }))
+                        .sort((a, b) => sortKvByKey(a, b))
+                        .map((kv) => (
+                        <tr key={kv._idx}>
                           <td>
                             <input
                               type="text"
                               value={kv.key}
-                              onChange={(e) => updateKeyValue(i, 'key', e.target.value)}
+                              onChange={(e) => updateKeyValue(kv._idx, 'key', e.target.value)}
                               placeholder="e.g. description_of_goods"
                               className="admin-kv-input"
                             />
@@ -362,13 +382,13 @@ const TemplateAdmin = () => {
                             <input
                               type="text"
                               value={kv.label}
-                              onChange={(e) => updateKeyValue(i, 'label', e.target.value)}
+                              onChange={(e) => updateKeyValue(kv._idx, 'label', e.target.value)}
                               placeholder="e.g. Description of goods"
                               className="admin-kv-input"
                             />
                           </td>
                           <td className="admin-kv-table-actions">
-                            <button type="button" className="admin-btn admin-btn-small" onClick={() => removeKeyValue(i)} aria-label="Remove row">×</button>
+                            <button type="button" className="admin-btn admin-btn-small" onClick={() => removeKeyValue(kv._idx)} aria-label="Remove row">×</button>
                           </td>
                         </tr>
                       ))}
@@ -415,7 +435,7 @@ const TemplateAdmin = () => {
                   className="admin-input"
                 >
                   <option value="">— Select format —</option>
-                  {standardizedFormats.map((f) => (
+                  {[...standardizedFormats].sort((a, b) => (a.name || '').localeCompare(b.name || '')).map((f) => (
                     <option key={f.id} value={f.id}>{f.name}</option>
                   ))}
                 </select>
@@ -441,7 +461,7 @@ const TemplateAdmin = () => {
               {standardizedFormats.length === 0 ? (
                 <p className="admin-muted">No formats yet. Upload a PDF on the left and save as format.</p>
               ) : (
-                standardizedFormats.map((st) => (
+                [...standardizedFormats].sort((a, b) => (a.name || '').localeCompare(b.name || '')).map((st) => (
                   <div
                     key={st.id}
                     className={`admin-format-item ${selectedFormatId === st.id ? 'selected' : ''}`}
@@ -468,7 +488,7 @@ const TemplateAdmin = () => {
               <h2>Key-value pairs – click to map to selected box</h2>
               <p className="admin-hint">Select a box in the list below, then click a key here to assign it to that box.</p>
               <div className="admin-format-keys-list admin-format-keys-clickable">
-                {formatKeyValuePairs.map((kv, idx) => (
+                {[...formatKeyValuePairs].sort(sortKvByKey).map((kv, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -500,7 +520,15 @@ const TemplateAdmin = () => {
                 {standardizedFormats.find((f) => f.id === editingFormatId)?.name || 'This format'}. Change keys/values below and add new rows. Save to update the format.
               </p>
               <div className="admin-kv-toolbar">
-                <button type="button" className="admin-btn admin-btn-secondary" onClick={addEditKeyValueRow}>+ Add row</button>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn-secondary"
+                  onClick={addEditKeyValueRow}
+                  disabled={editKeyValuePairs.some((kv) => !String(kv?.key ?? '').trim())}
+                  title={editKeyValuePairs.some((kv) => !String(kv?.key ?? '').trim()) ? 'Fill in the key of the empty row before adding another' : 'Add a new row'}
+                >
+                  + Add row
+                </button>
               </div>
               <div className="admin-kv-table-wrap" ref={editTableWrapRef}>
                 <table className="admin-kv-table">
@@ -512,13 +540,16 @@ const TemplateAdmin = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {(editKeyValuePairs.length ? editKeyValuePairs : [{ key: '', label: '' }]).map((kv, i) => (
-                      <tr key={i} data-row-key={kv.key || `row-${i}`} className={highlightedEditRowKey === kv.key ? 'admin-edit-row-highlight' : ''}>
+                    {(editKeyValuePairs.length ? editKeyValuePairs : [{ key: '', label: '' }])
+                      .map((kv, i) => ({ ...kv, _idx: i }))
+                      .sort((a, b) => sortKvByKey(a, b))
+                      .map((kv) => (
+                      <tr key={kv._idx} data-row-key={kv.key || `row-${kv._idx}`} className={highlightedEditRowKey === kv.key ? 'admin-edit-row-highlight' : ''}>
                         <td>
                           <input
                             type="text"
                             value={kv.key}
-                            onChange={(e) => updateEditKeyValue(i, 'key', e.target.value)}
+                            onChange={(e) => updateEditKeyValue(kv._idx, 'key', e.target.value)}
                             placeholder="e.g. description_of_goods"
                             className="admin-kv-input"
                           />
@@ -527,13 +558,13 @@ const TemplateAdmin = () => {
                           <input
                             type="text"
                             value={kv.label}
-                            onChange={(e) => updateEditKeyValue(i, 'label', e.target.value)}
+                            onChange={(e) => updateEditKeyValue(kv._idx, 'label', e.target.value)}
                             placeholder="e.g. Description of goods"
                             className="admin-kv-input"
                           />
                         </td>
                         <td className="admin-kv-table-actions">
-                          <button type="button" className="admin-btn admin-btn-small" onClick={() => removeEditKeyValueRow(i)} aria-label="Remove row">×</button>
+                          <button type="button" className="admin-btn admin-btn-small" onClick={() => removeEditKeyValueRow(kv._idx)} aria-label="Remove row">×</button>
                         </td>
                       </tr>
                     ))}
@@ -565,7 +596,17 @@ const TemplateAdmin = () => {
                 {saving ? 'Saving…' : 'Update design'}
               </button>
               <div className="admin-boxes-list">
-                {boxes.map((box) => (
+                {[...boxes]
+                  .sort((a, b) => {
+                    const rankA = a.rank ?? 999999;
+                    const rankB = b.rank ?? 999999;
+                    if (rankA !== rankB) return rankA - rankB;
+                    const yA = a.position?.y ?? 0;
+                    const yB = b.position?.y ?? 0;
+                    if (yA !== yB) return yA - yB;
+                    return (a.position?.x ?? 0) - (b.position?.x ?? 0);
+                  })
+                  .map((box) => (
                   <div
                     key={box.id}
                     className={`admin-box-row ${selectedBoxId === box.id ? 'selected' : ''}`}
@@ -583,7 +624,7 @@ const TemplateAdmin = () => {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <option value="">— Select key —</option>
-                        {formatKeyValuePairs.map((kv) => (
+                        {[...formatKeyValuePairs].sort(sortKvByKey).map((kv) => (
                           <option key={kv.key} value={kv.key}>{kv.label || kv.key}</option>
                         ))}
                       </select>
@@ -615,7 +656,7 @@ const TemplateAdmin = () => {
               {templateDesignsList.length === 0 ? (
                 <p className="admin-muted">No designs yet. Upload a PDF and save as design.</p>
               ) : (
-                templateDesignsList.map((td) => (
+                [...templateDesignsList].sort((a, b) => (a.name || '').localeCompare(b.name || '')).map((td) => (
                   <div
                     key={td.id}
                     className={`admin-design-item admin-design-item-thumb ${selectedDesignId === td.id ? 'selected' : ''}`}

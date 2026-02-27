@@ -2,14 +2,15 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
 
+/** Replace {{key}} placeholders with values from data. Missing keys render as empty, not as literal {{key}}. */
 const replacePlaceholders = (content, data) => {
   if (!content) return '';
-  let result = content;
-  Object.keys(data || {}).forEach(key => {
-    const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-    result = result.replace(regex, data[key] || '');
+  const dataObj = data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+  return String(content).replace(/\{\{\s*([^}\s]+)\s*\}\}/g, (match, key) => {
+    const k = String(key).trim();
+    const val = dataObj[k];
+    return (val !== undefined && val !== null) ? String(val) : '';
   });
-  return result;
 };
 
 function getContainerTableRowsFlat(data) {
@@ -218,10 +219,15 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx, layoutOverrides) 
         const rowsOnFirst = Math.max(1, Number(box?.tableConfig?.rowsOnFirstPage) || 3);
         const useAttachedListMode = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
         if (!useAttachedListMode && rowCount <= rowsOnFirst) effective += EMPTY_BOX_BELOW_TABLE_PX;
+        /* Respect user-configured table height: use at least designHeight so PDF matches canvas */
+        effective = Math.max(Number(effective), designHeight);
       }
     }
     if (effective == null) effective = getDataTableEffectiveHeight(box, data);
     if (effective == null) effective = designHeight;
+    if (effective != null && box?.tableConfig?.dynamicRowsFromData && Array.isArray(box.tableConfig?.columnKeys)) {
+      effective = Math.max(Number(effective), designHeight);
+    }
     effectiveHeightByBoxId[box.id] = effective;
     if (effective != null && effective > designHeight) totalExtraHeight += Math.max(0, effective - designHeight);
   });
@@ -607,7 +613,8 @@ const generatePdf = async (template, data, uploadsDir) => {
         const rowCount = getDataTableRowCount(dataObj, columnKeys);
         const range = getDataTableRowRangeForPage(box, pageIndex, rowCount, editorPageHeightPx - EDITOR_TITLE_AREA_PX);
         const showAttachedListMessage = pageIndex === 0 && rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
-        if (range.endRow <= range.startRow && !showAttachedListMessage) return;
+        /* On page 0 always draw table (at least header); on later pages skip only when no rows on this page */
+        if (range.endRow <= range.startRow && !showAttachedListMessage && pageIndex > 0) return;
       } else {
         if (boxH <= 0) return;
         if (globalBottom <= pageTopEditor || globalY >= pageBottomEditor) return;
@@ -642,7 +649,8 @@ const generatePdf = async (template, data, uploadsDir) => {
           const rowCount = getDataTableRowCount(dataObj, columnKeys);
           const range = getDataTableRowRangeForPage(box, pageIndex, rowCount, editorPageHeightPx - EDITOR_TITLE_AREA_PX);
           const showAttachedListMessage = pageIndex === 0 && rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
-          if (range.endRow <= range.startRow && !showAttachedListMessage) return;
+          /* On page 0 always draw table (at least header); on later pages skip only when no rows on this page */
+          if (range.endRow <= range.startRow && !showAttachedListMessage && pageIndex > 0) return;
         } else {
           if (boxH <= 0) return;
           if (globalBottom <= pageTopEditor || globalY >= pageBottomEditor) return;
@@ -744,6 +752,8 @@ const generatePdf = async (template, data, uploadsDir) => {
             const spacerHeightPt = Math.min(EMPTY_BOX_BELOW_TABLE_PX * pxToPt, remainingHeight);
             if (spacerHeightPt > 0) outerTableHeight += spacerHeightPt;
           }
+          /* Use at least the user-configured table height so PDF matches canvas */
+          outerTableHeight = Math.max(outerTableHeight, height);
           doc.rect(x, tableStartY, width, outerTableHeight).stroke();
           doc.restore();
           return;
