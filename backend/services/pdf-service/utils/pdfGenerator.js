@@ -12,8 +12,47 @@ const replacePlaceholders = (content, data) => {
   return result;
 };
 
+function getContainerTableRowsFlat(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return [];
+  const containersList = Array.isArray(data.containers) ? data.containers : (Array.isArray(data.container) ? data.container : []);
+  if (containersList.length === 0) return [];
+  const flat = [];
+  for (const container of containersList) {
+    flat.push({ type: 'container', container, item: null });
+    const items = Array.isArray(container && container.items) ? container.items : [];
+    for (const item of items) flat.push({ type: 'item', container, item });
+  }
+  return flat;
+}
+
+function getDataTableCellContainerHeading(container, colIndex) {
+  if (colIndex !== 0) return '';
+  const cn = container && container.container_number;
+  const ct = container && container.container_type;
+  return (cn && ct) ? `${cn}, ${ct}` : (cn || ct || '');
+}
+
+function getDataTableCellContainerItem(item, baseKey) {
+  const b = String(baseKey || '').trim().toLowerCase();
+  if (b === 'marks_and_numbers') return item && item.marks_and_numbers != null ? String(item.marks_and_numbers) : '';
+  if (b === 'kind_no_of_packages' || b === 'kind_&_no_of_packages') return item && item.packages != null ? String(item.packages) : '';
+  if (b === 'description_of_goods') return (item && (item.description != null ? item.description : item.commodity)) || '';
+  if (b === 'gross_weight_kg' || b === 'gross_weight_(kg)') return item && item.weight != null ? String(item.weight) : '';
+  if (b === 'measurements_m' || b === 'measurements_m³' || b === 'measurements_(m³)') return item && item.volume != null ? String(item.volume) : '';
+  return '';
+}
+
+function getDataTableRowMeta(data, columnKeys, row1) {
+  const flat = getContainerTableRowsFlat(data);
+  if (flat.length === 0) return undefined;
+  const row = flat[row1 - 1];
+  return row && row.type === 'container' ? { isContainerHeading: true } : undefined;
+}
+
 function getDataTableRowCount(data, columnKeys) {
   if (!data || !Array.isArray(columnKeys) || !columnKeys.length) return 0;
+  const containerFlat = getContainerTableRowsFlat(data);
+  if (containerFlat.length > 0) return Math.min(500, containerFlat.length);
   let maxN = 0;
   for (const baseKey of columnKeys) {
     const key = String(baseKey).trim();
@@ -29,6 +68,14 @@ function getDataTableRowCount(data, columnKeys) {
 function getDataTableCell(data, columnKeys, rowIndex1Based, colIndex) {
   if (!data || !columnKeys || !columnKeys[colIndex]) return '';
   const base = String(columnKeys[colIndex] || '').trim();
+  const containerFlat = getContainerTableRowsFlat(data);
+  if (containerFlat.length > 0) {
+    const row = containerFlat[rowIndex1Based - 1];
+    if (row) {
+      if (row.type === 'container') return getDataTableCellContainerHeading(row.container, colIndex);
+      if (row.type === 'item' && row.item) return getDataTableCellContainerItem(row.item, base) || '';
+    }
+  }
   const key = `${base}_${rowIndex1Based}`;
   let v = data[key];
   if (v == null && (base === 'measurements_m' || base === 'measurements_m³')) {
@@ -662,6 +709,9 @@ const generatePdf = async (template, data, uploadsDir) => {
             const minRowPt = rowHeightPt;
             const maxRowPt = rowHeightPt * 25;
             for (let ri = startRow; ri < startRow + drawnOnThisPage; ri++) {
+              const rowMeta = getDataTableRowMeta(dataObj, columnKeys, ri + 1);
+              const useBold = rowMeta?.isContainerHeading;
+              doc.font(useBold ? 'Helvetica-Bold' : getPdfFontFamily(box));
               let rowH = rowHeightsPt && rowHeightsPt[ri] != null ? rowHeightsPt[ri] : minRowPt;
               const cellTexts = [];
               if (rowHeightsPt == null || rowHeightsPt[ri] == null) {

@@ -143,10 +143,38 @@ function isBoxValueEmpty(box, data) {
   return resolved !== null && String(resolved).trim() === '';
 }
 
-/** Get row count for data-driven table from indexed keys (e.g. marks_and_numbers_1, _2, ...). Uses max across all column keys so one mismatched key doesn't yield 0. */
+/** Flatten containers into rows: [{ container, item }, ...] in order. Returns [] if no containers. */
+function getFlattenedContainerRows(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data) || !Array.isArray(data.containers)) return [];
+  const rows = [];
+  for (const container of data.containers) {
+    const items = container?.items;
+    if (!Array.isArray(items)) continue;
+    for (const item of items) rows.push({ container, item });
+  }
+  return rows;
+}
+
+/** Container-based table: flat list of rows. Each row is { type: 'container'|'item', container, item? }. Container = heading row (bold), then item rows below it. */
+function getContainerTableRowsFlat(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return [];
+  const containersList = Array.isArray(data.containers) ? data.containers : (Array.isArray(data.container) ? data.container : []);
+  if (containersList.length === 0) return [];
+  const flat = [];
+  for (const container of containersList) {
+    flat.push({ type: 'container', container, item: null });
+    const items = Array.isArray(container?.items) ? container.items : [];
+    for (const item of items) flat.push({ type: 'item', container, item });
+  }
+  return flat;
+}
+
+/** Get row count. When data.containers exists, count = container heading rows + all item rows; else indexed keys. */
 function getDataTableRowCount(data, columnKeys) {
   try {
     if (!data || typeof data !== 'object' || Array.isArray(data) || !Array.isArray(columnKeys) || !columnKeys.length) return 0;
+    const containerFlat = getContainerTableRowsFlat(data);
+    if (containerFlat.length > 0) return Math.min(500, containerFlat.length);
     let maxN = 0;
     for (const baseKey of columnKeys) {
       const key = String(baseKey).trim();
@@ -156,7 +184,6 @@ function getDataTableRowCount(data, columnKeys) {
         maxN = Math.max(maxN, i);
       }
     }
-    // If we see at least 2 rows, ensure we check for 3rd so "first 3 items" always show when data has them (handles key variants like measurements_m3 vs measurements_m)
     if (maxN >= 2 && columnKeys.length) {
       const hasThird = columnKeys.some((k) => data[`${String(k).trim()}_3`] !== undefined);
       if (hasThird) maxN = Math.max(maxN, 3);
@@ -167,10 +194,45 @@ function getDataTableRowCount(data, columnKeys) {
   }
 }
 
-/** Get cell value for data-driven table row/col (1-based row index). Tries measurements_m3_N if measurements_m_N missing. */
+/** Cell value for a container heading row: only first column has "Container N, TYPE", others empty. */
+function getDataTableCellContainerHeading(container, baseKey, colIndex) {
+  if (colIndex !== 0) return '';
+  const cn = container?.container_number ?? '';
+  const ct = container?.container_type ?? '';
+  return (cn && ct) ? `${cn}, ${ct}` : cn || ct || '';
+}
+
+/** Cell value for an item row under a container. */
+function getDataTableCellContainerItem(item, baseKey) {
+  const b = String(baseKey || '').trim().toLowerCase();
+  if (b === 'marks_and_numbers') return item?.marks_and_numbers != null ? String(item.marks_and_numbers) : '';
+  if (b === 'kind_no_of_packages' || b === 'kind_&_no_of_packages') return item?.packages != null ? String(item.packages) : '';
+  if (b === 'description_of_goods') return item?.description ?? item?.commodity ?? '';
+  if (b === 'gross_weight_kg' || b === 'gross_weight_(kg)') return item?.weight != null ? String(item.weight) : '';
+  if (b === 'measurements_m' || b === 'measurements_m³' || b === 'measurements_(m³)') return item?.volume != null ? String(item.volume) : '';
+  return '';
+}
+
+/** Returns { isContainerHeading: true } for container heading rows when using container data; else undefined. */
+function getDataTableRowMeta(data, columnKeys, rowIndex1Based) {
+  const flat = getContainerTableRowsFlat(data);
+  if (flat.length === 0) return undefined;
+  const row = flat[rowIndex1Based - 1];
+  return row && row.type === 'container' ? { isContainerHeading: true } : undefined;
+}
+
+/** Get cell value for data-driven table row/col (1-based row index). When data.containers exists, uses container heading + item rows; else indexed keys. */
 function getDataTableCell(data, columnKeys, rowIndex1Based, colIndex) {
   if (!data || !columnKeys || !columnKeys[colIndex]) return '';
   const base = String(columnKeys[colIndex] || '').trim();
+  const containerFlat = getContainerTableRowsFlat(data);
+  if (containerFlat.length > 0) {
+    const row = containerFlat[rowIndex1Based - 1];
+    if (row) {
+      if (row.type === 'container') return getDataTableCellContainerHeading(row.container, base, colIndex);
+      if (row.type === 'item' && row.item) return getDataTableCellContainerItem(row.item, base) || '';
+    }
+  }
   const key = `${base}_${rowIndex1Based}`;
   let v = data[key];
   if (v == null && (base === 'measurements_m' || base === 'measurements_m³')) {
@@ -437,7 +499,13 @@ const TemplateEditor = () => {
         let effective = null;
         if (box.type === 'table' && box.tableConfig?.dynamicRowsFromData && Array.isArray(box.tableConfig.columnKeys)) {
           effective = getDataTableFirstSegmentHeight(box, data);
-          if (effective != null) effective = Math.max(20, Math.min(8000, Number(effective)));
+          if (effective != null) {
+            const rowCount = getDataTableRowCount(data || {}, box.tableConfig.columnKeys);
+            const rowsOnFirst = Math.max(3, Math.max(1, Number(box?.tableConfig?.rowsOnFirstPage) || 3));
+            const useAttachedListMode = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
+            if (!useAttachedListMode && rowCount <= rowsOnFirst) effective += EMPTY_BOX_BELOW_TABLE_PX;
+            effective = Math.max(20, Math.min(8000, Number(effective)));
+          }
         }
         const h = effective != null ? effective : designHeight;
         effectiveHeightByBoxId[box.id] = h;
@@ -455,7 +523,9 @@ const TemplateEditor = () => {
         const tTop = t.position?.y ?? 0;
         const firstSegmentBottom = tTop + tEffective;
         const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+        const rowsOnFirst = Math.max(3, Math.max(1, Number(t?.tableConfig?.rowsOnFirstPage) || 3));
+        const tableIncludesGap = rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
+        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (tableIncludesGap ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX));
         const spacerBottom = firstSegmentBottom + spacerPx;
         boxes.forEach((b) => {
           if (b.id === t.id || b.type === 'table') return;
@@ -503,7 +573,9 @@ const TemplateEditor = () => {
           if (isDataTable && tEffective != null) {
             const firstSegmentBottom = tTop + tEffective;
             const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
-            const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+            const rowsOnFirst = Math.max(3, Math.max(1, Number(t?.tableConfig?.rowsOnFirstPage) || 3));
+            const tableIncludesGap = rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
+            const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (tableIncludesGap ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX));
             const spacerBottom = firstSegmentBottom + spacerPx;
             const minY = minYBelowTable[t.id];
             if (bTop >= firstSegmentBottom) {
@@ -571,6 +643,7 @@ const TemplateEditor = () => {
       let dataTableSpacerTop = null;
       let dataTableSpacerLeft = 0;
       let dataTableSpacerWidth = null;
+      let dataTableIncludesGapOnFirstPage = false;
       const dataTables = boxes.filter((b) => b.type === 'table' && b.tableConfig?.dynamicRowsFromData && Array.isArray(b.tableConfig?.columnKeys));
       if (dataTables.length > 0) {
         const firstDataTable = dataTables.reduce((min, b) => {
@@ -583,8 +656,11 @@ const TemplateEditor = () => {
         dataTableSpacerTop = tableGlobalY + firstSegH;
         dataTableSpacerLeft = firstDataTable.position?.x ?? 0;
         dataTableSpacerWidth = firstDataTable.size?.width ?? null;
+        const rowCount = getDataTableRowCount(data || {}, firstDataTable.tableConfig?.columnKeys || []);
+        const rowsOnFirst = Math.max(3, Math.max(1, Number(firstDataTable?.tableConfig?.rowsOnFirstPage) || 3));
+        dataTableIncludesGapOnFirstPage = rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
       }
-      return { effectiveHeightByBoxId, boxYOffset, totalExtraHeight: Math.max(0, totalExtraHeight), numPages, pageHeight, dataTableSpacerTop, dataTableSpacerLeft, dataTableSpacerWidth };
+      return { effectiveHeightByBoxId, boxYOffset, totalExtraHeight: Math.max(0, totalExtraHeight), numPages, pageHeight, dataTableSpacerTop, dataTableSpacerLeft, dataTableSpacerWidth, dataTableIncludesGapOnFirstPage };
     } catch (err) {
       console.error('dataTableLayout computation error:', err);
       const dims = pageSizeDimensions[pageSize] || pageSizeDimensions.A4;
@@ -595,7 +671,7 @@ const TemplateEditor = () => {
       });
       const emptyOffset = {};
       boxes.forEach((b) => { emptyOffset[b.id] = 0; });
-      return { effectiveHeightByBoxId: fallback, boxYOffset: emptyOffset, totalExtraHeight: 0, numPages: 1, pageHeight, dataTableSpacerTop: null, dataTableSpacerLeft: 0, dataTableSpacerWidth: null };
+      return { effectiveHeightByBoxId: fallback, boxYOffset: emptyOffset, totalExtraHeight: 0, numPages: 1, pageHeight, dataTableSpacerTop: null, dataTableSpacerLeft: 0, dataTableSpacerWidth: null, dataTableIncludesGapOnFirstPage: false };
     }
   }, [boxes, demoData, pageSize, orientation]);
 
@@ -603,10 +679,11 @@ const TemplateEditor = () => {
   const sequenceSectionBoxIds = useMemo(() => {
     let spacerBottom = Infinity;
     if (dataTableLayout.dataTableSpacerTop != null) {
+      const includesGap = dataTableLayout.dataTableIncludesGapOnFirstPage;
       const dataTables = boxes.filter((b) => b.type === 'table' && b.tableConfig?.dynamicRowsFromData && Array.isArray(b.tableConfig?.columnKeys));
       const firstDataTable = dataTables.length > 0 ? dataTables.reduce((min, b) => ((b.position?.y ?? 0) + (dataTableLayout.boxYOffset[b.id] || 0)) < ((min.position?.y ?? 0) + (dataTableLayout.boxYOffset[min.id] || 0)) ? b : min) : null;
       const rowCount = firstDataTable ? getDataTableRowCount(demoData && typeof demoData === 'object' && !Array.isArray(demoData) ? demoData : {}, firstDataTable.tableConfig?.columnKeys || []) : 0;
-      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (includesGap ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX));
       spacerBottom = dataTableLayout.dataTableSpacerTop + spacerPx;
     }
     return boxes
@@ -1349,6 +1426,12 @@ const TemplateEditor = () => {
       let effective = null;
       if (box.type === 'table' && box.tableConfig && Array.isArray(box.tableConfig.columnKeys)) {
         effective = getDataTableFirstSegmentHeight(box, data);
+        if (effective != null) {
+          const rowCount = getDataTableRowCount(data || {}, box.tableConfig.columnKeys);
+          const rowsOnFirst = Math.max(3, Math.max(1, Number(box?.tableConfig?.rowsOnFirstPage) || 3));
+          const useAttachedListMode = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
+          if (!useAttachedListMode && rowCount <= rowsOnFirst) effective += EMPTY_BOX_BELOW_TABLE_PX;
+        }
       }
       const heightVal = effective != null ? effective : designHeight;
       effectiveHeightByBoxId[box.id] = heightVal;
@@ -1366,7 +1449,9 @@ const TemplateEditor = () => {
       const tTop = t.position?.y ?? 0;
       const firstSegmentBottom = tTop + tEffective;
       const rowCount = getDataTableRowCount(data, t.tableConfig.columnKeys);
-      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+      const rowsOnFirst = Math.max(3, Math.max(1, Number(t?.tableConfig?.rowsOnFirstPage) || 3));
+      const tableIncludesGapExport = rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
+      const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (tableIncludesGapExport ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX));
       const spacerBottom = firstSegmentBottom + spacerPx;
       boxes.forEach((b) => {
         if (b.id === t.id || b.type === 'table') return;
@@ -1414,7 +1499,9 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         if (isDataTable && tEffective != null) {
           const firstSegmentBottom = tTop + tEffective;
           const rowCount = getDataTableRowCount(data, t.tableConfig.columnKeys);
-          const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX);
+          const rowsOnFirst = Math.max(3, Math.max(1, Number(t?.tableConfig?.rowsOnFirstPage) || 3));
+          const tableIncludesGapExport = rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
+          const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (tableIncludesGapExport ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX));
           const spacerBottom = firstSegmentBottom + spacerPx;
           const minY = minYBelowTableExport[t.id];
           if (bTop >= firstSegmentBottom) {
@@ -1466,6 +1553,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
     let dataTableSpacerLeft = 0;
     let dataTableSpacerWidth = null;
     let exportAttachedListMode = false;
+    let dataTableIncludesGapOnFirstPage = false;
     const dataTablesForExport = boxes.filter((b) => b.type === 'table' && b.tableConfig && Array.isArray(b.tableConfig?.columnKeys));
     if (dataTablesForExport.length > 0) {
       const firstDataTable = dataTablesForExport.reduce((min, b) => {
@@ -1476,7 +1564,10 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       dataTableSpacerTop = (firstDataTable.position?.y ?? 0) + (boxYOffset[firstDataTable.id] || 0) + (effectiveHeightByBoxId[firstDataTable.id] ?? firstDataTable.size?.height ?? 20);
       dataTableSpacerLeft = firstDataTable.position?.x ?? 0;
       dataTableSpacerWidth = firstDataTable.size?.width ?? null;
-      exportAttachedListMode = getDataTableRowCount(data, firstDataTable.tableConfig?.columnKeys || []) > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
+      const rowCountExport = getDataTableRowCount(data, firstDataTable.tableConfig?.columnKeys || []);
+      exportAttachedListMode = rowCountExport > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
+      const rowsOnFirstExport = Math.max(3, Math.max(1, Number(firstDataTable?.tableConfig?.rowsOnFirstPage) || 3));
+      dataTableIncludesGapOnFirstPage = rowCountExport <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCountExport <= rowsOnFirstExport;
     }
     const escape = (s) => String(s || '')
       .replace(/&/g, '&amp;')
@@ -1495,6 +1586,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           ? box.tableConfig.columnWidths
           : Array.from({ length: colCount }, () => 100 / colCount);
         const cellWrap = 'word-break:break-word;overflow-wrap:break-word;white-space:normal;';
+        const cellWrapPreLine = 'word-break:break-word;overflow-wrap:break-word;white-space:pre-line;';
         const colgroup = colWidths.map((pct) => `<col style="width:${Math.max(1, Math.min(100, Number(pct) || 100 / colCount))}%">`).join('');
         const headers = (box.tableConfig.headers || []).map((hd) => `<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;${cellWrap}">${escape(hd || '')}</th>`).join('');
         const range = tableRowRange || { startRow: 0, endRow: rowCount };
@@ -1506,12 +1598,23 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         } else {
           bodyRows = Array.from({ length: range.endRow - range.startRow }).map((_, i) => {
             const ri = range.startRow + i;
-            const cells = columnKeys.map((_, ci) => escape(getDataTableCell(data, columnKeys, ri + 1, ci))).map((cell) => `<td style="border:none;padding:4px;${cellWrap}">${cell}</td>`).join('');
-            return `<tr>${cells}</tr>`;
+            const meta = getDataTableRowMeta(data, columnKeys, ri + 1);
+            const trStyle = meta?.isContainerHeading ? 'font-weight:bold;' : '';
+            const cells = columnKeys.map((_, ci) => {
+              const cell = escape(getDataTableCell(data, columnKeys, ri + 1, ci));
+              const cellBold = meta?.isContainerHeading && ci === 0 ? 'font-weight:bold;' : '';
+              return `<td style="border:none;padding:4px;${cellBold}${cellWrapPreLine}">${cell}</td>`;
+            }).join('');
+            return `<tr style="${trStyle}">${cells}</tr>`;
           }).join('');
         }
-        const tableHtml = `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:${box.properties?.fontSize ?? 11}px;"><colgroup>${colgroup}</colgroup><thead><tr>${headers}</tr></thead><tbody>${bodyRows}</tbody></table>`;
-        return `<div class="template-box template-box-table" style="position:absolute;left:${box.position?.x ?? 0}px;top:${top}px;width:${width}px;height:${height}px;padding:4px;box-sizing:border-box;overflow:visible;">${tableHtml}</div>`;
+        const rowsOnFirst = Math.max(3, Math.max(1, Number(box.tableConfig?.rowsOnFirstPage) || 3));
+        const includeGapInside = rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
+        const tableBorderStyle = includeGapInside ? 'border:none;' : '';
+        const tableHtml = `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:${box.properties?.fontSize ?? 11}px;${tableBorderStyle}"><colgroup>${colgroup}</colgroup><thead><tr>${headers}</tr></thead><tbody>${bodyRows}</tbody></table>`;
+        const gapBlock = includeGapInside ? `<div class="data-table-gap-inside" style="width:100%;height:${EMPTY_BOX_BELOW_TABLE_PX}px;flex-shrink:0;"></div>` : '';
+        const wrapperExtra = includeGapInside ? 'display:flex;flex-direction:column;' : '';
+        return `<div class="template-box template-box-table" style="position:absolute;left:${box.position?.x ?? 0}px;top:${top}px;width:${width}px;height:${height}px;padding:4px;box-sizing:border-box;overflow:visible;border:1px solid #000;${wrapperExtra}">${tableHtml}${gapBlock}</div>`;
       }
       const rawLabel = box.labelName || (box.fieldName ? String(box.fieldName).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : '');
       const label = (rawLabel && String(rawLabel).trim().endsWith('...') && box.fieldName) ? String(box.fieldName).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : rawLabel;
@@ -1566,11 +1669,13 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           if (box.type === 'table' && box.tableConfig && Array.isArray(box.tableConfig.columnKeys)) {
             const rowCount = getDataTableRowCount(data, box.tableConfig.columnKeys);
             const tablePageIndex = pageIndex;
+            const rowsOnFirst = Math.max(3, Math.max(1, Number(box.tableConfig?.rowsOnFirstPage) || 3));
+            const tableIncludesGap = pageIndex === 0 && rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
             if (rowCount > 0) {
               const range = getDataTableRowRangeForPage(box, tablePageIndex, rowCount, singlePageHeight - TITLE_AREA_HEIGHT);
               if (range.endRow > range.startRow) {
                 tableRowRange = { startRow: range.startRow, endRow: range.endRow };
-                height = headerRowPx + (range.endRow - range.startRow) * rowHeightPx;
+                height = tableIncludesGap ? Math.min(fullHeight, clipBottom) : (headerRowPx + (range.endRow - range.startRow) * rowHeightPx);
                 if (pageIndex > 0 || range.startRow > 0) localTop = 0;
               } else if (pageIndex === 0 && rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD) {
                 tableRowRange = { startRow: 0, endRow: 0 };
@@ -1582,7 +1687,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           return renderBoxHtml(box, localTop, width, height, tableRowRange, pageIndex, numPages);
         })
         .join('\n');
-      const spacerHeight = dataTableSpacerTop != null && !exportAttachedListMode ? Math.min(EMPTY_BOX_BELOW_TABLE_PX, singlePageHeight - dataTableSpacerTop) : 0;
+      const spacerHeight = (dataTableIncludesGapOnFirstPage ? 0 : (dataTableSpacerTop != null && !exportAttachedListMode ? Math.min(EMPTY_BOX_BELOW_TABLE_PX, singlePageHeight - dataTableSpacerTop) : 0));
       const spacerLeft = dataTableSpacerLeft ?? 0;
       const spacerWidth = dataTableSpacerWidth != null ? dataTableSpacerWidth : w;
       const spacerBlock = pageIndex === 0 && dataTableSpacerTop != null && spacerHeight > 0
@@ -1619,6 +1724,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       DATA_TABLE_HEADER_ROW_PX,
       DATA_TABLE_ROW_HEIGHT_PX,
       DATA_TABLE_SPACER_PX: EMPTY_BOX_BELOW_TABLE_PX,
+      GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX,
       DATA_TABLE_ATTACHED_LIST_THRESHOLD,
       DATA_TABLE_ATTACHED_LIST_GAP_PX,
       headerRowPx: 28,
@@ -1646,6 +1752,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
   var HEADER_PX = c.DATA_TABLE_HEADER_ROW_PX;
   var ROW_PX = c.DATA_TABLE_ROW_HEIGHT_PX;
   var SPACER_PX = c.DATA_TABLE_SPACER_PX;
+  var GAP_BETWEEN_PX = c.GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX != null ? c.GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : 8;
   var THRESH = c.DATA_TABLE_ATTACHED_LIST_THRESHOLD;
   var GAP_PX = c.DATA_TABLE_ATTACHED_LIST_GAP_PX;
   var headerRowPx = c.headerRowPx;
@@ -1654,8 +1761,44 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
   var contentH = c.contentH;
   var w = c.w;
 
+  function getContainerTableRowsFlat(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return [];
+    var containersList = Array.isArray(data.containers) ? data.containers : (Array.isArray(data.container) ? data.container : []);
+    if (containersList.length === 0) return [];
+    var flat = [];
+    for (var c = 0; c < containersList.length; c++) {
+      var container = containersList[c];
+      flat.push({ type: 'container', container: container, item: null });
+      var items = Array.isArray(container && container.items) ? container.items : [];
+      for (var j = 0; j < items.length; j++) flat.push({ type: 'item', container: container, item: items[j] });
+    }
+    return flat;
+  }
+  function getDataTableCellContainerHeading(container, colIndex) {
+    if (colIndex !== 0) return '';
+    var cn = container && container.container_number;
+    var ct = container && container.container_type;
+    return (cn && ct) ? cn + ', ' + ct : (cn || ct || '');
+  }
+  function getDataTableCellContainerItem(item, baseKey) {
+    var b = String(baseKey || '').trim().toLowerCase();
+    if (b === 'marks_and_numbers') return item && item.marks_and_numbers != null ? String(item.marks_and_numbers) : '';
+    if (b === 'kind_no_of_packages' || b === 'kind_&_no_of_packages') return item && item.packages != null ? String(item.packages) : '';
+    if (b === 'description_of_goods') return (item && (item.description != null ? item.description : item.commodity)) || '';
+    if (b === 'gross_weight_kg' || b === 'gross_weight_(kg)') return item && item.weight != null ? String(item.weight) : '';
+    if (b === 'measurements_m' || b === 'measurements_m³' || b === 'measurements_(m³)') return item && item.volume != null ? String(item.volume) : '';
+    return '';
+  }
+  function getDataTableRowMeta(data, columnKeys, row1) {
+    var flat = getContainerTableRowsFlat(data);
+    if (flat.length === 0) return undefined;
+    var row = flat[row1 - 1];
+    return row && row.type === 'container' ? { isContainerHeading: true } : undefined;
+  }
   function getDataTableRowCount(data, columnKeys) {
     if (!data || typeof data !== 'object' || Array.isArray(data) || !Array.isArray(columnKeys) || !columnKeys.length) return 0;
+    var containerFlat = getContainerTableRowsFlat(data);
+    if (containerFlat.length > 0) return Math.min(500, containerFlat.length);
     var maxN = 0;
     for (var bi = 0; bi < columnKeys.length; bi++) {
       var base = String(columnKeys[bi]).trim();
@@ -1670,6 +1813,14 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
   function getDataTableCell(data, columnKeys, row1, colIndex) {
     if (!data || !columnKeys || !columnKeys[colIndex]) return '';
     var base = String(columnKeys[colIndex] || '').trim();
+    var containerFlat = getContainerTableRowsFlat(data);
+    if (containerFlat.length > 0) {
+      var row = containerFlat[row1 - 1];
+      if (row) {
+        if (row.type === 'container') return getDataTableCellContainerHeading(row.container, colIndex);
+        if (row.type === 'item' && row.item) return getDataTableCellContainerItem(row.item, base) || '';
+      }
+    }
     var key = base + '_' + row1;
     var v = data[key];
     if (v == null && (base === 'measurements_m' || base === 'measurements_m³')) v = data['measurements_m3_' + row1];
@@ -1715,6 +1866,11 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       var designH = Math.max(20, b.size && b.size.height != null ? b.size.height : 20);
       var eff = getDataTableFirstSegmentHeight(b, data);
       effectiveHeightByBoxId[b.id] = eff != null ? eff : designH;
+      if (eff != null && b.type === 'table' && b.tableConfig && Array.isArray(b.tableConfig.columnKeys)) {
+        rowCount = getDataTableRowCount(data, b.tableConfig.columnKeys);
+        var rowsOnFirstB = Math.max(3, Math.max(1, Number(b.tableConfig.rowsOnFirstPage) || 3));
+        if (rowCount <= THRESH && rowCount <= rowsOnFirstB) effectiveHeightByBoxId[b.id] += SPACER_PX;
+      }
     }
     var isEmpty = function(b) {
       var hasF = (b.fieldName && String(b.fieldName).trim()) || (b.labelName && String(b.labelName).trim());
@@ -1729,7 +1885,9 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       tTop = (t.position && t.position.y) != null ? t.position.y : 0;
       firstBottom = tTop + tEff;
       rowCount = getDataTableRowCount(data, t.tableConfig.columnKeys);
-      spacerPx = rowCount > THRESH ? 0 : SPACER_PX;
+      var rowsOnFirstT = Math.max(3, Math.max(1, Number(t.tableConfig.rowsOnFirstPage) || 3));
+      var tableIncludesGap = rowCount <= THRESH && rowCount <= rowsOnFirstT;
+      spacerPx = rowCount > THRESH ? 0 : (tableIncludesGap ? GAP_BETWEEN_PX : SPACER_PX + GAP_BETWEEN_PX);
       for (var j = 0; j < boxes.length; j++) {
         b = boxes[j];
         if (b.id === t.id || b.type === 'table') continue;
@@ -1774,7 +1932,9 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         if (isDataTable && tEff != null) {
           firstBottom = tTop + tEff;
           rowCount = getDataTableRowCount(data, t.tableConfig.columnKeys);
-          spacerPx = rowCount > THRESH ? 0 : SPACER_PX;
+          rowsOnFirstT = Math.max(3, Math.max(1, Number(t.tableConfig.rowsOnFirstPage) || 3));
+          tableIncludesGap = rowCount <= THRESH && rowCount <= rowsOnFirstT;
+          spacerPx = rowCount > THRESH ? 0 : (tableIncludesGap ? GAP_BETWEEN_PX : SPACER_PX + GAP_BETWEEN_PX);
           spacerBottom = firstBottom + spacerPx;
           minYVal = minYBelow[t.id];
           if (bTop >= firstBottom) offset += minYVal != null ? spacerBottom - minYVal : (tEff + spacerPx) - tDesign;
@@ -1810,7 +1970,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       }
     }
     var numPages = Math.max(1, Math.ceil(totalHeight / singlePageHeight));
-    var dataTableSpacerTop = null, dataTableSpacerLeft = 0, dataTableSpacerWidth = null, exportAttached = false;
+    var dataTableSpacerTop = null, dataTableSpacerLeft = 0, dataTableSpacerWidth = null, exportAttached = false, dataTableIncludesGapOnFirstPage = false;
     var dataTables = boxes.filter(function(x) { return x.type === 'table' && x.tableConfig && Array.isArray(x.tableConfig.columnKeys); });
     if (dataTables.length > 0) {
       var first = dataTables[0];
@@ -1822,9 +1982,11 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       dataTableSpacerTop = (first.position && first.position.y != null ? first.position.y : 0) + (boxYOffset[first.id] || 0) + (effectiveHeightByBoxId[first.id] != null ? effectiveHeightByBoxId[first.id] : (first.size && first.size.height != null ? first.size.height : 20));
       dataTableSpacerLeft = (first.position && first.position.x != null) ? first.position.x : 0;
       dataTableSpacerWidth = first.size && first.size.width != null ? first.size.width : null;
-      exportAttached = getDataTableRowCount(data, first.tableConfig.columnKeys || []) > THRESH;
+      rowCount = getDataTableRowCount(data, first.tableConfig.columnKeys || []);
+      exportAttached = rowCount > THRESH;
+      dataTableIncludesGapOnFirstPage = rowCount <= THRESH && rowCount <= Math.max(3, Math.max(1, Number(first.tableConfig && first.tableConfig.rowsOnFirstPage) || 3));
     }
-    return { boxYOffset: boxYOffset, effectiveHeightByBoxId: effectiveHeightByBoxId, numPages: numPages, dataTableSpacerTop: dataTableSpacerTop, dataTableSpacerLeft: dataTableSpacerLeft, dataTableSpacerWidth: dataTableSpacerWidth, exportAttachedListMode: exportAttached };
+    return { boxYOffset: boxYOffset, effectiveHeightByBoxId: effectiveHeightByBoxId, numPages: numPages, dataTableSpacerTop: dataTableSpacerTop, dataTableSpacerLeft: dataTableSpacerLeft, dataTableSpacerWidth: dataTableSpacerWidth, exportAttachedListMode: exportAttached, dataTableIncludesGapOnFirstPage: dataTableIncludesGapOnFirstPage };
   }
   function escapeHtml(s) {
     s = String(s == null ? '' : s);
@@ -1855,6 +2017,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
     var dataTableSpacerLeft = layout.dataTableSpacerLeft;
     var dataTableSpacerWidth = layout.dataTableSpacerWidth;
     var exportAttached = layout.exportAttachedListMode;
+    var includesGapOnFirstPage = layout.dataTableIncludesGapOnFirstPage === true;
     var sorted = boxes.slice().sort(function(a, b) { return (a.rank || 0) - (b.rank || 0); });
     var contentW = c.w - 2 * PAGE_PAD;
     var scaleX = contentW / c.w;
@@ -1864,7 +2027,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       var pageTop = pageIndex * singlePageHeight;
       var pageBottom = (pageIndex + 1) * singlePageHeight;
       var titleBlock = '<div class="template-title">' + escapeHtml(c.documentTitle) + '</div>';
-      var spacerHeight = dataTableSpacerTop != null && !exportAttached ? Math.min(SPACER_PX, singlePageHeight - dataTableSpacerTop) : 0;
+      var spacerHeight = includesGapOnFirstPage ? 0 : (dataTableSpacerTop != null && !exportAttached ? Math.min(SPACER_PX, singlePageHeight - dataTableSpacerTop) : 0);
       var spacerBlock = (pageIndex === 0 && dataTableSpacerTop != null && spacerHeight > 0) ? '<div class="template-box data-table-spacer-box" style="position:absolute;left:' + dataTableSpacerLeft + 'px;top:' + dataTableSpacerTop + 'px;width:' + (dataTableSpacerWidth != null ? dataTableSpacerWidth : w) + 'px;height:' + spacerHeight + 'px;border:1px solid #000;background:#fff;box-sizing:border-box;"></div>\\n' : '';
       var boxDivs = [];
       for (var bi = 0; bi < sorted.length; bi++) {
@@ -1889,9 +2052,11 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           rc = getDataTableRowCount(data, box.tableConfig.columnKeys);
           if (rc > 0) {
             range = getDataTableRowRangeForPage(box, pageIndex, rc, contentH);
+            var rowsOnFirstBox = Math.max(3, Math.max(1, Number(box.tableConfig && box.tableConfig.rowsOnFirstPage) || 3));
+            var tableIncludesGapEmbed = pageIndex === 0 && rc <= THRESH && rc <= rowsOnFirstBox;
             if (range.endRow > range.startRow) {
               tableRowRange = range;
-              height = headerRowPx + (range.endRow - range.startRow) * rowHeightPx;
+              height = tableIncludesGapEmbed ? Math.min(fullHeight, clipBottom) : (headerRowPx + (range.endRow - range.startRow) * rowHeightPx);
               if (pageIndex > 0 || range.startRow > 0) localTop = 0;
             } else if (pageIndex === 0 && rc > THRESH) {
               tableRowRange = { startRow: 0, endRow: 0 };
@@ -1907,6 +2072,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           var colCount = columnKeys.length;
           var colWidths = (box.tableConfig.columnWidths && Array.isArray(box.tableConfig.columnWidths) && box.tableConfig.columnWidths.length === colCount) ? box.tableConfig.columnWidths : Array.from({ length: colCount }, function() { return 100 / colCount; });
           var cellWrap = 'word-break:break-word;overflow-wrap:break-word;white-space:normal;';
+          var cellWrapPreLine = 'word-break:break-word;overflow-wrap:break-word;white-space:pre-line;';
           var colgroup = colWidths.map(function(pct) { return '<col style="width:' + Math.max(1, Math.min(100, Number(pct) || 100 / colCount)) + '%">'; }).join('');
           var headers = (box.tableConfig.headers || []).map(function(hd) { return '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;' + cellWrap + '">' + escapeHtml(hd || '') + '</th>'; }).join('');
           var r = tableRowRange || { startRow: 0, endRow: rowCount };
@@ -1915,13 +2081,20 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           else if (rowCount > THRESH && r.endRow === r.startRow) bodyRows = '<tr style="height:' + GAP_PX + 'px"><td colspan="' + columnKeys.length + '" style="border:none;padding:8px;font-style:italic;text-align:center;vertical-align:bottom;height:' + GAP_PX + 'px;">Find the details of elements in attached list.</td></tr>';
           else {
             for (var ri = r.startRow; ri < r.endRow; ri++) {
+              var rowMeta = getDataTableRowMeta(data, columnKeys, ri + 1);
+              var trStyle = rowMeta && rowMeta.isContainerHeading ? 'font-weight:bold;' : '';
               var cells = [];
-              for (var ci = 0; ci < columnKeys.length; ci++) cells.push('<td style="border:none;padding:4px;' + cellWrap + '">' + escapeHtml(getDataTableCell(data, columnKeys, ri + 1, ci)) + '</td>');
-              bodyRows += '<tr>' + cells.join('') + '</tr>';
+              for (var ci = 0; ci < columnKeys.length; ci++) {
+                var cellBold = rowMeta && rowMeta.isContainerHeading && ci === 0 ? 'font-weight:bold;' : '';
+                cells.push('<td style="border:none;padding:4px;' + cellBold + cellWrapPreLine + '">' + escapeHtml(getDataTableCell(data, columnKeys, ri + 1, ci)) + '</td>');
+              }
+              bodyRows += '<tr style="' + trStyle + '">' + cells.join('') + '</tr>';
             }
           }
-          var tableHtml = '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:' + (box.properties && box.properties.fontSize != null ? box.properties.fontSize : 11) + 'px;"><colgroup>' + colgroup + '</colgroup><thead><tr>' + headers + '</tr></thead><tbody>' + bodyRows + '</tbody></table>';
-          boxDivs.push('<div class="template-box template-box-table" style="position:absolute;left:' + left + 'px;top:' + localTop + 'px;width:' + width + 'px;height:' + height + 'px;padding:4px;box-sizing:border-box;overflow:visible;">' + tableHtml + '</div>');
+          var tableBorderEmbed = tableIncludesGapEmbed ? 'border:none;' : '';
+          var tableHtml = '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:' + (box.properties && box.properties.fontSize != null ? box.properties.fontSize : 11) + 'px;' + tableBorderEmbed + '"><colgroup>' + colgroup + '</colgroup><thead><tr>' + headers + '</tr></thead><tbody>' + bodyRows + '</tbody></table>';
+          var gapBlockEmbed = tableIncludesGapEmbed ? ('<div class="data-table-gap-inside" style="width:100%;height:' + SPACER_PX + 'px;flex-shrink:0;"></div>') : '';
+          boxDivs.push('<div class="template-box template-box-table" style="position:absolute;left:' + left + 'px;top:' + localTop + 'px;width:' + width + 'px;height:' + height + 'px;padding:4px;box-sizing:border-box;overflow:visible;border:1px solid #000;display:flex;flex-direction:column;">' + tableHtml + gapBlockEmbed + '</div>');
         } else {
           var rawLabel = box.labelName || (box.fieldName ? String(box.fieldName).replace(/_/g, ' ').replace(/\\b\\w/g, function(ch) { return ch.toUpperCase(); }) : '');
           var label = (rawLabel && String(rawLabel).trim().slice(-3) === '...' && box.fieldName) ? String(box.fieldName).replace(/_/g, ' ').replace(/\\b\\w/g, function(ch) { return ch.toUpperCase(); }) : rawLabel;
@@ -3296,7 +3469,8 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                               effectiveH = dataTableLayout.effectiveHeightByBoxId[box.id];
                               // When not in attached list mode, merge table + spacer below into one common box on page 0
                               const useAttachedListMode = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
-                              if (!useAttachedListMode && pageIndex === 0 && dataTableLayout.dataTableSpacerTop != null) {
+                              const tableIncludesGap = dataTableLayout.dataTableIncludesGapOnFirstPage;
+                              if (!useAttachedListMode && !tableIncludesGap && pageIndex === 0 && dataTableLayout.dataTableSpacerTop != null) {
                                 const tableBottom = globalY + effectiveH;
                                 if (Math.abs(tableBottom - dataTableLayout.dataTableSpacerTop) < 2) {
                                   const spacerH = Math.min(EMPTY_BOX_BELOW_TABLE_PX, canvasDims.height - dataTableLayout.dataTableSpacerTop);
@@ -3365,7 +3539,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                                       const tpi = Math.max(0, pageIndex - fp);
                                       if (pageIndex === fp && dataTableLayout.effectiveHeightByBoxId[b.id] != null) {
                                         eh = dataTableLayout.effectiveHeightByBoxId[b.id];
-                                        if (!(rc > DATA_TABLE_ATTACHED_LIST_THRESHOLD) && pageIndex === 0 && dataTableLayout.dataTableSpacerTop != null && Math.abs(gy + eh - dataTableLayout.dataTableSpacerTop) < 2)
+                                        if (!(rc > DATA_TABLE_ATTACHED_LIST_THRESHOLD) && !dataTableLayout.dataTableIncludesGapOnFirstPage && pageIndex === 0 && dataTableLayout.dataTableSpacerTop != null && Math.abs(gy + eh - dataTableLayout.dataTableSpacerTop) < 2)
                                           eh += Math.min(EMPTY_BOX_BELOW_TABLE_PX, canvasDims.height - dataTableLayout.dataTableSpacerTop);
                                       } else {
                                         const r = getDataTableRowRangeForPage(b, tpi, rc, canvasDims.height - TITLE_AREA_HEIGHT);
@@ -3407,7 +3581,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                                 const widths = (box.tableConfig.columnWidths && Array.isArray(box.tableConfig.columnWidths) && box.tableConfig.columnWidths.length === colCount)
                                   ? box.tableConfig.columnWidths
                                   : Array.from({ length: colCount }, () => 100 / colCount);
-                                const cellWrapStyle = { wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' };
+                                const cellWrapStyle = { wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-line' };
                                 return (
                               <div className="table-preview" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', padding: '4px 4px 0 4px', boxSizing: 'border-box', overflow: 'visible' }}>
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, tableLayout: 'fixed' }}>
@@ -3450,10 +3624,11 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                                         }
                                         return Array.from({ length: endRow - startRow }).map((_, i) => {
                                           const ri = startRow + i;
+                                          const rowMeta = getDataTableRowMeta(demoData, box.tableConfig.columnKeys, ri + 1);
                                           return (
-                                            <tr key={ri}>
+                                            <tr key={ri} style={{ fontWeight: rowMeta?.isContainerHeading ? 'bold' : 'normal' }}>
                                               {(box.tableConfig.columnKeys || box.tableConfig.headers || []).map((_, ci) => (
-                                                <td key={ci} style={{ border: 'none', padding: 4, ...cellWrapStyle }}>{getDataTableCell(demoData, box.tableConfig.columnKeys, ri + 1, ci)}</td>
+                                                <td key={ci} style={{ border: 'none', padding: 4, ...(rowMeta?.isContainerHeading && ci === 0 ? { fontWeight: 'bold' } : {}), ...cellWrapStyle }}>{getDataTableCell(demoData, box.tableConfig.columnKeys, ri + 1, ci)}</td>
                                               ))}
                                             </tr>
                                           );
