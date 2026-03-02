@@ -123,15 +123,16 @@ function getDataTableEffectiveHeight(box, data) {
   return DATA_TABLE_HEADER_ROW_PX + Math.max(0, rowCount) * DATA_TABLE_ROW_HEIGHT_PX;
 }
 
-/** Height of only the first segment (first N rows on page 1). When rowCount > threshold, page 1 = header + gap (110px); else header + up to rowsOnFirst rows. */
+/** Height of only the first segment (first N rows on page 1). When rowCount > threshold, page 1 = header + message; use at least design height so first page table matches sidebar (e.g. 450px). */
 function getDataTableFirstSegmentHeight(box, data) {
   if (!box?.tableConfig?.dynamicRowsFromData || !Array.isArray(box.tableConfig?.columnKeys)) return null;
   const rowCount = getDataTableRowCount(data || {}, box.tableConfig.columnKeys);
   const rowsOnFirst = Math.max(1, Number(box?.tableConfig?.rowsOnFirstPage) || 3);
+  const designHeight = Math.max(20, Number(box?.size?.height) || 20);
   const useAttachedListMode = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
-  if (useAttachedListMode) return DATA_TABLE_HEADER_ROW_PX + DATA_TABLE_ATTACHED_LIST_GAP_PX;
+  if (useAttachedListMode) return Math.max(DATA_TABLE_HEADER_ROW_PX + DATA_TABLE_ATTACHED_LIST_GAP_PX, designHeight);
   const rowsToShow = Math.min(rowsOnFirst, Math.max(0, rowCount));
-  return DATA_TABLE_HEADER_ROW_PX + rowsToShow * DATA_TABLE_ROW_HEIGHT_PX;
+  return Math.max(DATA_TABLE_HEADER_ROW_PX + rowsToShow * DATA_TABLE_ROW_HEIGHT_PX, designHeight);
 }
 
 /** Get { startRow, endRow } for a data table. When rowCount > threshold, page 0 = 0 rows (message row only); all rows on page 1, 2, ... */
@@ -206,7 +207,7 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx, layoutOverrides) 
   const effectiveOverrides = layoutOverrides?.effectiveHeightByBoxId;
   const tablePageCountOverrides = layoutOverrides?.tablePageCountByBoxId;
   boxes.forEach((box) => {
-    const designHeight = box.size?.height ?? 20;
+    const designHeight = Math.max(20, Number(box.size?.height) || 20);
     if (effectiveOverrides != null && effectiveOverrides[box.id] != null) {
       effectiveHeightByBoxId[box.id] = effectiveOverrides[box.id];
       return;
@@ -301,6 +302,9 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx, layoutOverrides) 
         if (bTop >= firstSegmentBottom) {
           offset += minY != null ? spacerBottom - minY : (tEffective + spacerPx) - tDesign;
         } else if (bBottom > firstSegmentBottom) {
+          offset += Math.max(0, spacerBottom - bTop);
+        } else if (bTop < firstSegmentBottom && bBottom > tTop) {
+          /* Box is inside table span (e.g. placed below old design height but above effective height): push below table */
           offset += Math.max(0, spacerBottom - bTop);
         }
       } else if (tEffective != null && tEffective > tDesign && bTop >= tTop + tDesign) {
@@ -546,14 +550,16 @@ const generatePdf = async (template, data, uploadsDir) => {
       const tableLocalYPage0Px = Math.max(0, tableYEditorPx - EDITOR_TITLE_AREA_PX);
       const tableStartYFirstPagePt = contentStartYFirst + tableLocalYPage0Px * pxToPt;
       const availableForTableFirstPagePt = Math.max(0, pageHeightPt - tableStartYFirstPagePt - margins.bottom - headerHeightPt);
-      const SAFETY_MARGIN_PT = 4;
+      /* Use 97% of available height so table fills the page (minimal gap); row heights are content-based so items per page stays variable */
+      const SAFETY_MARGIN_PT = 2;
+      const SAFETY_FRACTION = 0.97;
       while (start < rowCount) {
         const avail = (ranges.length === 0 && !useAttachedListMode)
           ? availableForTableFirstPagePt
           : contentHeightPtContinuation - headerHeightPt;
         let end = start;
         let accum = 0;
-        const availSafe = Math.max(0, avail - SAFETY_MARGIN_PT);
+        const availSafe = Math.max(0, (avail * SAFETY_FRACTION) - SAFETY_MARGIN_PT);
         while (end < rowCount && accum + rowHeightsPt[end] <= availSafe) {
           accum += rowHeightsPt[end];
           end++;
@@ -663,7 +669,14 @@ const generatePdf = async (template, data, uploadsDir) => {
         let y = (localYEditor * pxToPt) + contentStartY;
         let width = Math.max(10, (box.size?.width || 100) * pxToPt);
         let height = Math.max(10, (box.size?.height || 20) * pxToPt);
-        if (boxH !== (box.size?.height ?? 20)) height = Math.max(10, Math.min(boxH, clipBottomEditor) * pxToPt);
+        const isDataTableBox = box.type === 'table' && box.tableConfig?.dynamicRowsFromData && Array.isArray(box.tableConfig?.columnKeys);
+        /* For data tables: use exactly the sidebar height (e.g. 450px) so the table box fills that space; only cap if it would go off the page */
+        if (isDataTableBox) {
+          const designHeightPx = Math.max(20, Number(box.size?.height) || 20);
+          height = designHeightPx * pxToPt;
+        } else {
+          if (boxH !== (box.size?.height ?? 20)) height = Math.max(10, Math.min(boxH, clipBottomEditor) * pxToPt);
+        }
         if (x + width > pageWidth - margins.right) width = Math.max(10, pageWidth - margins.right - x);
         if (x < margins.left) { const overflow = margins.left - x; x = margins.left; width = Math.max(10, width - overflow); }
         if (y + height > pageHeight - margins.bottom) height = Math.max(10, pageHeight - margins.bottom - y);
@@ -671,7 +684,7 @@ const generatePdf = async (template, data, uploadsDir) => {
         width = Math.min(width, availableWidth);
         height = Math.min(height, availableHeight - (y - contentStartY));
 
-        if (box.type === 'table' && box.tableConfig?.dynamicRowsFromData && Array.isArray(box.tableConfig?.columnKeys)) {
+        if (isDataTableBox) {
           const columnKeys = box.tableConfig.columnKeys;
           const headers = box.tableConfig.headers || columnKeys.map(k => k.replace(/_/g, ' '));
           const rowCount = getDataTableRowCount(dataObj, columnKeys);
@@ -752,8 +765,12 @@ const generatePdf = async (template, data, uploadsDir) => {
             const spacerHeightPt = Math.min(EMPTY_BOX_BELOW_TABLE_PX * pxToPt, remainingHeight);
             if (spacerHeightPt > 0) outerTableHeight += spacerHeightPt;
           }
-          /* Use at least the user-configured table height so PDF matches canvas */
-          outerTableHeight = Math.max(outerTableHeight, height);
+          /* Page 0: use design height so border extends full box (e.g. 450px). Continuation pages: border ends at last row only */
+          if (pageIndex === 0) {
+            const designHeightPt = designHeightPx * pxToPt;
+            const maxRectHeight = Math.max(0, pageHeight - margins.bottom - tableStartY);
+            outerTableHeight = Math.max(outerTableHeight, Math.min(designHeightPt, maxRectHeight));
+          }
           doc.rect(x, tableStartY, width, outerTableHeight).stroke();
           doc.restore();
           return;

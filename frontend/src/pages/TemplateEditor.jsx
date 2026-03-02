@@ -277,16 +277,17 @@ function getDataTableEffectiveHeight(box, data) {
   }
 }
 
-/** Height of only the first segment (first N rows on page 1). When rowCount > threshold, page 1 shows only header + 1 message row; else header + up to rowsOnFirst rows. */
+/** Height of only the first segment (first N rows on page 1). When rowCount > threshold, page 1 shows header + message; use at least design height so first page table matches sidebar (e.g. 450px). */
 function getDataTableFirstSegmentHeight(box, data) {
   try {
     if (!box?.tableConfig || !Array.isArray(box.tableConfig.columnKeys)) return null;
     const rowCount = getDataTableRowCount(data || {}, box.tableConfig.columnKeys);
     const rowsOnFirst = Math.max(3, Math.max(1, Number(box?.tableConfig?.rowsOnFirstPage) || 3));
+    const designHeight = Math.max(20, Number(box?.size?.height) || 20);
     const useAttachedListMode = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
-    if (useAttachedListMode) return DATA_TABLE_HEADER_ROW_PX + DATA_TABLE_ATTACHED_LIST_GAP_PX;
+    if (useAttachedListMode) return Math.max(DATA_TABLE_HEADER_ROW_PX + DATA_TABLE_ATTACHED_LIST_GAP_PX, designHeight);
     const rowsToShow = Math.min(rowsOnFirst, Math.max(0, rowCount));
-    const h = DATA_TABLE_HEADER_ROW_PX + rowsToShow * DATA_TABLE_ROW_HEIGHT_PX;
+    const h = Math.max(DATA_TABLE_HEADER_ROW_PX + rowsToShow * DATA_TABLE_ROW_HEIGHT_PX, designHeight);
     return Number.isFinite(h) ? h : null;
   } catch (_) {
     return null;
@@ -590,6 +591,9 @@ const TemplateEditor = () => {
             if (bTop >= firstSegmentBottom) {
               offset += minY != null ? spacerBottom - minY : (tEffective + spacerPx) - tDesign;
             } else if (bBottom > firstSegmentBottom) {
+              offset += Math.max(0, spacerBottom - bTop);
+            } else if (bTop < firstSegmentBottom && bBottom > tTop) {
+              /* Box is inside table span: push below table */
               offset += Math.max(0, spacerBottom - bTop);
             }
           } else if (tEffective != null && tEffective > tDesign && bTop >= tTop + tDesign) {
@@ -1518,6 +1522,8 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
             offset += minY != null ? spacerBottom - minY : (tEffective + spacerPx) - tDesign;
           } else if (bBottom > firstSegmentBottom) {
             offset += Math.max(0, spacerBottom - bTop);
+          } else if (bTop < firstSegmentBottom && bBottom > tTop) {
+            offset += Math.max(0, spacerBottom - bTop);
           }
         } else if (tEffective != null && tEffective > tDesign && bTop >= tTop + tDesign) {
           offset += tEffective - tDesign;
@@ -1949,6 +1955,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           minYVal = minYBelow[t.id];
           if (bTop >= firstBottom) offset += minYVal != null ? spacerBottom - minYVal : (tEff + spacerPx) - tDesign;
           else if (bBottom > firstBottom) offset += Math.max(0, spacerBottom - bTop);
+          else if (bTop < firstBottom && bBottom > tTop) offset += Math.max(0, spacerBottom - bTop);
         } else if (tEff != null && tEff > tDesign && bTop >= tTop + tDesign) offset += tEff - tDesign;
       }
       boxYOffset[b.id] = offset;

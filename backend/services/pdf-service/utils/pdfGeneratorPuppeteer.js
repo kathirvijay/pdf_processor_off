@@ -17,21 +17,25 @@ const {
 } = require('./pdfGenerator');
 
 const DATA_TABLE_ATTACHED_LIST_GAP_PX = 100;
-const MIN_ROW_PX = 22;
-const EXTRA_PX_PER_LINE = 14;
-const CHARS_PER_LINE_ESTIMATE = 45;
+/* Variable row height: short content = fewer px, long content = more px, so items-per-page varies by content */
+const MIN_ROW_PX = 20;
+const EXTRA_PX_PER_LINE = 12;
+/* Smaller chars/line so description length affects line count and row height (variable items per page) */
+const CHARS_PER_LINE_ESTIMATE = 38;
 
 /** Estimate row height (px) from cell text lengths – more lines for longer content. */
 function estimateRowHeightPx(dataObj, columnKeys, rowIndex1Based, boxWidthPx, colCount) {
   let maxLines = 1;
   const colWidthPx = Math.max(40, (boxWidthPx - 8) / colCount);
+  /* Use column width to estimate chars per line (narrow columns = more lines) */
+  const charsPerLine = Math.max(20, Math.min(60, Math.floor(colWidthPx / 8)));
   for (let ci = 0; ci < colCount; ci++) {
     const text = getDataTableCell(dataObj, columnKeys, rowIndex1Based, ci) || '';
     const len = String(text).length;
-    const lines = Math.max(1, Math.ceil((len || 0) / Math.max(1, CHARS_PER_LINE_ESTIMATE)));
+    const lines = Math.max(1, Math.ceil((len || 0) / Math.max(1, charsPerLine)));
     maxLines = Math.max(maxLines, Math.min(lines, 15));
   }
-  return MIN_ROW_PX + (maxLines - 1) * EXTRA_PX_PER_LINE;
+  return Math.max(MIN_ROW_PX, MIN_ROW_PX + (maxLines - 1) * EXTRA_PX_PER_LINE);
 }
 
 /** Build per-table ranges by accumulating row heights so items per page are dynamic. */
@@ -49,7 +53,8 @@ function buildDynamicTableRanges(box, dataObj, contentHeightPx) {
   }
 
   const useAttachedList = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
-  const availablePx = contentHeightPx - DATA_TABLE_HEADER_ROW_PX;
+  /* Use 97% of available height so table fills the page (minimal gap); row heights are content-based so items per page stays variable */
+  const availablePx = Math.max(0, (contentHeightPx - DATA_TABLE_HEADER_ROW_PX) * 0.97);
   const ranges = [];
   if (useAttachedList) ranges.push({ startRow: 0, endRow: 0 });
 
@@ -171,6 +176,9 @@ async function generatePdfPuppeteer(template, data, uploadsDir) {
     .pdf-box-table { border: none; padding: 0; }
     .pdf-box-table table { width: 100%; border-collapse: collapse; font-size: 11px; border: 1px solid #000; }
     .pdf-box-table.pdf-box-table-with-gap table { border: none; }
+    /* Page 0 data table: outer wrapper shows full design-height box; inner table has no outer border to avoid double line */
+    .pdf-box-table.pdf-box-table-page0-fullheight { border: 1px solid #000; }
+    .pdf-box-table.pdf-box-table-page0-fullheight table { border: none; }
     .pdf-box-table th { border: 1px solid #000; padding: 4px; text-align: left; background: #f0f0f0; }
     .pdf-box-table td { border: none; padding: 4px; text-align: left; }
   </style></head><body>`);
@@ -240,6 +248,9 @@ async function generatePdfPuppeteer(template, data, uploadsDir) {
       let w = Math.max(10, box.size?.width ?? 100);
       let h = Math.max(10, box.size?.height ?? 20);
       if (boxH !== (box.size?.height ?? 20)) h = Math.max(10, Math.min(boxH, clipBottomEditor));
+      /* For data tables, never shrink below user-configured height so PDF matches canvas (e.g. 450px) */
+      /* For data tables use exactly the table height from template (sidebar), not a fixed size */
+      if (isDataTable) h = Math.max(h, Math.max(20, Number(box.size?.height) || 20));
 
       const fontSize = Math.max(8, Math.min(72, Number(box.properties?.fontSize) || 12));
       const fontColor = (box.properties?.fontColor || '#000000').trim();
@@ -295,12 +306,21 @@ async function generatePdfPuppeteer(template, data, uploadsDir) {
             const numRows = range.endRow - range.startRow;
             h = headerPx + numRows * DATA_TABLE_ROW_HEIGHT_PX;
           }
+        } else {
+          /* Page 0: always use the table height from template (sidebar) so PDF matches */
+          h = Math.max(20, Number(box.size?.height) || 20);
         }
         const rowsOnFirst = Math.max(1, Number(box.tableConfig?.rowsOnFirstPage) || 3);
         const tableIncludesGap = pageIndex === 0 && rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
         const gapDiv = tableIncludesGap ? `<div style="width:100%;height:${EMPTY_BOX_BELOW_TABLE_PX}px;flex-shrink:0;"></div>` : '';
-        const tableClass = tableIncludesGap ? 'pdf-box pdf-box-table pdf-box-table-with-gap' : 'pdf-box pdf-box-table';
-        const tableStyle = `left:${x}px;top:${y}px;width:${w}px;height:${h}px;font-size:${fontSize}px;${tableIncludesGap ? 'border:1px solid #000;display:flex;flex-direction:column;' : ''}`;
+        /* On page 0 use design-height box with outer border so table border extends full height (e.g. 450px), not just inner table height */
+        const page0FullHeight = pageIndex === 0;
+        const tableClass = tableIncludesGap
+          ? 'pdf-box pdf-box-table pdf-box-table-with-gap'
+          : page0FullHeight
+            ? 'pdf-box pdf-box-table pdf-box-table-page0-fullheight'
+            : 'pdf-box pdf-box-table';
+        const tableStyle = `left:${x}px;top:${y}px;width:${w}px;height:${h}px;font-size:${fontSize}px;${(tableIncludesGap || page0FullHeight) ? 'border:1px solid #000;display:flex;flex-direction:column;' : ''}`;
         htmlParts.push(`<div class="${tableClass}" style="${tableStyle}">${tableHtml}${gapDiv}</div>`);
         continue;
       }
