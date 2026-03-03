@@ -1,11 +1,13 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import { ToastProvider } from './contexts/ToastContext';
+import { WakaEntryProvider, useWakaEntry } from './contexts/WakaEntryContext';
+import WakaEntryGuard from './components/WakaEntryGuard';
 import ToastContainer from './components/Toast';
 import TemplateEditor from './pages/TemplateEditor';
 import TemplateAdmin from './pages/TemplateAdmin';
 
-function App() {
+function AppContent() {
   return (
     <ToastProvider>
       <BrowserRouter>
@@ -24,8 +26,19 @@ function App() {
       </div>
       <ToastContainer />
     </BrowserRouter>
-    </ToastProvider>
+  </ToastProvider>
+  );
+}
+
+function App() {
+  return (
+    <WakaEntryProvider>
+      <WakaEntryGuard>
+        <AppContent />
+      </WakaEntryGuard>
+    </WakaEntryProvider>
   );
 }
 
 export default App;
+export { useWakaEntry };

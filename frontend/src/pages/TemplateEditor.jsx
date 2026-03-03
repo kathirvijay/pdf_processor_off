@@ -3,9 +3,11 @@ import { createPortal } from 'react-dom';
 import templateService, { standardizedTemplateService, templateDesignService } from '../services/templateService';
 import pdfService from '../services/pdfService';
 import csvService from '../services/csvService';
+import { saveToWaka } from '../services/wakaTemplateService';
 import { boxesToLayoutOnly } from '../utils/designUtils';
 import DesignThumbnail from '../components/DesignThumbnail';
 import { useToast } from '../contexts/ToastContext';
+import { useWakaEntry } from '../contexts/WakaEntryContext';
 import './TemplateEditor.css';
 
 const PAGE_SIZES = ['A4', 'A3', 'A5'];
@@ -477,6 +479,7 @@ const TemplateEditor = () => {
   const [lastSavedDesignSnapshot, setLastSavedDesignSnapshot] = useState(null);
 
   const toast = useToast();
+  const { token: wakaToken } = useWakaEntry();
 
   const getDesignSnapshot = (boxesData, docTitle, name, pSize, orient, outlineMode, tMode, maxCols) =>
     JSON.stringify({
@@ -2529,6 +2532,11 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         setCurrentTemplateId(res.data.id);
         toast.success('Template saved.');
       }
+      if (wakaToken) {
+        const wakaRes = await saveToWaka(wakaToken, { ...payload, template_name: payload.name, template_code: payload.documentName ? String(payload.documentName).trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') || undefined });
+        if (wakaRes.success) toast.success('Template also saved to Waka.');
+        else if (wakaRes.error) toast.error(`Waka: ${wakaRes.error}`);
+      }
       setLastSavedDesignSnapshot(currentDesignSnapshot);
       fetchTemplateCount();
     } catch (err) {
@@ -2652,6 +2660,11 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         const res = await templateService.createTemplate(payload);
         setCurrentTemplateId(res.data.id);
         toast.success('Template saved.');
+      }
+      if (wakaToken) {
+        const wakaRes = await saveToWaka(wakaToken, { ...payload, template_name: payload.name, template_code: payload.documentName ? String(payload.documentName).trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') || undefined });
+        if (wakaRes.success) toast.success('Template also saved to Waka.');
+        else if (wakaRes.error) toast.error(`Waka: ${wakaRes.error}`);
       }
       setLastSavedDesignSnapshot(getDesignSnapshot(updatedBoxes, docName, name, pageSize, orientation, templateOutlineMode, tableMode, maxDynamicColumns));
       fetchTemplateCount();
