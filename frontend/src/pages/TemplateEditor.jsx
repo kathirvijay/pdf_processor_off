@@ -13,7 +13,7 @@ import { useWakaEntry } from '../contexts/WakaEntryContext';
 import './TemplateEditor.css';
 
 const PAGE_SIZES = ['A4', 'A3', 'A5'];
-/** Height of the document title block (title + black line + margin). Content boxes start below this. */
+/** Height of the document title block (title + margin). Content boxes start below this. */
 const TITLE_AREA_HEIGHT = 90;
 /** Font size is stored in points (pt); convert to px for screen so editor matches PDF. 1pt = 96/72 px */
 const ptToPx = (pt) => Math.round((Number(pt) || 12) * (96 / 72));
@@ -39,8 +39,8 @@ const pageSizeDimensions = {
   A5: { portrait: { width: 559, height: 794 }, landscape: { width: 794, height: 559 } },
 };
 
-/** Renders tick marks for a horizontal ruler (0, 50, 100, ...) */
-function RulerHorizontal({ width }) {
+/** Renders tick marks for a horizontal ruler with two draggable arrows for vertical alignment guides */
+function RulerHorizontal({ width, arrowPositions, onArrowDrag, showArrows }) {
   const ticks = [];
   for (let px = 0; px <= width; px += RULER_MINOR_INTERVAL) {
     const isMajor = px % RULER_MAJOR_INTERVAL === 0;
@@ -56,14 +56,32 @@ function RulerHorizontal({ width }) {
     );
   }
   return (
-    <div className="ruler-horizontal" style={{ width }}>
+    <div className="ruler-horizontal ruler-horizontal-with-arrows" style={{ width }} title="Drag arrows to position vertical alignment guides">
+      {showArrows && [
+        <span
+          key="arrow-0"
+          className="ruler-arrow-draggable ruler-arrow-h"
+          style={{ left: Math.max(0, Math.min(width, arrowPositions[0] ?? 100)) - 6 }}
+          onMouseDown={(e) => { e.stopPropagation(); onArrowDrag(0, e.clientX); }}
+          title="Drag to move vertical guide"
+          aria-hidden
+        >▶</span>,
+        <span
+          key="arrow-1"
+          className="ruler-arrow-draggable ruler-arrow-h"
+          style={{ left: Math.max(0, Math.min(width, arrowPositions[1] ?? 400)) - 6 }}
+          onMouseDown={(e) => { e.stopPropagation(); onArrowDrag(1, e.clientX); }}
+          title="Drag to move vertical guide"
+          aria-hidden
+        >▶</span>,
+      ]}
       {ticks}
     </div>
   );
 }
 
-/** Renders tick marks for a vertical ruler (0, 50, 100, ...) */
-function RulerVertical({ height }) {
+/** Renders tick marks for a vertical ruler with two draggable arrows for horizontal alignment guides */
+function RulerVertical({ height, arrowPositions, onArrowDrag, showArrows }) {
   const ticks = [];
   for (let px = 0; px <= height; px += RULER_MINOR_INTERVAL) {
     const isMajor = px % RULER_MAJOR_INTERVAL === 0;
@@ -79,7 +97,25 @@ function RulerVertical({ height }) {
     );
   }
   return (
-    <div className="ruler-vertical" style={{ height }}>
+    <div className="ruler-vertical ruler-vertical-with-arrows" style={{ height }} title="Drag arrows to position horizontal alignment guides">
+      {showArrows && [
+        <span
+          key="arrow-0"
+          className="ruler-arrow-draggable ruler-arrow-v"
+          style={{ top: Math.max(0, Math.min(height, arrowPositions[0] ?? 100)) - 6 }}
+          onMouseDown={(e) => { e.stopPropagation(); onArrowDrag(0, e.clientY); }}
+          title="Drag to move horizontal guide"
+          aria-hidden
+        >▼</span>,
+        <span
+          key="arrow-1"
+          className="ruler-arrow-draggable ruler-arrow-v"
+          style={{ top: Math.max(0, Math.min(height, arrowPositions[1] ?? 300)) - 6 }}
+          onMouseDown={(e) => { e.stopPropagation(); onArrowDrag(1, e.clientY); }}
+          title="Drag to move horizontal guide"
+          aria-hidden
+        >▼</span>,
+      ]}
       {ticks}
     </div>
   );
@@ -461,7 +497,12 @@ const TemplateEditor = () => {
   const [saving, setSaving] = useState(false);
   const [pageSize, setPageSize] = useState('A4');
   const [orientation, setOrientation] = useState('portrait');
-  const [globalPadding, setGlobalPadding] = useState({ top: 0, right: 0, bottom: 0, left: 0 });
+  const DEFAULT_PADDING_PX = 40;
+  const [globalPadding, setGlobalPadding] = useState({ top: DEFAULT_PADDING_PX, right: DEFAULT_PADDING_PX, bottom: DEFAULT_PADDING_PX, left: DEFAULT_PADDING_PX });
+  const [showPaddingHighlight, setShowPaddingHighlight] = useState(false);
+  const [rulerArrowPositions, setRulerArrowPositions] = useState({ top: [100, 400], left: [100, 300] });
+  const [showAlignmentGuides, setShowAlignmentGuides] = useState(true);
+  const [draggingRulerArrow, setDraggingRulerArrow] = useState(null);
   const [documentTitle, setDocumentTitle] = useState('PDF Document');
   const [templateName, setTemplateName] = useState('Untitled');
   const [selectedBox, setSelectedBox] = useState(null);
@@ -487,7 +528,7 @@ const TemplateEditor = () => {
   const [resizeHandle, setResizeHandleName] = useState(null);
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0, left: 0, top: 0 });
   const [expandedSections, setExpandedSections] = useState({
-    global: true,
+    globalPadding: true,
     demoData: true,
     csvImport: false,
     pdfImport: false,
@@ -830,7 +871,7 @@ const TemplateEditor = () => {
 
   const handleSectionToggle = (sectionName) => {
     setExpandedSections((prev) => {
-      const next = { global: false, demoData: false, csvImport: false, pdfImport: false, boxLibrary: false, templateSettings: false, properties: false };
+      const next = { globalPadding: false, demoData: false, csvImport: false, pdfImport: false, boxLibrary: false, templateSettings: false, properties: false };
       next[sectionName] = !prev[sectionName];
       return next;
     });
@@ -1231,6 +1272,13 @@ const TemplateEditor = () => {
     setSelection(selectedBoxIds.filter((id) => id !== boxId));
   };
 
+  const handleTopRulerArrowDrag = (index, clientX) => {
+    setDraggingRulerArrow({ ruler: 'top', index, startClientX: clientX, startVal: rulerArrowPositions.top[index] });
+  };
+  const handleLeftRulerArrowDrag = (index, clientY) => {
+    setDraggingRulerArrow({ ruler: 'left', index, startClientY: clientY, startVal: rulerArrowPositions.left[index] });
+  };
+
   const wouldOverlap = (boxId, newX, newY, w, h, allBoxes) => {
     const test = { id: boxId, position: { x: newX, y: newY }, size: { width: w, height: h } };
     return allBoxes.some((b) => b.id !== boxId && checkBoxOverlap(test, b));
@@ -1417,6 +1465,41 @@ const TemplateEditor = () => {
       document.removeEventListener('mouseup', handleUp);
     };
   }, [resizingBox, resizeHandle, resizeStart, dataTableLayout, globalPadding]);
+
+  useEffect(() => {
+    if (!draggingRulerArrow) return;
+    const handleMove = (e) => {
+      const dims = getCanvasDimensions();
+      const effectiveH = dims.height + (dataTableLayout?.totalExtraHeight ?? 0);
+      const delta = draggingRulerArrow.ruler === 'top'
+        ? e.clientX - draggingRulerArrow.startClientX
+        : e.clientY - draggingRulerArrow.startClientY;
+      const startVal = draggingRulerArrow.startVal ?? 0;
+      const raw = startVal + delta;
+      if (draggingRulerArrow.ruler === 'top') {
+        const clamped = Math.max(0, Math.min(dims.width, Math.round(raw)));
+        setRulerArrowPositions((p) => {
+          const next = [...p.top];
+          next[draggingRulerArrow.index] = clamped;
+          return { ...p, top: next };
+        });
+      } else {
+        const clamped = Math.max(0, Math.min(effectiveH, Math.round(raw)));
+        setRulerArrowPositions((p) => {
+          const next = [...p.left];
+          next[draggingRulerArrow.index] = clamped;
+          return { ...p, left: next };
+        });
+      }
+    };
+    const handleUp = () => setDraggingRulerArrow(null);
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleUp);
+    };
+  }, [draggingRulerArrow, dataTableLayout]);
 
   useEffect(() => {
     if (!draggingBox) return;
@@ -2519,7 +2602,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       setTableMode(t.settings?.tableMode || 'static');
       setMaxDynamicColumns(t.settings?.maxDynamicColumns ?? 10);
       const gp = t.settings?.globalPadding;
-      setGlobalPadding(gp && typeof gp === 'object' ? { top: Number(gp.top) || 0, right: Number(gp.right) || 0, bottom: Number(gp.bottom) || 0, left: Number(gp.left) || 0 } : { top: 0, right: 0, bottom: 0, left: 0 });
+      setGlobalPadding(gp && typeof gp === 'object' ? { top: Number(gp.top) ?? DEFAULT_PADDING_PX, right: Number(gp.right) ?? DEFAULT_PADDING_PX, bottom: Number(gp.bottom) ?? DEFAULT_PADDING_PX, left: Number(gp.left) ?? DEFAULT_PADDING_PX } : { top: DEFAULT_PADDING_PX, right: DEFAULT_PADDING_PX, bottom: DEFAULT_PADDING_PX, left: DEFAULT_PADDING_PX });
       let designBoxes = [];
       if (t.pages?.[0]?.boxes) {
         designBoxes = t.pages[0].boxes.map((b) => {
@@ -2543,7 +2626,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         templateOutlineMode: t.settings?.outlineMode ?? 'none',
         tableMode: t.settings?.tableMode ?? 'static',
         maxDynamicColumns: t.settings?.maxDynamicColumns ?? 10,
-        globalPadding: t.settings?.globalPadding ?? { top: 0, right: 0, bottom: 0, left: 0 },
+        globalPadding: t.settings?.globalPadding ?? { top: DEFAULT_PADDING_PX, right: DEFAULT_PADDING_PX, bottom: DEFAULT_PADDING_PX, left: DEFAULT_PADDING_PX },
       }));
       if (t.standardizedTemplateId) {
         setEditorMode('standardized');
@@ -3091,14 +3174,52 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
             </div>
           )}
 
-          <div className="sidebar-section">
-            <h3 className="section-header" onClick={() => handleSectionToggle('global')}>
-              <span>🔤 Global</span>
-              <span className="expand-icon">{expandedSections.global ? '▼' : '▶'}</span>
+          <div className="sidebar-section sidebar-section-global-padding">
+            <h3 className="section-header" onClick={() => handleSectionToggle('globalPadding')}>
+              <span>📐 Global Layout</span>
+              <span className="expand-icon">{expandedSections.globalPadding ? '▼' : '▶'}</span>
             </h3>
-            {expandedSections.global && (
-              <div className="global-font-content">
-                <p className="save-template-section-hint">Apply to all boxes on the canvas.</p>
+            {expandedSections.globalPadding && (
+              <div className="global-padding-content">
+                <p className="save-template-section-hint" style={{ marginBottom: 10, fontWeight: 600 }}>Padding & Alignment</p>
+                <label className="template-setting-label" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={showPaddingHighlight}
+                    onChange={(e) => setShowPaddingHighlight(e.target.checked)}
+                  />
+                  <span>Highlight padding area on canvas</span>
+                </label>
+                <label className="template-setting-label" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={showAlignmentGuides}
+                    onChange={(e) => setShowAlignmentGuides(e.target.checked)}
+                  />
+                  <span>Highlight arrows</span>
+                </label>
+                <label className="template-setting-label" style={{ display: 'block', marginBottom: 8 }}>Padding (px)</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <div>
+                    <label style={{ fontSize: 11 }}>Top</label>
+                    <input type="number" min={0} value={globalPadding.top} onChange={(e) => setGlobalPadding((p) => ({ ...p, top: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11 }}>Right</label>
+                    <input type="number" min={0} value={globalPadding.right} onChange={(e) => setGlobalPadding((p) => ({ ...p, right: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11 }}>Bottom</label>
+                    <input type="number" min={0} value={globalPadding.bottom} onChange={(e) => setGlobalPadding((p) => ({ ...p, bottom: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11 }}>Left</label>
+                    <input type="number" min={0} value={globalPadding.left} onChange={(e) => setGlobalPadding((p) => ({ ...p, left: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
+                  </div>
+                </div>
+                <p className="property-hint" style={{ marginTop: 6 }}>Content area inset; boxes align to these boundaries. Drag ruler arrows to position alignment guides.</p>
+                <p className="save-template-section-hint" style={{ marginTop: 14, marginBottom: 8, fontWeight: 600 }}>Global</p>
+                <p className="save-template-section-hint" style={{ marginBottom: 8 }}>Apply to all boxes on the canvas.</p>
                 <div className="property-group">
                   <label>Font size (pt)</label>
                   <input
@@ -3248,28 +3369,6 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                       <input type="number" min={1} max={50} value={maxDynamicColumns} onChange={(e) => setMaxDynamicColumns(parseInt(e.target.value) || 10)} style={{ width: 80, padding: 4 }} />
                     </div>
                   )}
-                </div>
-                <div className="template-setting-group" style={{ marginTop: 12, borderTop: '1px solid rgba(102,126,234,0.2)', paddingTop: 12 }}>
-                  <label className="template-setting-label" style={{ display: 'block', marginBottom: 8 }}>Global padding (px)</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                    <div>
-                      <label style={{ fontSize: 11 }}>Top</label>
-                      <input type="number" min={0} value={globalPadding.top} onChange={(e) => setGlobalPadding((p) => ({ ...p, top: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 11 }}>Right</label>
-                      <input type="number" min={0} value={globalPadding.right} onChange={(e) => setGlobalPadding((p) => ({ ...p, right: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 11 }}>Bottom</label>
-                      <input type="number" min={0} value={globalPadding.bottom} onChange={(e) => setGlobalPadding((p) => ({ ...p, bottom: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 11 }}>Left</label>
-                      <input type="number" min={0} value={globalPadding.left} onChange={(e) => setGlobalPadding((p) => ({ ...p, left: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
-                    </div>
-                  </div>
-                  <p className="property-hint" style={{ marginTop: 6 }}>Content area inset; boxes align to these boundaries.</p>
                 </div>
               </div>
             )}
@@ -3542,11 +3641,51 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
               <div className="canvas-with-rulers">
                 <div className="ruler-top-row">
                   <div className="ruler-corner" style={{ width: RULER_SIZE_PX, height: RULER_SIZE_PX }} />
-                  <RulerHorizontal width={canvasDims.width} />
+                  <RulerHorizontal width={canvasDims.width} arrowPositions={rulerArrowPositions.top} onArrowDrag={handleTopRulerArrowDrag} showArrows={showAlignmentGuides} />
                 </div>
                 <div className="ruler-canvas-row">
-                  <RulerVertical height={canvasHeight} />
-                  <div className="canvas-area">
+                  <RulerVertical height={canvasHeight} arrowPositions={rulerArrowPositions.left} onArrowDrag={handleLeftRulerArrowDrag} showArrows={showAlignmentGuides} />
+                  <div className="canvas-area" style={{ position: 'relative' }}>
+            {/* Alignment guides overlay - bright orange lines from ruler arrows (when highlight on) */}
+            {showAlignmentGuides && (
+            <div
+              className="alignment-guides-overlay"
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                width: canvasDims.width,
+                height: canvasHeight,
+                pointerEvents: 'none',
+                zIndex: 60,
+              }}
+            >
+              {rulerArrowPositions.top.map((x, i) => (
+                <div
+                  key={`vg-${i}`}
+                  className="alignment-guide alignment-guide-vertical"
+                  style={{
+                    left: x - 1,
+                    width: 2,
+                    top: 0,
+                    height: '100%',
+                  }}
+                />
+              ))}
+              {rulerArrowPositions.left.map((y, i) => (
+                <div
+                  key={`hg-${i}`}
+                  className="alignment-guide alignment-guide-horizontal"
+                  style={{
+                    top: y - 1,
+                    height: 2,
+                    left: 0,
+                    width: '100%',
+                  }}
+                />
+              ))}
+            </div>
+            )}
             {numPages > 1 ? (
               <div
                 key="multi-page-canvas"
@@ -3619,9 +3758,9 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                         style={{
                           position: 'absolute',
                           left: globalPadding.left,
-                          top: TITLE_AREA_HEIGHT + globalPadding.top,
+                          top: globalPadding.top,
                           width: canvasDims.width - globalPadding.left - globalPadding.right,
-                          height: canvasDims.height - TITLE_AREA_HEIGHT - globalPadding.top - globalPadding.bottom,
+                          height: canvasDims.height - globalPadding.top - globalPadding.bottom,
                           border: '1px dashed rgba(59,130,246,0.5)',
                           pointerEvents: 'none',
                           zIndex: 49,
@@ -3629,6 +3768,14 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                         }}
                         title="Content area (global padding)"
                       />
+                    )}
+                    {showPaddingHighlight && (
+                      <>
+                        <div className="padding-highlight-overlay" style={{ top: 0, left: 0, right: 0, height: TITLE_AREA_HEIGHT + globalPadding.top }} />
+                        <div className="padding-highlight-overlay" style={{ bottom: 0, left: 0, right: 0, height: globalPadding.bottom }} />
+                        <div className="padding-highlight-overlay" style={{ top: 0, bottom: 0, left: 0, width: globalPadding.left }} />
+                        <div className="padding-highlight-overlay" style={{ top: 0, bottom: 0, right: 0, width: globalPadding.right }} />
+                      </>
                     )}
                     <div
                       className="canvas-page-inner"
@@ -3979,9 +4126,9 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                     style={{
                       position: 'absolute',
                       left: globalPadding.left,
-                      top: TITLE_AREA_HEIGHT + globalPadding.top,
+                      top: globalPadding.top,
                       width: canvasDims.width - globalPadding.left - globalPadding.right,
-                      height: canvasDims.height - TITLE_AREA_HEIGHT - globalPadding.top - globalPadding.bottom,
+                      height: canvasDims.height - globalPadding.top - globalPadding.bottom,
                       border: '1px dashed rgba(59,130,246,0.5)',
                       pointerEvents: 'none',
                       zIndex: 49,
@@ -3990,6 +4137,12 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                     title="Content area (global padding)"
                   />
                 )] : []),
+                ...(showPaddingHighlight ? [
+                  <div key="ph-t" className="padding-highlight-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: globalPadding.top, zIndex: 48 }} />,
+                  <div key="ph-b" className="padding-highlight-overlay" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: globalPadding.bottom, zIndex: 48 }} />,
+                  <div key="ph-l" className="padding-highlight-overlay" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: globalPadding.left, zIndex: 48 }} />,
+                  <div key="ph-r" className="padding-highlight-overlay" style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: globalPadding.right, zIndex: 48 }} />,
+                ] : []),
                 ...(marquee ? [<div
                   key="canvas-marquee"
                   className="canvas-marquee"
@@ -4005,19 +4158,21 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                     zIndex: 999,
                   }}
                 />] : []),
-                <div key="document-title" className="document-title">{documentTitle}</div>,
-                ...boxes.sort((a, b) => (a.rank || 0) - (b.rank || 0)).map((box, boxIdx) => {
+                <div key="canvas-content-wrapper" style={{ position: 'absolute', top: globalPadding.top, left: globalPadding.left, right: globalPadding.right, bottom: globalPadding.bottom, boxSizing: 'border-box' }}>
+                <div key="document-title" className="document-title">{documentTitle}</div>
+                {boxes.sort((a, b) => (a.rank || 0) - (b.rank || 0)).map((box, boxIdx) => {
                 const isDataTableBox = box.type === 'table' && box.tableConfig?.dynamicRowsFromData && Array.isArray(box.tableConfig?.columnKeys);
                 const effectiveH = dataTableLayout.effectiveHeightByBoxId[box.id];
                 const useHeight = isDataTableBox && effectiveH != null ? effectiveH : (box.size?.height ?? 20);
                 const offsetY = dataTableLayout.boxYOffset[box.id] || 0;
+                const boxTop = (box.position?.y ?? 0) + offsetY;
                 return (
                 <div
                   key={box.id ?? `box-${boxIdx}`}
                   className={`editor-box ${selectedBoxIds.includes(box.id) ? 'selected' : ''} ${draggingBox === box.id ? 'dragging' : ''} ${overlappingBox === box.id ? 'overlapping' : ''}`}
                   style={{
-                    left: `${box.position.x}px`,
-                    top: `${(box.position?.y ?? 0) + offsetY}px`,
+                    left: `${box.position.x - globalPadding.left}px`,
+                    top: `${boxTop - globalPadding.top}px`,
                     width: `${box.size.width}px`,
                     height: `${useHeight}px`,
                     fontSize: `${ptToPx(box.properties?.fontSize || 12)}px`,
@@ -4157,7 +4312,8 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                   )}
                 </div>
                 );
-              })
+              })}
+                </div>
             ]}
             </div>
             )}

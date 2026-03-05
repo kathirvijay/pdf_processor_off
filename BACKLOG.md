@@ -1,6 +1,6 @@
 # Backlog
 
-**Status:** 4 completed | 8 pending
+**Status:** 11 completed | 7 pending
 
 Tasks to complete. Add items below as they are identified.
 
@@ -12,6 +12,13 @@ Tasks to complete. Add items below as they are identified.
 2. **Hide missing Handlebars variables in HTML** ✅ – When populating exported HTML with dynamic data, missing variables show empty instead of the {{var}} placeholder.
 3. **Rulers and global padding for alignment** ✅ – Vertical ruler on left and horizontal ruler on top of canvas; global padding fields (top, right, bottom, left) in Template Settings; boxes constrained to padded content area; visual padding guide when padding > 0.
 4. **Table resize should push boxes below down** ✅ – When resizing a box (table or any) downward (s, sw, se handles), boxes below are pushed down instead of overlapping.
+5. **Rulers: arrow marks and alignment guides** ✅ (partial) – Arrow marks and click-to-add alignment lines implemented. Full spec in #10.
+6. **Global padding: prominent section and highlight toggle** ✅ – Global Padding & Alignment section; toggle to highlight padding area with transparent violet.
+7. **Default page padding 40px on all sides** ✅ – Default global padding is 40px (top, right, bottom, left) for new templates and when no saved padding.
+8. **Top padding consistent with other sides** ✅ – Content wrapper ensures top padding equals left/right/bottom; boxes and content respect uniform inset.
+10. **Rulers: draggable arrows and highlight toggle** ✅ – Two draggable arrows on each ruler; bright orange alignment lines; "Highlight arrows" toggle in Global Layout.
+11. **Remove black line below document title** ✅ – Removed the solid black horizontal line below the "PDF Document" title on the canvas.
+12. **Fix top blue padding guide** ✅ – Top blue dotted line now aligns with the top padding boundary (above the document title), matching left, right, and bottom.
 
 ---
 
@@ -23,6 +30,6 @@ Tasks to complete. Add items below as they are identified.
 4. **Variable name mapping (Waka)** – Map variables from Waka level to template variables in this system. Build/implement a mapping table to link Waka variables with template variables.
 5. **Canvas level adjustment and rules** – Canvas-level adjustment, rules, and dynamic adjustment (auto-fit/resize, layout rules, etc.).
 6. **Variables visible in HTML export** – Support multiple variables per box; when exporting to HTML, display the variables (e.g. {{var1}}, {{var2}}) visibly in the exported HTML so integrators know which variables map to each box.
-7. **Rulers: arrow marks and alignment guides** – Add arrow marks on the left and right side of the rulers. When clicking on a point on the ruler, draw bright orange alignment guide lines (vertical from top ruler, horizontal from left ruler). These lines can be dragged to check that all left and right edges are straight.
-8. **Global padding: prominent section and highlight toggle** – Make global padding a more prominent/standalone section (global element). Add a toggle button in the global area; when toggled ON, highlight the padding area on the canvas with a transparent violet/purple color for visual reference.
+7. **Left and right sidebars: expand/collapse** – Add expand and collapse controls for the left and right sidebars so users can hide them for more canvas space and show them when needed.
+9. **Box layout vs Custom layout toggle** – In Global Layout, add a toggle to switch between **Box layout** (grid/box-based canvas with visible boxes and borders) and **Custom layout** (non-boxy, free-flowing template like forms or cover pages with labels, varying alignment, horizontal lines, and natural content flow—no visible boxes). Toggle styling: Box layout = bright green; Custom layout = blue.
 

@@ -1084,6 +1084,89 @@
   pointer-events: none;
 }
 
+.ruler-horizontal-with-arrows,
+.ruler-vertical-with-arrows {
+  cursor: crosshair;
+}
+
+.ruler-arrow {
+  position: absolute;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.ruler-arrow-draggable {
+  position: absolute;
+  font-size: 10px;
+  color: #ff6600;
+  cursor: ew-resize;
+  pointer-events: auto;
+  z-index: 10;
+  user-select: none;
+}
+
+.ruler-arrow-h {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  text-align: center;
+}
+
+.ruler-arrow-v {
+  left: 50%;
+  transform: translateX(-50%);
+  height: 12px;
+  line-height: 12px;
+  cursor: ns-resize;
+}
+
+.ruler-arrow-left {
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ruler-arrow-right {
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.ruler-arrow-top {
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ruler-arrow-bottom {
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.alignment-guide {
+  position: absolute;
+  background: #ff6600;
+  box-shadow: 0 0 2px rgba(255, 102, 0, 0.8);
+}
+
+.alignment-guide-vertical {
+  background: linear-gradient(to right, transparent, #ff6600, transparent);
+}
+
+.alignment-guide-horizontal {
+  background: linear-gradient(to bottom, transparent, #ff6600, transparent);
+}
+
+.padding-highlight-overlay {
+  position: absolute;
+  background: rgba(138, 43, 226, 0.18);
+  pointer-events: none;
+  z-index: 48;
+  box-sizing: border-box;
+}
+
 .canvas-area {
   flex: 1;
   min-width: 0;
@@ -1105,7 +1188,6 @@
   font-size: 24px;
   font-weight: bold;
   padding: 20px;
-  border-bottom: 2px solid #0f172a;
   margin-bottom: 20px;
   color: #0f172a;
 }
