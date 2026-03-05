@@ -1003,6 +1003,92 @@
   border: 1px solid var(--color-border);
 }
 
+.canvas-with-rulers {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.ruler-top-row {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.ruler-corner {
+  flex-shrink: 0;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  border-right: none;
+}
+
+.ruler-horizontal {
+  position: relative;
+  height: 24px;
+  min-width: 0;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-left: none;
+  overflow: hidden;
+}
+
+.ruler-tick-h {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-border-strong);
+}
+
+.ruler-tick-h.ruler-tick-major {
+  height: 12px;
+}
+
+.ruler-label-h {
+  position: absolute;
+  bottom: 1px;
+  font-size: 9px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.ruler-canvas-row {
+  display: flex;
+  min-height: 0;
+}
+
+.ruler-vertical {
+  position: relative;
+  width: 24px;
+  flex-shrink: 0;
+  background: var(--color-bg-panel);
+  border: 1px solid var(--color-border);
+  border-top: none;
+  overflow: hidden;
+}
+
+.ruler-tick-v {
+  position: absolute;
+  left: 0;
+  height: 1px;
+  background: var(--color-border-strong);
+}
+
+.ruler-tick-v.ruler-tick-major {
+  width: 12px;
+}
+
+.ruler-label-v {
+  position: absolute;
+  left: 2px;
+  font-size: 9px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.canvas-area {
+  flex: 1;
+  min-width: 0;
+}
+
 .canvas {
   background: #f8fafc;
   border: 1px solid var(--color-border);

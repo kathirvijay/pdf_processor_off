@@ -27,11 +27,63 @@ const PAGE_GAP = 16;
 const PAGE_PADDING_PX = 36;
 /** Gap between pages in exported HTML (and print). */
 const PAGE_GAP_BETWEEN_PX = 32;
+/** Width/height of ruler bars (px). */
+const RULER_SIZE_PX = 24;
+/** Interval for major ruler ticks (px). */
+const RULER_MAJOR_INTERVAL = 100;
+/** Interval for minor ruler ticks (px). */
+const RULER_MINOR_INTERVAL = 50;
 const pageSizeDimensions = {
   A4: { portrait: { width: 794, height: 1123 }, landscape: { width: 1123, height: 794 } },
   A3: { portrait: { width: 1123, height: 1587 }, landscape: { width: 1587, height: 1123 } },
   A5: { portrait: { width: 559, height: 794 }, landscape: { width: 794, height: 559 } },
 };
+
+/** Renders tick marks for a horizontal ruler (0, 50, 100, ...) */
+function RulerHorizontal({ width }) {
+  const ticks = [];
+  for (let px = 0; px <= width; px += RULER_MINOR_INTERVAL) {
+    const isMajor = px % RULER_MAJOR_INTERVAL === 0;
+    ticks.push(
+      <div
+        key={px}
+        className={`ruler-tick ruler-tick-h ${isMajor ? 'ruler-tick-major' : ''}`}
+        style={{ left: px, height: isMajor ? 12 : 6 }}
+      />,
+      isMajor ? (
+        <span key={`l${px}`} className="ruler-label ruler-label-h" style={{ left: px + 2 }}>{px}</span>
+      ) : null
+    );
+  }
+  return (
+    <div className="ruler-horizontal" style={{ width }}>
+      {ticks}
+    </div>
+  );
+}
+
+/** Renders tick marks for a vertical ruler (0, 50, 100, ...) */
+function RulerVertical({ height }) {
+  const ticks = [];
+  for (let px = 0; px <= height; px += RULER_MINOR_INTERVAL) {
+    const isMajor = px % RULER_MAJOR_INTERVAL === 0;
+    ticks.push(
+      <div
+        key={px}
+        className={`ruler-tick ruler-tick-v ${isMajor ? 'ruler-tick-major' : ''}`}
+        style={{ top: px, width: isMajor ? 12 : 6 }}
+      />,
+      isMajor ? (
+        <span key={`l${px}`} className="ruler-label ruler-label-v" style={{ top: px + 1 }}>{px}</span>
+      ) : null
+    );
+  }
+  return (
+    <div className="ruler-vertical" style={{ height }}>
+      {ticks}
+    </div>
+  );
+}
 
 const sortKvByKey = (a, b) => {
   const ak = String(a?.key ?? '').trim().toLowerCase();
@@ -409,6 +461,7 @@ const TemplateEditor = () => {
   const [saving, setSaving] = useState(false);
   const [pageSize, setPageSize] = useState('A4');
   const [orientation, setOrientation] = useState('portrait');
+  const [globalPadding, setGlobalPadding] = useState({ top: 0, right: 0, bottom: 0, left: 0 });
   const [documentTitle, setDocumentTitle] = useState('PDF Document');
   const [templateName, setTemplateName] = useState('Untitled');
   const [selectedBox, setSelectedBox] = useState(null);
@@ -483,7 +536,7 @@ const TemplateEditor = () => {
   const toast = useToast();
   const { token: wakaToken } = useWakaEntry();
 
-  const getDesignSnapshot = (boxesData, docTitle, name, pSize, orient, outlineMode, tMode, maxCols) =>
+  const getDesignSnapshot = (boxesData, docTitle, name, pSize, orient, outlineMode, tMode, maxCols, gPadding) =>
     JSON.stringify({
       boxes: boxesData !== undefined ? boxesData : boxes,
       documentTitle: docTitle !== undefined ? docTitle : documentTitle,
@@ -493,8 +546,9 @@ const TemplateEditor = () => {
       templateOutlineMode: outlineMode !== undefined ? outlineMode : templateOutlineMode,
       tableMode: tMode !== undefined ? tMode : tableMode,
       maxDynamicColumns: maxCols !== undefined ? maxCols : maxDynamicColumns,
+      globalPadding: gPadding !== undefined ? gPadding : globalPadding,
     });
-  const currentDesignSnapshot = getDesignSnapshot(boxes, documentTitle, templateName, pageSize, orientation, templateOutlineMode, tableMode, maxDynamicColumns);
+  const currentDesignSnapshot = getDesignSnapshot(boxes, documentTitle, templateName, pageSize, orientation, templateOutlineMode, tableMode, maxDynamicColumns, globalPadding);
   const hasUnsavedChanges = Boolean(currentTemplateId && lastSavedDesignSnapshot != null && currentDesignSnapshot !== lastSavedDesignSnapshot);
 
   const getCanvasDimensions = () => {
@@ -938,12 +992,15 @@ const TemplateEditor = () => {
 
   const findAvailableSpace = (desiredWidth, desiredHeight) => {
     const canvasDims = getCanvasDimensions();
-    const margin = 20;
-    const titleHeight = 80;
-    if (boxes.length === 0) return { x: margin, y: titleHeight + margin, width: desiredWidth, height: desiredHeight };
+    const pad = globalPadding;
+    const minX = pad.left;
+    const minY = TITLE_AREA_HEIGHT + pad.top;
+    const maxRight = canvasDims.width - pad.right;
+    const maxBottom = canvasDims.height - pad.bottom;
+    if (boxes.length === 0) return { x: minX, y: minY, width: desiredWidth, height: desiredHeight };
     const calculateAvailable = (startX, startY) => {
-      let maxW = canvasDims.width - startX - margin;
-      let maxH = canvasDims.height - startY - margin;
+      let maxW = Math.min(maxRight - startX, canvasDims.width - startX - pad.right);
+      let maxH = Math.min(maxBottom - startY, canvasDims.height - startY - pad.bottom);
       for (const box of boxes) {
         const br = box.position.x + box.size.width, bb = box.position.y + box.size.height;
         if (box.position.x > startX && box.position.y < startY + maxH && bb > startY) maxW = Math.min(maxW, box.position.x - startX - 5);
@@ -955,10 +1012,10 @@ const TemplateEditor = () => {
     const positions = [
       ...boxes.map((b) => ({ x: b.position.x + b.size.width + 10, y: b.position.y })),
       ...boxes.map((b) => ({ x: b.position.x, y: b.position.y + b.size.height + 10 })),
-      { x: margin, y: titleHeight + margin },
+      { x: minX, y: minY },
     ];
     for (const pos of positions) {
-      if (pos.x < margin || pos.y < titleHeight + margin) continue;
+      if (pos.x < minX || pos.y < minY || pos.x + desiredWidth > maxRight || pos.y + desiredHeight > maxBottom) continue;
       const avail = calculateAvailable(pos.x, pos.y);
       if (avail.maxWidth >= 50 && avail.maxHeight >= 20) {
         const w = Math.min(desiredWidth, avail.maxWidth);
@@ -967,9 +1024,9 @@ const TemplateEditor = () => {
         if (!boxes.some((b) => checkBoxOverlap(test, b))) return { x: pos.x, y: pos.y, width: w, height: h };
       }
     }
-    const maxY = Math.max(...boxes.map((b) => b.position.y + b.size.height), titleHeight + margin);
-    const avail = calculateAvailable(margin, maxY + 20);
-    return { x: margin, y: maxY + 20, width: Math.min(desiredWidth, avail.maxWidth), height: Math.min(desiredHeight, avail.maxHeight) };
+    const maxY = Math.max(...boxes.map((b) => b.position.y + b.size.height), minY);
+    const avail = calculateAvailable(minX, maxY + 20);
+    return { x: minX, y: maxY + 20, width: Math.min(desiredWidth, avail.maxWidth), height: Math.min(desiredHeight, avail.maxHeight) };
   };
 
   const isTemplateFullyOccupied = (w, h) => {
@@ -1084,12 +1141,15 @@ const TemplateEditor = () => {
       return;
     }
     const canvasDims = getCanvasDimensions();
-    const margin = 20;
-    const titleHeight = 80;
+    const pad = globalPadding;
+    const minX = pad.left;
+    const minY = TITLE_AREA_HEIGHT + pad.top;
+    const maxRight = canvasDims.width - pad.right;
+    const maxBottom = canvasDims.height - pad.bottom;
     let finalPosition;
     if (dropPosition?.x != null && dropPosition?.y != null) {
-      let x = Math.max(margin, Math.min(dropPosition.x, canvasDims.width - libraryBox.size.width - margin));
-      let y = Math.max(titleHeight + margin, Math.min(dropPosition.y, canvasDims.height - libraryBox.size.height - margin));
+      let x = Math.max(minX, Math.min(dropPosition.x, maxRight - libraryBox.size.width));
+      let y = Math.max(minY, Math.min(dropPosition.y, maxBottom - libraryBox.size.height));
       const test = { id: 'test', position: { x, y }, size: libraryBox.size };
       if (!boxes.some((b) => checkBoxOverlap(test, b))) finalPosition = { x, y, width: libraryBox.size.width, height: libraryBox.size.height };
       else finalPosition = findAvailableSpace(libraryBox.size.width, libraryBox.size.height);
@@ -1121,12 +1181,15 @@ const TemplateEditor = () => {
       return;
     }
     const canvasDims = getCanvasDimensions();
-    const margin = 20;
-    const titleHeight = 80;
+    const pad = globalPadding;
+    const minX = pad.left;
+    const minY = TITLE_AREA_HEIGHT + pad.top;
+    const maxRight = canvasDims.width - pad.right;
+    const maxBottom = canvasDims.height - pad.bottom;
     let finalPosition;
     if (dropPosition?.x != null && dropPosition?.y != null) {
-      const x = Math.max(margin, Math.min(dropPosition.x, canvasDims.width - width - margin));
-      const y = Math.max(titleHeight + margin, Math.min(dropPosition.y, canvasDims.height - height - margin));
+      const x = Math.max(minX, Math.min(dropPosition.x, maxRight - width));
+      const y = Math.max(minY, Math.min(dropPosition.y, maxBottom - height));
       const test = { id: 'test', position: { x, y }, size: { width, height } };
       if (!boxes.some((b) => checkBoxOverlap(test, b))) finalPosition = { x, y, width, height };
       else finalPosition = findAvailableSpace(width, height);
@@ -1283,11 +1346,16 @@ const TemplateEditor = () => {
           height = Math.max(minSize, resizeStart.height - deltaY);
           top = resizeStart.top + (resizeStart.height - height);
         }
-        // Clamp to canvas (use effective height so boxes below first page can still resize)
-        let maxW = dims.width - left;
-        let maxH = Math.max(minSize, effectiveCanvasHeight - top);
-        let minLeft = 0;
-        let minTop = 0;
+        // Clamp to canvas and global padding
+        const pad = globalPadding;
+        const minLeftPad = pad.left;
+        const minTopPad = TITLE_AREA_HEIGHT + pad.top;
+        const maxRightPad = dims.width - pad.right;
+        const maxBottomPad = effectiveCanvasHeight - pad.bottom;
+        let maxW = Math.min(dims.width - left, maxRightPad - left);
+        let maxH = Math.max(minSize, Math.min(effectiveCanvasHeight - top, maxBottomPad - top));
+        let minLeft = minLeftPad;
+        let minTop = minTopPad;
         // Only constrain when expanding toward another box (so shrink/fill-gap works; avoid forcing shrink when already adjacent)
         const myRight0 = resizeStart.left + resizeStart.width;
         const myBottom0 = resizeStart.top + resizeStart.height;
@@ -1326,7 +1394,7 @@ const TemplateEditor = () => {
       document.removeEventListener('mousemove', handleMove);
       document.removeEventListener('mouseup', handleUp);
     };
-  }, [resizingBox, resizeHandle, resizeStart, dataTableLayout]);
+  }, [resizingBox, resizeHandle, resizeStart, dataTableLayout, globalPadding]);
 
   useEffect(() => {
     if (!draggingBox) return;
@@ -1341,13 +1409,16 @@ const TemplateEditor = () => {
       const canvas = document.querySelector('.canvas');
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
+      const dims = getCanvasDimensions();
+      const effectiveHeight = dims.height + (dataTableLayout?.totalExtraHeight ?? 0);
+      const pad = globalPadding;
       setBoxes((prev) => {
         const box = prev.find((b) => b.id === draggingBox);
         if (!box) return prev;
         const newX = e.clientX - rect.left - dragOffset.x;
         const newY = e.clientY - rect.top - dragOffset.y;
-        const constrainedX = Math.max(0, Math.min(newX, rect.width - box.size.width));
-        const constrainedY = Math.max(0, Math.min(newY, rect.height - box.size.height));
+        const constrainedX = Math.max(pad.left, Math.min(newX, dims.width - pad.right - box.size.width));
+        const constrainedY = Math.max(TITLE_AREA_HEIGHT + pad.top, Math.min(newY, effectiveHeight - pad.bottom - box.size.height));
         if (wouldOverlap(draggingBox, constrainedX, constrainedY, box.size.width, box.size.height, prev)) {
           setOverlappingBox(prev.find((b) => b.id !== draggingBox && checkBoxOverlap({ id: draggingBox, position: { x: constrainedX, y: constrainedY }, size: box.size }, b))?.id ?? null);
           return prev;
@@ -1370,7 +1441,7 @@ const TemplateEditor = () => {
       document.removeEventListener('mouseup', handleUp);
       document.body.style.cursor = '';
     };
-  }, [draggingBox, dragOffset, isDragging]);
+  }, [draggingBox, dragOffset, isDragging, globalPadding, dataTableLayout]);
 
   useEffect(() => {
     if (!marquee) return;
@@ -2425,6 +2496,8 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       setTemplateOutlineMode(t.settings?.outlineMode || 'none');
       setTableMode(t.settings?.tableMode || 'static');
       setMaxDynamicColumns(t.settings?.maxDynamicColumns ?? 10);
+      const gp = t.settings?.globalPadding;
+      setGlobalPadding(gp && typeof gp === 'object' ? { top: Number(gp.top) || 0, right: Number(gp.right) || 0, bottom: Number(gp.bottom) || 0, left: Number(gp.left) || 0 } : { top: 0, right: 0, bottom: 0, left: 0 });
       let designBoxes = [];
       if (t.pages?.[0]?.boxes) {
         designBoxes = t.pages[0].boxes.map((b) => {
@@ -2448,6 +2521,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         templateOutlineMode: t.settings?.outlineMode ?? 'none',
         tableMode: t.settings?.tableMode ?? 'static',
         maxDynamicColumns: t.settings?.maxDynamicColumns ?? 10,
+        globalPadding: t.settings?.globalPadding ?? { top: 0, right: 0, bottom: 0, left: 0 },
       }));
       if (t.standardizedTemplateId) {
         setEditorMode('standardized');
@@ -2527,6 +2601,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       orientation,
       pageSize,
       margins: { top: 5, bottom: 5, left: 5, right: 5 },
+      globalPadding: { top: globalPadding.top, right: globalPadding.right, bottom: globalPadding.bottom, left: globalPadding.left },
       title: documentNameVal != null ? documentNameVal : documentTitle,
       outlineMode: templateOutlineMode,
       tableMode: tableMode,
@@ -2689,7 +2764,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         if (wakaRes.success) toast.success('Template also saved to Waka.');
         else if (wakaRes.error) toast.error(`Waka: ${wakaRes.error}`);
       }
-      setLastSavedDesignSnapshot(getDesignSnapshot(updatedBoxes, docName, name, pageSize, orientation, templateOutlineMode, tableMode, maxDynamicColumns));
+      setLastSavedDesignSnapshot(getDesignSnapshot(updatedBoxes, docName, name, pageSize, orientation, templateOutlineMode, tableMode, maxDynamicColumns, globalPadding));
       fetchTemplateCount();
     } catch (err) {
       logger.error('Save template modal failed', err);
@@ -3152,6 +3227,28 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                     </div>
                   )}
                 </div>
+                <div className="template-setting-group" style={{ marginTop: 12, borderTop: '1px solid rgba(102,126,234,0.2)', paddingTop: 12 }}>
+                  <label className="template-setting-label" style={{ display: 'block', marginBottom: 8 }}>Global padding (px)</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <div>
+                      <label style={{ fontSize: 11 }}>Top</label>
+                      <input type="number" min={0} value={globalPadding.top} onChange={(e) => setGlobalPadding((p) => ({ ...p, top: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11 }}>Right</label>
+                      <input type="number" min={0} value={globalPadding.right} onChange={(e) => setGlobalPadding((p) => ({ ...p, right: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11 }}>Bottom</label>
+                      <input type="number" min={0} value={globalPadding.bottom} onChange={(e) => setGlobalPadding((p) => ({ ...p, bottom: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11 }}>Left</label>
+                      <input type="number" min={0} value={globalPadding.left} onChange={(e) => setGlobalPadding((p) => ({ ...p, left: Math.max(0, parseInt(e.target.value) || 0) }))} style={{ width: '100%', padding: 4 }} />
+                    </div>
+                  </div>
+                  <p className="property-hint" style={{ marginTop: 6 }}>Content area inset; boxes align to these boundaries.</p>
+                </div>
               </div>
             )}
           </div>
@@ -3414,7 +3511,21 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
 
         <main className="editor-main">
           <div className="canvas-wrapper">
-            {Math.max(1, Math.min(100, dataTableLayout.numPages || 1)) > 1 ? (
+            {(() => {
+              const numPages = Math.max(1, Math.min(100, dataTableLayout.numPages || 1));
+              const canvasHeight = numPages > 1
+                ? numPages * canvasDims.height + (numPages - 1) * PAGE_GAP
+                : canvasDims.height + (Math.max(0, Number(dataTableLayout.totalExtraHeight)) || 0);
+              return (
+              <div className="canvas-with-rulers">
+                <div className="ruler-top-row">
+                  <div className="ruler-corner" style={{ width: RULER_SIZE_PX, height: RULER_SIZE_PX }} />
+                  <RulerHorizontal width={canvasDims.width} />
+                </div>
+                <div className="ruler-canvas-row">
+                  <RulerVertical height={canvasHeight} />
+                  <div className="canvas-area">
+            {numPages > 1 ? (
               <div
                 key="multi-page-canvas"
                 className="canvas-pages-container"
@@ -3480,6 +3591,23 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                       }}
                       title="Page boundary – place boxes inside this area"
                     />
+                    {((globalPadding.top > 0 || globalPadding.right > 0 || globalPadding.bottom > 0 || globalPadding.left > 0)) && (
+                      <div
+                        className="padding-guide"
+                        style={{
+                          position: 'absolute',
+                          left: globalPadding.left,
+                          top: TITLE_AREA_HEIGHT + globalPadding.top,
+                          width: canvasDims.width - globalPadding.left - globalPadding.right,
+                          height: canvasDims.height - TITLE_AREA_HEIGHT - globalPadding.top - globalPadding.bottom,
+                          border: '1px dashed rgba(59,130,246,0.5)',
+                          pointerEvents: 'none',
+                          zIndex: 49,
+                          boxSizing: 'border-box',
+                        }}
+                        title="Content area (global padding)"
+                      />
+                    )}
                     <div
                       className="canvas-page-inner"
                       style={{
@@ -3822,6 +3950,24 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                   }}
                   title="Page boundary – place boxes inside this area"
                 />,
+                ...((globalPadding.top > 0 || globalPadding.right > 0 || globalPadding.bottom > 0 || globalPadding.left > 0) ? [(
+                  <div
+                    key="padding-guide-single"
+                    className="padding-guide"
+                    style={{
+                      position: 'absolute',
+                      left: globalPadding.left,
+                      top: TITLE_AREA_HEIGHT + globalPadding.top,
+                      width: canvasDims.width - globalPadding.left - globalPadding.right,
+                      height: canvasDims.height - TITLE_AREA_HEIGHT - globalPadding.top - globalPadding.bottom,
+                      border: '1px dashed rgba(59,130,246,0.5)',
+                      pointerEvents: 'none',
+                      zIndex: 49,
+                      boxSizing: 'border-box',
+                    }}
+                    title="Content area (global padding)"
+                  />
+                )] : []),
                 ...(marquee ? [<div
                   key="canvas-marquee"
                   className="canvas-marquee"
@@ -3993,6 +4139,11 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
             ]}
             </div>
             )}
+                  </div>
+                </div>
+              </div>
+              );
+            })()}
           </div>
         </main>
 
