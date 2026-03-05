@@ -1,6 +1,20 @@
 const { Op } = require('sequelize');
 const { initializeModels } = require('../../../shared/models');
 const { getStaticUserId } = require('../../../shared/config/staticUser');
+const logger = require('../../../shared/utils/logger');
+
+/** Strip undefined and ensure JSON-serializable values for JSONB columns */
+function toJsonSafe(obj) {
+  if (obj === null) return null;
+  if (obj === undefined) return null;
+  if (typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(toJsonSafe);
+  const out = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) out[k] = toJsonSafe(v);
+  }
+  return out;
+}
 
 /**
  * Build template_key_value JSON from template pages (all boxes with fieldName).
@@ -74,26 +88,25 @@ const templateController = {
 
       res.json(templates);
     } catch (error) {
-      console.error('Get templates error:', error);
+      logger.error('Get templates error', { error: error.message, stack: error.stack });
       res.status(500).json({ message: 'Error fetching templates', error: error.message });
     }
   },
 
   getTemplateById: async (req, res) => {
     try {
-      const userId = getStaticUserId();
       const models = await initializeModels();
       const { Template } = models;
 
       const template = await Template.findOne({
-        where: { id: req.params.id, userId },
+        where: { id: req.params.id, isActive: true },
       });
       if (!template) {
         return res.status(404).json({ message: 'Template not found' });
       }
       res.json(template);
     } catch (error) {
-      console.error('Get template error:', error);
+      logger.error('Get template error', { id: req.params.id, error: error.message, stack: error.stack });
       res.status(500).json({ message: 'Error fetching template' });
     }
   },
@@ -161,19 +174,20 @@ const templateController = {
 
       res.status(201).json(template);
     } catch (error) {
-      console.error('Create template error:', error);
+      logger.error('Create template error', { error: error.message, stack: error.stack, body: { name: req.body?.name } });
       res.status(500).json({ message: 'Error creating template', error: error.message });
     }
   },
 
   updateTemplate: async (req, res) => {
+    const start = Date.now();
+    logger.info('Update template request', { id: req.params.id, bodyKeys: Object.keys(req.body || {}), pageCount: req.body?.pages?.length });
     try {
-      const userId = getStaticUserId();
       const models = await initializeModels();
       const { Template } = models;
 
       const template = await Template.findOne({
-        where: { id: req.params.id, userId },
+        where: { id: req.params.id, isActive: true },
       });
       if (!template) {
         return res.status(404).json({ message: 'Template not found' });
@@ -198,14 +212,13 @@ const templateController = {
         }
       }
 
-      const templateKeyValue = buildTemplateKeyValueFromPages(nextPages);
+      const templateKeyValue = buildTemplateKeyValueFromPages(Array.isArray(nextPages) ? nextPages : template.pages || []);
 
-      if (name !== undefined && name.trim()) {
+      if (name !== undefined && typeof name === 'string' && name.trim()) {
         const nameTrim = name.trim();
         if (nameTrim.toLowerCase() !== template.name.toLowerCase()) {
           const existingTemplate = await Template.findOne({
             where: {
-              userId,
               isActive: true,
               id: { [Op.ne]: template.id },
               name: { [Op.iLike]: nameTrim },
@@ -217,33 +230,49 @@ const templateController = {
         }
       }
 
+      const nextName = name !== undefined ? (String(name).trim() || template.name) : template.name;
+      const nextDocName = documentName !== undefined ? (String(documentName).trim() || null) : template.documentName;
+      const safePages = Array.isArray(nextPages) ? toJsonSafe(nextPages) : (template.pages || []);
+      const safeSettings = settings && typeof settings === 'object' && !Array.isArray(settings) ? toJsonSafe(settings) : (template.settings || {});
+
       await template.update({
-        name: name !== undefined ? (name.trim() || template.name) : template.name,
-        documentName: documentName !== undefined ? (String(documentName).trim() || null) : template.documentName,
-        description: description !== undefined ? description : template.description,
-        category: category !== undefined ? category : template.category,
-        settings: settings || template.settings,
-        pages: nextPages,
+        name: nextName,
+        documentName: nextDocName,
+        description: description !== undefined ? (description ?? '') : template.description,
+        category: category !== undefined ? (category ?? '') : template.category,
+        settings: safeSettings,
+        pages: safePages,
         templateKeyValue: Object.keys(templateKeyValue).length > 0 ? templateKeyValue : null,
-        isPublic: isPublic !== undefined ? isPublic : template.isPublic,
+        isPublic: isPublic !== undefined ? Boolean(isPublic) : template.isPublic,
         standardizedTemplateId: nextStandardizedId || null,
       });
 
+      logger.info('Update template success', { id: req.params.id, durationMs: Date.now() - start });
       res.json(template);
     } catch (error) {
-      console.error('Update template error:', error);
-      res.status(500).json({ message: 'Error updating template', error: error.message });
+      logger.error('Update template error', {
+        id: req.params.id,
+        error: error.message,
+        stack: error.stack,
+        sequelizeErrors: error.errors?.map((e) => ({ path: e.path, message: e.message })),
+      });
+      const errMsg = error.message || String(error);
+      const errDetail = error.errors ? error.errors.map((e) => e.message).join('; ') : null;
+      res.status(500).json({
+        message: 'Error updating template',
+        error: errMsg,
+        ...(errDetail && { detail: errDetail }),
+      });
     }
   },
 
   deleteTemplate: async (req, res) => {
     try {
-      const userId = getStaticUserId();
       const models = await initializeModels();
       const { Template } = models;
 
       const template = await Template.findOne({
-        where: { id: req.params.id, userId },
+        where: { id: req.params.id },
       });
       if (!template) {
         return res.status(404).json({ message: 'Template not found' });
@@ -251,7 +280,7 @@ const templateController = {
       await template.destroy();
       res.json({ message: 'Template deleted' });
     } catch (error) {
-      console.error('Delete template error:', error);
+      logger.error('Delete template error', { id: req.params.id, error: error.message, stack: error.stack });
       res.status(500).json({ message: 'Error deleting template', error: error.message });
     }
   },

@@ -76,6 +76,11 @@ When you create or update a template, `template_key_value` is built automaticall
 psql -U postgres -d pdf_processor -f backend/shared/migrations/001_add_template_document_and_keyvalue.sql
 ```
 
+## Error logging
+
+- **Backend:** Winston logs to `backend/logs/error.log` (errors only) and `backend/logs/combined.log` (all levels). Console output is colorized. Set `LOG_LEVEL=debug` in `.env` for verbose logging.
+- **Frontend:** Errors are logged to the browser console and sent to `POST /api/logs`, which writes them to the backend logs. Use DevTools → Console to inspect failures.
+
 ## Project layout
 
 - `backend/` – gateway, template-service, pdf-service, shared (config, models, middleware, utils)

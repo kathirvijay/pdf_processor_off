@@ -3,7 +3,7 @@
  * Sends template + token to backend; backend verifies token and forwards to Integration Service.
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 /**
  * @param {string} token - JWT from Waka entry (useWakaEntry().token)

@@ -1,16 +1,16 @@
 const { QueryTypes } = require('sequelize');
 
+const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
+
 /**
  * Static user ID for pdf_processor_o (minimal app with no login).
  * Uses STATIC_USER_ID from .env if set; otherwise resolves from the first user in the shared DB.
+ * If neither is available, returns DEFAULT_USER_ID.
  */
 function getStaticUserId() {
   const id = process.env.STATIC_USER_ID;
   if (!id || id.trim() === '') {
-    throw new Error(
-      'STATIC_USER_ID is not set. Add STATIC_USER_ID=<uuid> to backend/.env. ' +
-      'Use a user id from the same database (create a user in the main pdf_processor app or insert into users table).'
-    );
+    return DEFAULT_USER_ID;
   }
   return id.trim();
 }
@@ -29,9 +29,9 @@ async function resolveStaticUserIdFromDb(sequelize) {
     console.log('  → Using first user from database as static user (set STATIC_USER_ID in .env to override).');
     return process.env.STATIC_USER_ID;
   }
-  throw new Error(
-    'No user found in database. Create a user in the main pdf_processor app (Register) or insert into users table, then restart. Or set STATIC_USER_ID=<uuid> in backend/.env.'
-  );
+  process.env.STATIC_USER_ID = DEFAULT_USER_ID;
+  console.log('  → No user in database; using default user id. Create a user or set STATIC_USER_ID in .env to override.');
+  return DEFAULT_USER_ID;
 }
 
 module.exports = { getStaticUserId, resolveStaticUserIdFromDb };

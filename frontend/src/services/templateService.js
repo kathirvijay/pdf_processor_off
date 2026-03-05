@@ -1,11 +1,24 @@
 import axios from 'axios';
+import logger from '../utils/logger';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
+  timeout: 60000,
 });
+
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    logger.apiError(
+      { service: 'templates', url: err.config?.url, method: err.config?.method },
+      err
+    );
+    return Promise.reject(err);
+  }
+);
 
 export const templateService = {
   getTemplates: async () => {

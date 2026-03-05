@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const WakaEntryContext = createContext({
   status: 'pending', // 'pending' | 'granted' | 'denied'
@@ -22,8 +22,8 @@ export function WakaEntryProvider({ children }) {
     const tokenFromUrl = params.get('token');
 
     if (!tokenFromUrl) {
-      setStatus('denied');
-      setError('Missing access token. Open this app from Waka Settings → Document templates.');
+      setStatus('granted');
+      setError(null);
       return;
     }
 

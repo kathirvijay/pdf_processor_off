@@ -1,6 +1,7 @@
 import axios from 'axios';
+import logger from '../utils/logger';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const pdfApi = axios.create({
   baseURL: API_URL,
@@ -12,6 +13,12 @@ const apiJson = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
 });
+
+const logError = (err) => {
+  logger.apiError({ service: 'pdf', url: err.config?.url, method: err.config?.method }, err);
+};
+pdfApi.interceptors.response.use((res) => res, (err) => { logError(err); return Promise.reject(err); });
+apiJson.interceptors.response.use((res) => res, (err) => { logError(err); return Promise.reject(err); });
 
 export const pdfService = {
   generate: async (templateId, data = {}) => {

@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const { initializeModels } = require('../../../shared/models');
 const { getStaticUserId } = require('../../../shared/config/staticUser');
+const logger = require('../../../shared/utils/logger');
 
 /**
  * Normalize boxes to layout-only (no key-value or content). Template design table holds only box pattern.
@@ -44,7 +45,7 @@ const templateDesignController = {
       });
       res.json(list);
     } catch (error) {
-      console.error('List template designs error:', error);
+      logger.error('List template designs error:', error);
       res.status(500).json({ message: 'Error listing template designs', error: error.message });
     }
   },
@@ -62,7 +63,7 @@ const templateDesignController = {
       }
       res.json(row);
     } catch (error) {
-      console.error('Get template design error:', error);
+      logger.error('Get template design error:', error);
       res.status(500).json({ message: 'Error fetching template design', error: error.message });
     }
   },
@@ -96,7 +97,7 @@ const templateDesignController = {
       });
       res.status(201).json(row);
     } catch (error) {
-      console.error('Create template design error:', error);
+      logger.error('Create template design error:', error);
       res.status(500).json({ message: 'Error saving template design', error: error.message });
     }
   },
@@ -135,7 +136,7 @@ const templateDesignController = {
       await row.save();
       res.json(row);
     } catch (error) {
-      console.error('Update template design error:', error);
+      logger.error('Update template design error:', error);
       res.status(500).json({ message: 'Error updating template design', error: error.message });
     }
   },
@@ -154,7 +155,7 @@ const templateDesignController = {
       await row.destroy();
       res.json({ message: 'Template design deleted' });
     } catch (error) {
-      console.error('Delete template design error:', error);
+      logger.error('Delete template design error:', error);
       res.status(500).json({ message: 'Error deleting template design', error: error.message });
     }
   },

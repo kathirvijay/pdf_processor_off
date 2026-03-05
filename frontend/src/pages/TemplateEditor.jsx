@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import templateService, { standardizedTemplateService, templateDesignService } from '../services/templateService';
 import pdfService from '../services/pdfService';
 import csvService from '../services/csvService';
 import { saveToWaka } from '../services/wakaTemplateService';
 import { boxesToLayoutOnly } from '../utils/designUtils';
+import logger from '../utils/logger';
 import DesignThumbnail from '../components/DesignThumbnail';
 import { useToast } from '../contexts/ToastContext';
 import { useWakaEntry } from '../contexts/WakaEntryContext';
@@ -736,9 +738,17 @@ const TemplateEditor = () => {
     }
   };
 
+  const { id: templateIdFromUrl } = useParams();
+
   useEffect(() => {
     fetchTemplateCount();
   }, []);
+
+  useEffect(() => {
+    if (templateIdFromUrl) {
+      handleLoadTemplate(templateIdFromUrl);
+    }
+  }, [templateIdFromUrl]);
 
   useEffect(() => {
     if (editorMode === 'standardized') {
@@ -1644,7 +1654,8 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       const dataWithPages = { ...(data && typeof data === 'object' ? data : {}), pages: `${(pageIndex ?? 0) + 1} of ${totalPages ?? 1}` };
       const displayValue = replacePlaceholdersInContent(rawPlaceholder, dataWithPages);
       const valueEmpty = String(displayValue).trim() === '';
-      const valueToShow = displayValue;
+      const showPlaceholderWhenEmpty = rawPlaceholder && /\{\{/.test(rawPlaceholder);
+      const valueToShow = valueEmpty && showPlaceholderWhenEmpty ? rawPlaceholder : displayValue;
       const valueToShowEmpty = String(valueToShow).trim() === '';
       const content = emptyBox ? '' : (valueOnly ? (valueToShowEmpty ? '' : escape(valueToShow)) : (labelOnly && label ? escape(label) : (label ? (valueToShowEmpty ? `${escape(label)}:` : `${escape(label)}: ${escape(valueToShow)}`) : (valueToShowEmpty ? '' : escape(valueToShow)))));
       const exportLayout = { boxYOffset, effectiveHeightByBoxId };
@@ -2127,7 +2138,8 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           dataWithPages.pages = (pageIndex + 1) + ' of ' + numPages;
           var displayValue = replacePlaceholders(rawPlaceholder, dataWithPages);
           var valueEmpty = String(displayValue).trim() === '';
-          var valueToShow = displayValue;
+          var showPlaceholderWhenEmpty = rawPlaceholder && /\\{\\{/.test(rawPlaceholder);
+          var valueToShow = valueEmpty && showPlaceholderWhenEmpty ? rawPlaceholder : displayValue;
           var valueToShowEmpty = String(valueToShow).trim() === '';
           var content = emptyBox ? '' : (valueOnly ? (valueToShowEmpty ? '' : escapeHtml(valueToShow)) : (labelOnly && label ? escapeHtml(label) : (label ? (valueToShowEmpty ? escapeHtml(label) + ':' : escapeHtml(label) + ': ' + escapeHtml(valueToShow)) : (valueToShowEmpty ? '' : escapeHtml(valueToShow)))));
           var border = '1px solid #000';
@@ -2440,7 +2452,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       }
       toast.success('Template loaded.');
     } catch (err) {
-      console.error(err);
+      logger.error('Load template failed', err);
       toast.error('Failed to load template');
     } finally {
       setLoading(false);
@@ -2533,14 +2545,20 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
         toast.success('Template saved.');
       }
       if (wakaToken) {
-        const wakaRes = await saveToWaka(wakaToken, { ...payload, template_name: payload.name, template_code: payload.documentName ? String(payload.documentName).trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') || undefined });
+        const wakaRes = await saveToWaka(wakaToken, { ...payload, template_name: payload.name, template_code: payload.documentName ? String(payload.documentName).trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') : undefined });
         if (wakaRes.success) toast.success('Template also saved to Waka.');
         else if (wakaRes.error) toast.error(`Waka: ${wakaRes.error}`);
       }
       setLastSavedDesignSnapshot(currentDesignSnapshot);
       fetchTemplateCount();
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Failed to save';
+      logger.error('Save template failed', err);
+      let msg = err.response?.data?.message || err.message || 'Failed to save';
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        msg = 'Request timed out. Ensure the backend is running (npm run dev in the backend folder).';
+      } else if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
+        msg = 'Cannot reach backend. Ensure the backend is running (npm run dev in the backend folder).';
+      }
       const invalidKeys = err.response?.data?.invalidKeys;
       toast.error(invalidKeys?.length ? `${msg} Invalid keys: ${invalidKeys.join(', ')}` : msg);
     } finally {
@@ -2653,23 +2671,31 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
     try {
       setSaving(true);
       const payload = buildPayload(name, docName, updatedBoxes);
-      if (currentTemplateId) {
-        await templateService.updateTemplate(currentTemplateId, payload);
-        toast.success('Template updated.');
-      } else {
+      const nameChanged = name.toLowerCase() !== (templateName || '').trim().toLowerCase();
+      const shouldCreateNew = !currentTemplateId || nameChanged;
+      if (shouldCreateNew) {
         const res = await templateService.createTemplate(payload);
         setCurrentTemplateId(res.data.id);
         toast.success('Template saved.');
+      } else {
+        await templateService.updateTemplate(currentTemplateId, payload);
+        toast.success('Template updated.');
       }
       if (wakaToken) {
-        const wakaRes = await saveToWaka(wakaToken, { ...payload, template_name: payload.name, template_code: payload.documentName ? String(payload.documentName).trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') || undefined });
+        const wakaRes = await saveToWaka(wakaToken, { ...payload, template_name: payload.name, template_code: payload.documentName ? String(payload.documentName).trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') : undefined });
         if (wakaRes.success) toast.success('Template also saved to Waka.');
         else if (wakaRes.error) toast.error(`Waka: ${wakaRes.error}`);
       }
       setLastSavedDesignSnapshot(getDesignSnapshot(updatedBoxes, docName, name, pageSize, orientation, templateOutlineMode, tableMode, maxDynamicColumns));
       fetchTemplateCount();
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Failed to save';
+      logger.error('Save template modal failed', err);
+      let msg = err.response?.data?.message || err.message || 'Failed to save';
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        msg = 'Request timed out. Ensure the backend is running (npm run dev in the backend folder).';
+      } else if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
+        msg = 'Cannot reach backend. Ensure the backend is running (npm run dev in the backend folder).';
+      }
       const invalidKeys = err.response?.data?.invalidKeys;
       toast.error(invalidKeys?.length ? `${msg} Invalid keys: ${invalidKeys.join(', ')}` : msg);
     } finally {

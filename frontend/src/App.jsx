@@ -21,6 +21,7 @@ function AppContent() {
       <div className="app-content">
         <Routes>
           <Route path="/" element={<TemplateEditor />} />
+          <Route path="/template/:id" element={<TemplateEditor />} />
           <Route path="/admin" element={<TemplateAdmin />} />
         </Routes>
       </div>

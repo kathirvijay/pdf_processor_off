@@ -2,8 +2,14 @@ require('dotenv').config();
 const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
-const jwt = require('jsonwebtoken');
-const { createProxyMiddleware } = require('http-proxy-middleware');
+let jwt;
+try {
+  jwt = require('jsonwebtoken');
+} catch (e) {
+  jwt = null;
+  console.warn('jsonwebtoken not installed - Waka validate-entry will return 503. Run: npm install jsonwebtoken');
+}
+const { createProxyMiddleware, fixRequestBody } = require('http-proxy-middleware');
 
 const app = express();
 const PORT = process.env.GATEWAY_PORT || 5000;
@@ -66,6 +72,7 @@ const allowedOrigins = [
   process.env.CORS_ORIGIN || 'http://localhost:3000',
   'http://localhost:3000',
   'http://localhost:5173',
+  'http://127.0.0.1:5173',
   'http://localhost:5000',
   'http://127.0.0.1:5000',
 ];
@@ -106,6 +113,9 @@ app.get('/api/waka/validate-entry', wakaRateLimitValidate, async (req, res) => {
     return res.json({ success: true, company_id: cached.company_id, roles: cached.roles || [] });
   }
 
+  if (!jwt) {
+    return res.status(503).json({ success: false, error: 'JWT not available. Run: npm install jsonwebtoken', code: 'JWT_UNAVAILABLE' });
+  }
   const secret = process.env.PDF_PROCESSOR_JWT_SECRET || process.env.WAKA_JWT_SECRET;
   if (!secret) {
     return res.status(503).json({ success: false, error: 'Service not configured', code: 'CONFIG_MISSING' });
@@ -165,6 +175,9 @@ app.post('/api/waka/save-template', wakaRateLimitSave, async (req, res) => {
     return res.status(401).json({ success: false, error: 'Missing token', code: 'MISSING_TOKEN' });
   }
 
+  if (!jwt) {
+    return res.status(503).json({ success: false, error: 'JWT not available. Run: npm install jsonwebtoken', code: 'JWT_UNAVAILABLE' });
+  }
   const secret = process.env.PDF_PROCESSOR_JWT_SECRET || process.env.WAKA_JWT_SECRET;
   if (!secret) {
     return res.status(503).json({ success: false, error: 'Service not configured', code: 'CONFIG_MISSING' });
@@ -236,19 +249,52 @@ app.post('/api/waka/save-template', wakaRateLimitSave, async (req, res) => {
   }
 });
 
+const logger = require('../shared/utils/logger');
+
+app.post('/api/logs', (req, res) => {
+  try {
+    const { level = 'info', message, context, stack, url, method, statusCode } = req.body || {};
+    const meta = { source: 'frontend', context, url, method, statusCode };
+    const logMsg = message || 'Frontend log';
+    if (level === 'error') {
+      logger.error(logMsg, { ...meta, stack });
+    } else if (level === 'warn') {
+      logger.warn(logMsg, meta);
+    } else {
+      logger.info(logMsg, meta);
+    }
+    res.status(204).send();
+  } catch (err) {
+    logger.error('Failed to write frontend log', { error: err.message });
+    res.status(500).json({ message: 'Log write failed' });
+  }
+});
+
 const services = {
   template: `http://localhost:${process.env.TEMPLATE_SERVICE_PORT || 5002}`,
   pdf: `http://localhost:${process.env.PDF_SERVICE_PORT || 5003}`,
   csv: `http://localhost:${process.env.CSV_SERVICE_PORT || 5004}`,
 };
 
-app.use('/api/templates', createProxyMiddleware({
+app.use('/api/templates', (req, res, next) => {
+  logger.info('Templates request', { method: req.method, path: req.url });
+  next();
+}, createProxyMiddleware({
   target: services.template,
   changeOrigin: true,
   pathRewrite: { '^/api/templates': '/api/templates' },
   logLevel: 'silent',
+  proxyTimeout: 60000,
+  onProxyReq: fixRequestBody,
   onError: (err, req, res) => {
-    if (!res.headersSent) res.status(500).json({ message: 'Proxy error', error: err.message });
+    logger.error('Templates proxy error', { method: req.method, path: req.url, code: err.code, message: err.message });
+    if (!res.headersSent) {
+      const isUnavailable = err.code === 'ECONNREFUSED' || err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT';
+      res.status(isUnavailable ? 503 : 500).json({
+        message: isUnavailable ? 'Template service unavailable. Ensure backend is running (npm run dev in backend folder).' : 'Proxy error',
+        error: err.message,
+      });
+    }
   },
 }));
 
@@ -257,9 +303,10 @@ app.use('/api/pdf', createProxyMiddleware({
   changeOrigin: true,
   pathRewrite: { '^/api/pdf': '/api/pdf' },
   logLevel: 'silent',
+  onProxyReq: fixRequestBody,
   onError: (err, req, res) => {
     if (!res.headersSent) {
-      console.error('PDF proxy error:', err.code || err.message, err.message);
+      logger.error('PDF proxy error', { code: err.code, message: err.message, url: req.url });
       const isUnavailable = err.code === 'ECONNREFUSED' || err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT';
       const message = isUnavailable
         ? 'PDF service unavailable. Ensure the backend is running (e.g. npm run dev in the backend folder).'
@@ -274,6 +321,7 @@ app.use('/api/csv', createProxyMiddleware({
   changeOrigin: true,
   pathRewrite: { '^/api/csv': '/api/csv' },
   logLevel: 'silent',
+  onProxyReq: fixRequestBody,
   onError: (err, req, res) => {
     if (!res.headersSent) {
       const msg = err.code === 'ECONNREFUSED'
@@ -289,6 +337,8 @@ app.use('/api/standardized-templates', createProxyMiddleware({
   changeOrigin: true,
   pathRewrite: { '^/api/standardized-templates': '/api/standardized-templates' },
   logLevel: 'silent',
+  proxyTimeout: 60000,
+  onProxyReq: fixRequestBody,
   onError: (err, req, res) => {
     if (!res.headersSent) res.status(500).json({ message: 'Proxy error', error: err.message });
   },
@@ -299,6 +349,8 @@ app.use('/api/template-designs', createProxyMiddleware({
   changeOrigin: true,
   pathRewrite: { '^/api/template-designs': '/api/template-designs' },
   logLevel: 'silent',
+  proxyTimeout: 60000,
+  onProxyReq: fixRequestBody,
   onError: (err, req, res) => {
     if (!res.headersSent) res.status(500).json({ message: 'Proxy error', error: err.message });
   },
@@ -309,8 +361,12 @@ app.get('/health', (req, res) => {
 });
 
 const StartupLogger = require('../shared/utils/startupLogger');
+const http = require('http');
 
-app.listen(PORT, () => {
+const server = http.createServer(app);
+server.headersTimeout = 120000;
+server.requestTimeout = 120000;
+server.listen(PORT, () => {
   StartupLogger.logHeader();
   StartupLogger.logServiceStarted('gateway', PORT);
 });

@@ -3,6 +3,7 @@ const express = require('express');
 const { initializeModels } = require('../../shared/models');
 const corsMiddleware = require('../../shared/middleware/cors');
 const { ensureModelsReady, setModelsReady } = require('../../shared/middleware/modelsReady');
+const logger = require('../../shared/utils/logger');
 const templateRoutes = require('./routes/templateRoutes');
 const standardizedTemplateRoutes = require('./routes/standardizedTemplateRoutes');
 const templateDesignRoutes = require('./routes/templateDesignRoutes');
@@ -12,7 +13,11 @@ const app = express();
 const PORT = process.env.TEMPLATE_SERVICE_PORT || 5002;
 
 app.use(corsMiddleware);
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
+app.use('/api/templates', (req, res, next) => {
+  logger.info('Template service received', { method: req.method, path: req.url });
+  next();
+});
 
 (async () => {
   try {
@@ -38,7 +43,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', service: 'Template Service', port: PORT });
 });
 
-app.listen(PORT, () => {
+const http = require('http');
+const server = http.createServer(app);
+server.headersTimeout = 120000;
+server.requestTimeout = 120000;
+server.listen(PORT, () => {
   StartupLogger.logServiceStarted('template', PORT);
 });
 
