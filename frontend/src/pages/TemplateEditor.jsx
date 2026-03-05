@@ -1357,6 +1357,7 @@ const TemplateEditor = () => {
         let minLeft = minLeftPad;
         let minTop = minTopPad;
         // Only constrain when expanding toward another box (so shrink/fill-gap works; avoid forcing shrink when already adjacent)
+        // For south resize (s, sw, se): do NOT limit maxH by boxes below – we will push those boxes down instead
         const myRight0 = resizeStart.left + resizeStart.width;
         const myBottom0 = resizeStart.top + resizeStart.height;
         prev.forEach((b) => {
@@ -1367,7 +1368,7 @@ const TemplateEditor = () => {
           const horizontalOverlap = !(left + width <= b.position.x - gap || b.position.x + b.size.width <= left - gap);
           if (['e', 'ne', 'se'].includes(resizeHandle) && b.position.x > myRight0 && verticalOverlap) maxW = Math.min(maxW, b.position.x - left - gap);
           if (['w', 'nw', 'sw'].includes(resizeHandle) && or < resizeStart.left && verticalOverlap) minLeft = Math.max(minLeft, b.position.x + b.size.width + gap);
-          if (['s', 'sw', 'se'].includes(resizeHandle) && b.position.y > myBottom0 && horizontalOverlap) maxH = Math.min(maxH, b.position.y - top - gap);
+          if (!['s', 'sw', 'se'].includes(resizeHandle) && b.position.y > myBottom0 && horizontalOverlap) maxH = Math.min(maxH, b.position.y - top - gap);
           if (['n', 'nw', 'ne'].includes(resizeHandle) && ob < resizeStart.top && horizontalOverlap) minTop = Math.max(minTop, b.position.y + b.size.height + gap);
         });
         if (['w', 'nw', 'sw'].includes(resizeHandle) && minLeft > 0) left = Math.max(left, minLeft);
@@ -1378,9 +1379,30 @@ const TemplateEditor = () => {
         height = Math.max(minSize, Math.min(maxH, height));
         if (['w', 'nw', 'sw'].includes(resizeHandle)) left = resizeStart.left + resizeStart.width - width;
         if (['n', 'nw', 'ne'].includes(resizeHandle)) top = resizeStart.top + resizeStart.height - height;
-        return prev.map((b) =>
-          b.id === resizingBox ? { ...b, position: { x: left, y: top }, size: { width, height } } : b
-        );
+
+        // South resize: push boxes below down instead of overlapping
+        const pushDownMap = {};
+        if (['s', 'sw', 'se'].includes(resizeHandle)) {
+          const newBottom = top + height;
+          const horizOverlaps = (b) => !(left + width <= b.position.x - gap || b.position.x + b.size.width <= left - gap);
+          const overlapsNewRect = (b) => horizOverlaps(b) && !(newBottom + gap <= b.position.y || b.position.y + (b.size?.height ?? 20) <= top - gap);
+          const below = prev.filter((b) => b.id !== resizingBox && overlapsNewRect(b)).sort((a, b) => (a.position?.y ?? 0) - (b.position?.y ?? 0));
+          let lastBottom = newBottom;
+          below.forEach((b) => {
+            const boxTop = b.position?.y ?? 0;
+            const boxH = dataTableLayout?.effectiveHeightByBoxId?.[b.id] ?? b.size?.height ?? 20;
+            const minY = lastBottom + gap;
+            const newY = Math.max(boxTop, minY);
+            pushDownMap[b.id] = newY;
+            lastBottom = newY + boxH;
+          });
+        }
+
+        return prev.map((b) => {
+          if (b.id === resizingBox) return { ...b, position: { x: left, y: top }, size: { width, height } };
+          if (pushDownMap[b.id] != null) return { ...b, position: { ...b.position, y: pushDownMap[b.id] } };
+          return b;
+        });
       });
     };
     const handleUp = () => {
