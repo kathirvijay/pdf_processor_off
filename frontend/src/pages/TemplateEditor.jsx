@@ -1654,8 +1654,9 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       const dataWithPages = { ...(data && typeof data === 'object' ? data : {}), pages: `${(pageIndex ?? 0) + 1} of ${totalPages ?? 1}` };
       const displayValue = replacePlaceholdersInContent(rawPlaceholder, dataWithPages);
       const valueEmpty = String(displayValue).trim() === '';
+      const hasUserData = dataWithPages && Object.keys(dataWithPages).some((k) => k !== 'pages' && dataWithPages[k] != null);
       const showPlaceholderWhenEmpty = rawPlaceholder && /\{\{/.test(rawPlaceholder);
-      const valueToShow = valueEmpty && showPlaceholderWhenEmpty ? rawPlaceholder : displayValue;
+      const valueToShow = valueEmpty && showPlaceholderWhenEmpty && !hasUserData ? rawPlaceholder : displayValue;
       const valueToShowEmpty = String(valueToShow).trim() === '';
       const content = emptyBox ? '' : (valueOnly ? (valueToShowEmpty ? '' : escape(valueToShow)) : (labelOnly && label ? escape(label) : (label ? (valueToShowEmpty ? `${escape(label)}:` : `${escape(label)}: ${escape(valueToShow)}`) : (valueToShowEmpty ? '' : escape(valueToShow)))));
       const exportLayout = { boxYOffset, effectiveHeightByBoxId };
@@ -2138,8 +2139,10 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           dataWithPages.pages = (pageIndex + 1) + ' of ' + numPages;
           var displayValue = replacePlaceholders(rawPlaceholder, dataWithPages);
           var valueEmpty = String(displayValue).trim() === '';
+          var hasUserData = false;
+          for (var dk in dataWithPages) { if (dk !== 'pages' && dataWithPages[dk] != null) { hasUserData = true; break; } }
           var showPlaceholderWhenEmpty = rawPlaceholder && /\\{\\{/.test(rawPlaceholder);
-          var valueToShow = valueEmpty && showPlaceholderWhenEmpty ? rawPlaceholder : displayValue;
+          var valueToShow = valueEmpty && showPlaceholderWhenEmpty && !hasUserData ? rawPlaceholder : displayValue;
           var valueToShowEmpty = String(valueToShow).trim() === '';
           var content = emptyBox ? '' : (valueOnly ? (valueToShowEmpty ? '' : escapeHtml(valueToShow)) : (labelOnly && label ? escapeHtml(label) : (label ? (valueToShowEmpty ? escapeHtml(label) + ':' : escapeHtml(label) + ': ' + escapeHtml(valueToShow)) : (valueToShowEmpty ? '' : escapeHtml(valueToShow)))));
           var border = '1px solid #000';
