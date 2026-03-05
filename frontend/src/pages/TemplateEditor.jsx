@@ -3466,6 +3466,18 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                     }}
                   >
                     <div
+                      className="page-boundary-guide"
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        border: '2px dashed rgba(0,0,0,0.35)',
+                        pointerEvents: 'none',
+                        zIndex: 50,
+                        boxSizing: 'border-box',
+                      }}
+                      title="Page boundary – place boxes inside this area"
+                    />
+                    <div
                       className="canvas-page-inner"
                       style={{
                         position: 'absolute',
@@ -3791,6 +3803,22 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                 }}
               >
               {[
+                <div
+                  key="page-boundary-guide-single"
+                  className="page-boundary-guide"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: canvasDims.width,
+                    height: canvasDims.height,
+                    border: '2px dashed rgba(0,0,0,0.35)',
+                    pointerEvents: 'none',
+                    zIndex: 50,
+                    boxSizing: 'border-box',
+                  }}
+                  title="Page boundary – place boxes inside this area"
+                />,
                 ...(marquee ? [<div
                   key="canvas-marquee"
                   className="canvas-marquee"
