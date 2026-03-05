@@ -7,13 +7,16 @@
 const path = require('path');
 const { spawnSync } = require('child_process');
 const fs = require('fs');
+const { normalizeFontSizes } = require('./pdfFlatToTemplate');
 
 const EDITOR_CANVAS_WIDTH = 794;
 const EDITOR_CANVAS_HEIGHT = 1123;
 const MIN_BOX_WIDTH = 60;
 const MIN_BOX_HEIGHT = 16;
 const MIN_FONT_SIZE_PT = 6;
-const MAX_FONT_SIZE_PT = 14;
+const MAX_FONT_SIZE_PT = 72;
+/** Default font size for empty cells (no label) - avoid inferring from large cell height */
+const DEFAULT_FONT_SIZE_EMPTY_CELL_PT = 11;
 
 /**
  * Convert a label (e.g. "Bill of Lading Number") to a template variable name: lowercase, spaces → underscores.
@@ -161,9 +164,10 @@ async function pdfTemplateFromPython(filePath) {
     usedFieldNames.add(fieldName);
 
     const displayLabel = shortLabel || (fieldName.startsWith('field_') ? `Field ${rank}` : fieldName.replace(/_/g, ' '));
-    const extractedFontSizePt = h > 0
-      ? Math.round(Math.max(MIN_FONT_SIZE_PT, Math.min(MAX_FONT_SIZE_PT, h * 0.85)))
-      : 10;
+    const hasMeaningfulLabel = (cell.label || '').trim().length > 0;
+    const extractedFontSizePt = (typeof cell.fontSize === 'number' && cell.fontSize > 0)
+      ? Math.round(Math.max(MIN_FONT_SIZE_PT, Math.min(MAX_FONT_SIZE_PT, cell.fontSize)))
+      : (!hasMeaningfulLabel ? DEFAULT_FONT_SIZE_EMPTY_CELL_PT : (h > 0 ? Math.round(Math.max(MIN_FONT_SIZE_PT, Math.min(MAX_FONT_SIZE_PT, h * 0.95))) : 12));
 
     boxes.push({
       id: `box_${ts}_${rank}`,
@@ -190,6 +194,7 @@ async function pdfTemplateFromPython(filePath) {
 
   if (boxes.length === 0) return null;
 
+  normalizeFontSizes(boxes);
   boxes.sort((a, b) =>
     a.position.y !== b.position.y ? a.position.y - b.position.y : a.position.x - b.position.x
   );

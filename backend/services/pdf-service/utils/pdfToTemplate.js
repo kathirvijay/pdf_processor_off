@@ -5,7 +5,7 @@
  * PDF coordinates: origin bottom-left. Editor: origin top-left, canvas 794×1123 (A4 portrait).
  */
 const { PDFDocument } = require('pdf-lib');
-const { pdfFlatToTemplate } = require('./pdfFlatToTemplate');
+const { pdfFlatToTemplate, normalizeFontSizes } = require('./pdfFlatToTemplate');
 const { pdfTemplateFromPython } = require('./pdfTemplateFromPython');
 const fs = require('fs');
 
@@ -86,10 +86,10 @@ async function pdfToTemplate(filePath) {
       const editorWidth = Math.max(20, Math.round(pdfWidth * scaleX));
       const editorHeight = Math.max(12, Math.round(pdfHeight * scaleY));
       const MIN_FONT_PT = 6;
-      const MAX_FONT_PT = 14;
+      const MAX_FONT_PT = 72;
       const inferredFontSizePt = pdfHeight > 0
-        ? Math.round(Math.max(MIN_FONT_PT, Math.min(MAX_FONT_PT, pdfHeight * 0.9)))
-        : 10;
+        ? Math.round(Math.max(MIN_FONT_PT, Math.min(MAX_FONT_PT, pdfHeight * 0.95)))
+        : 12;
 
       const labelName = name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -120,6 +120,7 @@ async function pdfToTemplate(filePath) {
   }
 
   boxes.sort((a, b) => a.rank - b.rank);
+  normalizeFontSizes(boxes);
 
   const templateName = pdfDoc.getTitle() || 'Imported from PDF';
 

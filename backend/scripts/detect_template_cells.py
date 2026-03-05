@@ -63,6 +63,26 @@ def get_text_in_rect(page, r):
         return ""
 
 
+def get_font_size_in_rect(page, r):
+    """Get the dominant font size (max span size) of text inside the rect."""
+    try:
+        if hasattr(r, "x0"):
+            clip = r
+        else:
+            clip = (r[0], r[1], r[2], r[3])
+        td = page.get_text("dict", clip=clip, flags=fitz.TEXT_PRESERVE_WHITESPACE)
+        sizes = []
+        for blk in td.get("blocks", []):
+            for line in blk.get("lines", []):
+                for span in line.get("spans", []):
+                    s = span.get("size")
+                    if s is not None and s > 0:
+                        sizes.append(float(s))
+        return round(max(sizes)) if sizes else None
+    except Exception:
+        return None
+
+
 def extract_cells_from_tables(page, page_width, page_height):
     """
     Use PyMuPDF find_tables() to get table cells with exact bboxes.
@@ -103,6 +123,9 @@ def extract_cells_from_tables(page, page_width, page_height):
                         key = (round(cell["x"], 1), round(cell["y"], 1), round(cell["width"], 1), round(cell["height"], 1))
                         if key not in seen:
                             seen.add(key)
+                            fs = get_font_size_in_rect(page, r)
+                            if fs is not None:
+                                cell["fontSize"] = fs
                             cells_out.append(cell)
                 except Exception:
                     continue
@@ -238,7 +261,8 @@ def main():
                 if not text:
                     continue
                 lb = line.get("bbox", bbox)
-                text_blocks.append({"bbox": lb, "text": text})
+                size_pt = span.get("size")
+                text_blocks.append({"bbox": lb, "text": text, "size": float(size_pt) if size_pt is not None and size_pt > 0 else None})
 
     cell_labels = {}
     for tb in text_blocks:
@@ -262,10 +286,10 @@ def main():
         key = (ri, ci)
         if key not in cell_labels:
             cell_labels[key] = []
-        cell_labels[key].append(tb["text"])
+        cell_labels[key].append({"text": tb["text"], "size": tb.get("size")})
 
     cells = []
-    for (ri, ci), labels in sorted(cell_labels.items()):
+    for (ri, ci), entries in sorted(cell_labels.items()):
         x = col_edges[ci]
         y = row_edges[ri]
         w = col_edges[ci + 1] - x
@@ -276,8 +300,13 @@ def main():
         label_clip = get_text_in_rect(page, rect).strip()
         if label_clip.lower() == "none":
             label_clip = ""
+        labels = [e["text"] for e in entries]
         label = (label_clip or " ".join(labels).strip())[:80]
-        cells.append({"x": round(x, 2), "y": round(y, 2), "width": round(w, 2), "height": round(h, 2), "label": label})
+        cell = {"x": round(x, 2), "y": round(y, 2), "width": round(w, 2), "height": round(h, 2), "label": label}
+        sizes = [e["size"] for e in entries if e.get("size") is not None and e["size"] > 0]
+        if sizes:
+            cell["fontSize"] = round(max(sizes))
+        cells.append(cell)
 
     doc.close()
 

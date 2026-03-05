@@ -13,9 +13,36 @@ const MIN_BOX_HEIGHT = 16;
 const LINE_Y_TOLERANCE_PT = 5;
 /** PDF points: merge items on same line if horizontal gap smaller than this */
 const LINE_X_GAP_MERGE_PT = 18;
-/** Font size: clamp extracted size to this range (points) */
+/** Font size: clamp extracted size to this range (points) - match PDF generator 8-72 */
 const MIN_FONT_SIZE_PT = 6;
-const MAX_FONT_SIZE_PT = 14;
+const MAX_FONT_SIZE_PT = 72;
+/** Default font size for empty cells (no text) - avoid inferring from large cell height */
+const DEFAULT_FONT_SIZE_EMPTY_CELL_PT = 11;
+/** Max pts above mode to allow - larger values normalized to dominant size for consistency */
+const FONT_SIZE_NORMALIZE_TOLERANCE_PT = 2;
+
+/**
+ * Normalize outlier font sizes so first/header fields match body text.
+ * Uses the most frequent (mode) font size; any box > mode + tolerance gets mode.
+ */
+function normalizeFontSizes(boxes) {
+  if (!boxes.length) return;
+  const sizes = boxes.map((b) => Number(b.properties?.fontSize) || 12).filter((s) => s >= MIN_FONT_SIZE_PT && s <= MAX_FONT_SIZE_PT);
+  if (sizes.length === 0) return;
+  const counts = {};
+  for (const s of sizes) {
+    counts[s] = (counts[s] || 0) + 1;
+  }
+  const mode = parseInt(Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0], 10);
+  const maxAllowed = mode + FONT_SIZE_NORMALIZE_TOLERANCE_PT;
+  for (const b of boxes) {
+    const fs = Number(b.properties?.fontSize) || 12;
+    if (fs > maxAllowed) {
+      b.properties = b.properties || {};
+      b.properties.fontSize = mode;
+    }
+  }
+}
 
 /** Convert label to template variable name: lowercase, spaces → underscores */
 function labelToFieldName(label) {
@@ -270,9 +297,15 @@ function segmentsToGridCells(segments, colEdges, rowEdges, pageWidth, pageHeight
         pdfW: colEdges[col + 1] - colEdges[col],
         pdfH: rowEdges[row + 1] - rowEdges[row],
         texts: [],
+        fontSizes: [],
       });
     }
-    byCell.get(key).texts.push(str);
+    const cellEntry = byCell.get(key);
+    cellEntry.texts.push(str);
+    for (const it of seg.items) {
+      const pt = Number(it.h) || 12;
+      if (pt > 0) cellEntry.fontSizes.push(pt);
+    }
   }
 
   return Array.from(byCell.values()).sort((a, b) => (a.row !== b.row ? a.row - b.row : a.col - b.col));
@@ -358,9 +391,11 @@ function contentToBoxes(pageContent, pageInfo) {
     }
     usedFieldNames.add(fieldName);
 
-    const extractedFontSizePt = cell.pdfH && cell.pdfH > 0
-      ? Math.round(Math.max(MIN_FONT_SIZE_PT, Math.min(MAX_FONT_SIZE_PT, cell.pdfH * 0.85)))
-      : 10;
+    const actualFontSizes = (cell.fontSizes || []).filter((s) => s > 0);
+    const hasMeaningfulLabel = labelName.length > 0;
+    const extractedFontSizePt = actualFontSizes.length
+      ? Math.round(Math.max(MIN_FONT_SIZE_PT, Math.min(MAX_FONT_SIZE_PT, Math.max(...actualFontSizes))))
+      : (!hasMeaningfulLabel ? DEFAULT_FONT_SIZE_EMPTY_CELL_PT : (cell.pdfH && cell.pdfH > 0 ? Math.round(Math.max(MIN_FONT_SIZE_PT, Math.min(MAX_FONT_SIZE_PT, cell.pdfH * 0.9))) : DEFAULT_FONT_SIZE_EMPTY_CELL_PT));
     boxes.push({
       id: `box_${ts}_${rank}`,
       type: 'text',
@@ -402,7 +437,7 @@ function buildBoxesFromSegments(segments, scaleX, scaleY) {
     const segHeights = (seg.items || []).map((o) => Number(o.h) || 12).filter((h) => h > 0);
     const extractedFontSizePt = segHeights.length
       ? Math.round(Math.max(MIN_FONT_SIZE_PT, Math.min(MAX_FONT_SIZE_PT, Math.max(...segHeights))))
-      : 10;
+      : 12;
     const labelName = str.length > 40 ? str.slice(0, 37) + '...' : str;
     let fieldName = labelToFieldName(str) || `field_${rank}`;
     if (usedFieldNames.has(fieldName)) {
@@ -451,6 +486,7 @@ async function pdfFlatToTemplate(filePath) {
   const pageInfo = page?.pageInfo || {};
   const content = page?.content || [];
   const boxes = contentToBoxes(content, pageInfo);
+  normalizeFontSizes(boxes);
 
   const pageWidth = pageInfo.width || 595;
   const pageHeight = pageInfo.height || 842;
@@ -464,4 +500,4 @@ async function pdfFlatToTemplate(filePath) {
   };
 }
 
-module.exports = { pdfFlatToTemplate, extractFlatPdf, contentToBoxes };
+module.exports = { pdfFlatToTemplate, extractFlatPdf, contentToBoxes, normalizeFontSizes };
