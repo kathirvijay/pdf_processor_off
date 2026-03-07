@@ -502,6 +502,7 @@ const TemplateEditor = () => {
   const [showPaddingHighlight, setShowPaddingHighlight] = useState(false);
   const [rulerArrowPositions, setRulerArrowPositions] = useState({ top: [100, 400], left: [100, 300] });
   const [showAlignmentGuides, setShowAlignmentGuides] = useState(true);
+  const [guidesLockedToBoxLayout, setGuidesLockedToBoxLayout] = useState(false);
   const [draggingRulerArrow, setDraggingRulerArrow] = useState(null);
   const [documentTitle, setDocumentTitle] = useState('PDF Document');
   const [templateName, setTemplateName] = useState('Untitled');
@@ -516,6 +517,7 @@ const TemplateEditor = () => {
   const [marquee, setMarquee] = useState(null);
   const marqueeRef = useRef(null);
   marqueeRef.current = marquee;
+  const canvasAreaRef = useRef(null);
   const [nextRank, setNextRank] = useState(1);
   const [currentTemplateId, setCurrentTemplateId] = useState(null);
   const [draggingBox, setDraggingBox] = useState(null);
@@ -1272,11 +1274,45 @@ const TemplateEditor = () => {
     setSelection(selectedBoxIds.filter((id) => id !== boxId));
   };
 
+  const getBoxLayoutBounds = (boxesData, layout) => {
+    if (!boxesData?.length) return null;
+    let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
+    boxesData.forEach((b) => {
+      const x = b.position?.x ?? 0;
+      const w = b.size?.width ?? 20;
+      const y = b.position?.y ?? 0;
+      const h = layout?.effectiveHeightByBoxId?.[b.id] ?? b.size?.height ?? 20;
+      if (h <= 0) return;
+      left = Math.min(left, x);
+      right = Math.max(right, x + w);
+      top = Math.min(top, y);
+      bottom = Math.max(bottom, y + h);
+    });
+    if (left === Infinity || right <= left || top === Infinity || bottom <= top) return null;
+    return { left, right, top, bottom };
+  };
+
   const handleTopRulerArrowDrag = (index, clientX) => {
-    setDraggingRulerArrow({ ruler: 'top', index, startClientX: clientX, startVal: rulerArrowPositions.top[index] });
+    const bounds = getBoxLayoutBounds(boxes, dataTableLayout);
+    setDraggingRulerArrow({
+      ruler: 'top',
+      index,
+      startClientX: clientX,
+      startVal: rulerArrowPositions.top[index],
+      layoutBounds: bounds,
+      boxesSnapshot: bounds ? boxes.map((b) => ({ ...b, position: { ...b.position }, size: { ...b.size } })) : null,
+    });
   };
   const handleLeftRulerArrowDrag = (index, clientY) => {
-    setDraggingRulerArrow({ ruler: 'left', index, startClientY: clientY, startVal: rulerArrowPositions.left[index] });
+    const bounds = getBoxLayoutBounds(boxes, dataTableLayout);
+    setDraggingRulerArrow({
+      ruler: 'left',
+      index,
+      startClientY: clientY,
+      startVal: rulerArrowPositions.left[index],
+      layoutBounds: bounds,
+      boxesSnapshot: bounds ? boxes.map((b) => ({ ...b, position: { ...b.position }, size: { ...b.size } })) : null,
+    });
   };
 
   const wouldOverlap = (boxId, newX, newY, w, h, allBoxes) => {
@@ -1468,27 +1504,70 @@ const TemplateEditor = () => {
 
   useEffect(() => {
     if (!draggingRulerArrow) return;
+    const scaleBoxesToNewBounds = (newLeftX, newRightX, newTopY, newBottomY) => {
+      const bounds = draggingRulerArrow.layoutBounds;
+      const snap = draggingRulerArrow.boxesSnapshot;
+      if (!bounds || !snap?.length) return;
+      const w0 = bounds.right - bounds.left;
+      const h0 = bounds.bottom - bounds.top;
+      const w1 = Math.max(20, newRightX - newLeftX);
+      const h1 = Math.max(20, newBottomY - newTopY);
+      if (w0 <= 0 || h0 <= 0) return;
+      const scaleX = w1 / w0;
+      const scaleY = h1 / h0;
+      setBoxes(
+        snap.map((b) => {
+          const x = (b.position?.x ?? 0) - bounds.left;
+          const y = (b.position?.y ?? 0) - bounds.top;
+          const bw = b.size?.width ?? 20;
+          const bh = b.size?.height ?? 20;
+          return {
+            ...b,
+            position: { x: newLeftX + x * scaleX, y: newTopY + y * scaleY },
+            size: { width: Math.max(16, bw * scaleX), height: Math.max(16, bh * scaleY) },
+          };
+        })
+      );
+    };
     const handleMove = (e) => {
       const dims = getCanvasDimensions();
       const effectiveH = dims.height + (dataTableLayout?.totalExtraHeight ?? 0);
-      const delta = draggingRulerArrow.ruler === 'top'
-        ? e.clientX - draggingRulerArrow.startClientX
-        : e.clientY - draggingRulerArrow.startClientY;
-      const startVal = draggingRulerArrow.startVal ?? 0;
-      const raw = startVal + delta;
+      const canvasArea = canvasAreaRef.current;
       if (draggingRulerArrow.ruler === 'top') {
+        const raw = canvasArea
+          ? e.clientX - canvasArea.getBoundingClientRect().left
+          : (draggingRulerArrow.startVal ?? 0) + (e.clientX - draggingRulerArrow.startClientX);
         const clamped = Math.max(0, Math.min(dims.width, Math.round(raw)));
         setRulerArrowPositions((p) => {
           const next = [...p.top];
           next[draggingRulerArrow.index] = clamped;
-          return { ...p, top: next };
+          const updated = { ...p, top: next };
+          if (guidesLockedToBoxLayout && draggingRulerArrow.layoutBounds && draggingRulerArrow.boxesSnapshot?.length) {
+            const leftX = Math.min(...next);
+            const rightX = Math.max(...next);
+            const topY = Math.min(...p.left);
+            const bottomY = Math.max(...p.left);
+            scaleBoxesToNewBounds(leftX, rightX, topY, bottomY);
+          }
+          return updated;
         });
       } else {
+        const raw = canvasArea
+          ? e.clientY - canvasArea.getBoundingClientRect().top
+          : (draggingRulerArrow.startVal ?? 0) + (e.clientY - draggingRulerArrow.startClientY);
         const clamped = Math.max(0, Math.min(effectiveH, Math.round(raw)));
         setRulerArrowPositions((p) => {
           const next = [...p.left];
           next[draggingRulerArrow.index] = clamped;
-          return { ...p, left: next };
+          const updated = { ...p, left: next };
+          if (guidesLockedToBoxLayout && draggingRulerArrow.layoutBounds && draggingRulerArrow.boxesSnapshot?.length) {
+            const leftX = Math.min(...p.top);
+            const rightX = Math.max(...p.top);
+            const topY = Math.min(...next);
+            const bottomY = Math.max(...next);
+            scaleBoxesToNewBounds(leftX, rightX, topY, bottomY);
+          }
+          return updated;
         });
       }
     };
@@ -1499,7 +1578,25 @@ const TemplateEditor = () => {
       document.removeEventListener('mousemove', handleMove);
       document.removeEventListener('mouseup', handleUp);
     };
-  }, [draggingRulerArrow, dataTableLayout]);
+  }, [draggingRulerArrow, dataTableLayout, guidesLockedToBoxLayout]);
+
+  const prevLockRef = useRef(false);
+  useEffect(() => {
+    if (!guidesLockedToBoxLayout) {
+      prevLockRef.current = false;
+      return;
+    }
+    if (!prevLockRef.current) {
+      prevLockRef.current = true;
+      const bounds = getBoxLayoutBounds(boxes, dataTableLayout);
+      if (bounds) {
+        setRulerArrowPositions({
+          top: [bounds.left, bounds.right],
+          left: [bounds.top, bounds.bottom],
+        });
+      }
+    }
+  }, [guidesLockedToBoxLayout, boxes, dataTableLayout]);
 
   useEffect(() => {
     if (!draggingBox) return;
@@ -3218,6 +3315,15 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                   </div>
                 </div>
                 <p className="property-hint" style={{ marginTop: 6 }}>Content area inset; boxes align to these boundaries. Drag ruler arrows to position alignment guides.</p>
+                <label className="template-setting-label" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, marginBottom: 12, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={guidesLockedToBoxLayout}
+                    onChange={(e) => setGuidesLockedToBoxLayout(e.target.checked)}
+                  />
+                  <span>Lock guides to box layout</span>
+                </label>
+                <p className="property-hint" style={{ marginTop: 0, fontSize: 11 }}>When ON: align the 4 orange guidelines with the outer edges of your box layout, then lock. Dragging a guideline scales the entire box layout so it extends or compresses to match.</p>
                 <p className="save-template-section-hint" style={{ marginTop: 14, marginBottom: 8, fontWeight: 600 }}>Global</p>
                 <p className="save-template-section-hint" style={{ marginBottom: 8 }}>Apply to all boxes on the canvas.</p>
                 <div className="property-group">
@@ -3645,7 +3751,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                 </div>
                 <div className="ruler-canvas-row">
                   <RulerVertical height={canvasHeight} arrowPositions={rulerArrowPositions.left} onArrowDrag={handleLeftRulerArrowDrag} showArrows={showAlignmentGuides} />
-                  <div className="canvas-area" style={{ position: 'relative' }}>
+                  <div ref={canvasAreaRef} className="canvas-area" style={{ position: 'relative' }}>
             {/* Alignment guides overlay - bright orange lines from ruler arrows (when highlight on) */}
             {showAlignmentGuides && (
             <div

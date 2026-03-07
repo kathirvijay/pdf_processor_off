@@ -1,6 +1,6 @@
 # Backlog
 
-**Status:** 11 completed | 7 pending
+**Status:** 13 completed | 7 pending
 
 Tasks to complete. Add items below as they are identified.
 
@@ -19,6 +19,8 @@ Tasks to complete. Add items below as they are identified.
 10. **Rulers: draggable arrows and highlight toggle** ✅ – Two draggable arrows on each ruler; bright orange alignment lines; "Highlight arrows" toggle in Global Layout.
 11. **Remove black line below document title** ✅ – Removed the solid black horizontal line below the "PDF Document" title on the canvas.
 12. **Fix top blue padding guide** ✅ – Top blue dotted line now aligns with the top padding boundary (above the document title), matching left, right, and bottom.
+13. **Fit template boxes to alignment guides** ✅ – "Fit to guides" button in Global Layout snaps all boxes so their edges align with the orange alignment lines and padding boundaries.
+14. **Lock guides to content area** ✅ – Replaced Fit to guides. Lock toggle: when ON, the 4 ruler guidelines drive the content area; dragging a guideline extends or compresses that edge.
 
 ---
 
@@ -31,5 +33,5 @@ Tasks to complete. Add items below as they are identified.
 5. **Canvas level adjustment and rules** – Canvas-level adjustment, rules, and dynamic adjustment (auto-fit/resize, layout rules, etc.).
 6. **Variables visible in HTML export** – Support multiple variables per box; when exporting to HTML, display the variables (e.g. {{var1}}, {{var2}}) visibly in the exported HTML so integrators know which variables map to each box.
 7. **Left and right sidebars: expand/collapse** – Add expand and collapse controls for the left and right sidebars so users can hide them for more canvas space and show them when needed.
+8. **Convert Global Layout checkboxes to toggle buttons** – In Global Layout, convert "Highlight padding area on canvas" and "Highlight arrows" from checkboxes to toggle-style buttons for a more modern UI.
 9. **Box layout vs Custom layout toggle** – In Global Layout, add a toggle to switch between **Box layout** (grid/box-based canvas with visible boxes and borders) and **Custom layout** (non-boxy, free-flowing template like forms or cover pages with labels, varying alignment, horizontal lines, and natural content flow—no visible boxes). Toggle styling: Box layout = bright green; Custom layout = blue.
-
