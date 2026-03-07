@@ -521,7 +521,7 @@ const TemplateEditor = () => {
   const [nextRank, setNextRank] = useState(1);
   const [currentTemplateId, setCurrentTemplateId] = useState(null);
   const [draggingBox, setDraggingBox] = useState(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0, startX: 0, startY: 0, boxStartX: 0, boxStartY: 0 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0, startX: 0, startY: 0, boxStartX: 0, boxStartY: 0, containingBoxId: null });
   const [isDragging, setIsDragging] = useState(false);
   const [overlappingBox, setOverlappingBox] = useState(null);
   const [boxLibrary, setBoxLibrary] = useState([]);
@@ -1315,9 +1315,36 @@ const TemplateEditor = () => {
     });
   };
 
-  const wouldOverlap = (boxId, newX, newY, w, h, allBoxes) => {
+  /** Returns the smallest box that fully contains the given box (for nested/child boxes). Used to allow dragging out of parent. */
+  const getContainingBox = (box, allBoxes, layout) => {
+    const bx = box.position?.x ?? 0;
+    const by = box.position?.y ?? 0;
+    const bw = box.size?.width ?? 20;
+    const bh = layout?.effectiveHeightByBoxId?.[box.id] ?? box.size?.height ?? 20;
+    const bRight = bx + bw;
+    const bBottom = by + bh;
+    let best = null;
+    let bestArea = Infinity;
+    for (const b of allBoxes) {
+      if (b.id === box.id) continue;
+      const l = b.position?.x ?? 0;
+      const t = b.position?.y ?? 0;
+      const r = l + (b.size?.width ?? 20);
+      const bot = t + (layout?.effectiveHeightByBoxId?.[b.id] ?? b.size?.height ?? 20);
+      if (l <= bx && t <= by && r >= bRight && bot >= bBottom) {
+        const area = (r - l) * (bot - t);
+        if (area < bestArea) {
+          bestArea = area;
+          best = b;
+        }
+      }
+    }
+    return best;
+  };
+
+  const wouldOverlap = (boxId, newX, newY, w, h, allBoxes, excludeIds = new Set()) => {
     const test = { id: boxId, position: { x: newX, y: newY }, size: { width: w, height: h } };
-    return allBoxes.some((b) => b.id !== boxId && checkBoxOverlap(test, b));
+    return allBoxes.some((b) => b.id !== boxId && !excludeIds.has(b.id) && checkBoxOverlap(test, b));
   };
 
   const handleResizeStart = (e, boxId, handle) => {
@@ -1354,8 +1381,17 @@ const TemplateEditor = () => {
     const rect = canvas.getBoundingClientRect();
     const offsetX = e.clientX - (rect.left + box.position.x);
     const offsetY = e.clientY - (rect.top + box.position.y);
+    const containingBox = getContainingBox(box, boxes, dataTableLayout);
     setDraggingBox(boxId);
-    setDragOffset({ x: offsetX, y: offsetY, startX: e.clientX, startY: e.clientY, boxStartX: box.position.x, boxStartY: box.position.y });
+    setDragOffset({
+      x: offsetX,
+      y: offsetY,
+      startX: e.clientX,
+      startY: e.clientY,
+      boxStartX: box.position.x,
+      boxStartY: box.position.y,
+      containingBoxId: containingBox?.id ?? null,
+    });
     setSelection([boxId]);
   };
 
@@ -1621,8 +1657,10 @@ const TemplateEditor = () => {
         const newY = e.clientY - rect.top - dragOffset.y;
         const constrainedX = Math.max(pad.left, Math.min(newX, dims.width - pad.right - box.size.width));
         const constrainedY = Math.max(TITLE_AREA_HEIGHT + pad.top, Math.min(newY, effectiveHeight - pad.bottom - box.size.height));
-        if (wouldOverlap(draggingBox, constrainedX, constrainedY, box.size.width, box.size.height, prev)) {
-          setOverlappingBox(prev.find((b) => b.id !== draggingBox && checkBoxOverlap({ id: draggingBox, position: { x: constrainedX, y: constrainedY }, size: box.size }, b))?.id ?? null);
+        const excludeIds = new Set(dragOffset.containingBoxId ? [dragOffset.containingBoxId] : []);
+        if (wouldOverlap(draggingBox, constrainedX, constrainedY, box.size.width, box.size.height, prev, excludeIds)) {
+          const overlapWith = prev.find((b) => b.id !== draggingBox && !excludeIds.has(b.id) && checkBoxOverlap({ id: draggingBox, position: { x: constrainedX, y: constrainedY }, size: box.size }, b));
+          setOverlappingBox(overlapWith?.id ?? null);
           return prev;
         }
         setOverlappingBox(null);
@@ -1632,7 +1670,7 @@ const TemplateEditor = () => {
     const handleUp = () => {
       setIsDragging(false);
       setDraggingBox(null);
-      setDragOffset({ x: 0, y: 0, startX: 0, startY: 0, boxStartX: 0, boxStartY: 0 });
+      setDragOffset({ x: 0, y: 0, startX: 0, startY: 0, boxStartX: 0, boxStartY: 0, containingBoxId: null });
       setOverlappingBox(null);
       document.body.style.cursor = '';
     };
@@ -3557,6 +3595,41 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
               </h3>
               {expandedSections.properties && (
                 <div className="properties-content">
+                  <div className="property-group">
+                    <button
+                      type="button"
+                      className="toolbar-button"
+                      style={{ width: '100%' }}
+                      disabled={!getContainingBox(selectedBoxData, boxes, dataTableLayout)}
+                      onClick={() => {
+                        const containingBox = getContainingBox(selectedBoxData, boxes, dataTableLayout);
+                        if (!containingBox) return;
+                        const parent = containingBox;
+                        const pad = globalPadding;
+                        const dims = getCanvasDimensions();
+                        const boxW = selectedBoxData.size?.width ?? 20;
+                        const boxH = selectedBoxData.size?.height ?? 20;
+                        const parentLeft = parent.position?.x ?? 0;
+                        const parentBottom = (parent.position?.y ?? 0) + (dataTableLayout?.effectiveHeightByBoxId?.[parent.id] ?? parent.size?.height ?? 0);
+                        let newX = Math.max(pad.left, Math.min(parentLeft, dims.width - pad.right - boxW));
+                        let newY = Math.max(TITLE_AREA_HEIGHT + pad.top, parentBottom + 10);
+                        const testPos = (x, y) => ({ id: 'move', position: { x, y }, size: { width: boxW, height: boxH } });
+                        const overlaps = (x, y) => boxes.some((b) => b.id !== selectedBox && checkBoxOverlap(testPos(x, y), b));
+                        while (overlaps(newX, newY) && newY + boxH < dims.height - pad.bottom) newY += 10;
+                        if (newY + boxH > dims.height - pad.bottom) newY = Math.max(TITLE_AREA_HEIGHT + pad.top, parentBottom + 10);
+                        updateBox(selectedBox, { position: { x: newX, y: newY } });
+                        toast.success('Box moved to canvas.');
+                      }}
+                      title="Move this box outside its parent container to the canvas area (only enabled when box is inside another)"
+                    >
+                      ↗ Move to canvas
+                    </button>
+                    <p className="property-hint" style={{ marginTop: 4, fontSize: 11 }}>
+                      {getContainingBox(selectedBoxData, boxes, dataTableLayout)
+                        ? 'This box is inside another. Click to move it outside.'
+                        : 'Select a box that is inside another box to enable.'}
+                    </p>
+                  </div>
                   {selectedBoxData.type !== 'logo' && (
                     <div className="property-group">
                       <button type="button" className="box-type-button box-type-button-logo" style={{ width: '100%' }} onClick={() => updateBox(selectedBox, { type: 'logo', labelName: 'Logo', fieldName: 'logo', content: '{{logo}}' })}>
@@ -3981,7 +4054,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                               backgroundColor: box.properties?.backgroundColor || 'transparent',
                               textAlign: box.properties?.alignment || 'left',
                               cursor: isDragging && draggingBox === box.id ? 'grabbing' : 'grab',
-                              zIndex: draggingBox === box.id ? 1000 : (selectedBoxIds.includes(box.id) ? 100 : 1),
+                              zIndex: draggingBox === box.id ? 1000 : (selectedBoxIds.includes(box.id) ? 100 : (getContainingBox(box, boxes, dataTableLayout) ? 50 : 1)),
                               ...(box.properties?.border !== false ? (() => {
                                 const pageBoxes = boxes.filter((b) => {
                                   if (pageIndex >= 1 && sequenceSectionBoxIds.includes(b.id)) return false;
@@ -4288,7 +4361,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                     backgroundColor: box.properties?.backgroundColor || 'transparent',
                     textAlign: box.properties?.alignment || 'left',
                     cursor: isDragging && draggingBox === box.id ? 'grabbing' : 'grab',
-                    zIndex: draggingBox === box.id ? 1000 : (selectedBoxIds.includes(box.id) ? 100 : 1),
+                    zIndex: draggingBox === box.id ? 1000 : (selectedBoxIds.includes(box.id) ? 100 : (getContainingBox(box, boxes, dataTableLayout) ? 50 : 1)),
                               ...(box.properties?.border !== false ? (() => {
                       const edges = getBoxEdgeVisibility(box, boxes, ADJACENT_EPS, dataTableLayout);
                       const line = '1px solid #3b82f6';
