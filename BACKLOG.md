@@ -1,6 +1,6 @@
 # Backlog
 
-**Status:** 15 completed | 8 pending
+**Status:** 15 completed | 9 pending
 
 Tasks to complete. Add items below as they are identified.
 
@@ -37,3 +37,4 @@ Tasks to complete. Add items below as they are identified.
 8. **Convert Global Layout checkboxes to toggle buttons** – In Global Layout, convert "Highlight padding area on canvas" and "Highlight arrows" from checkboxes to toggle-style buttons for a more modern UI.
 9. **Box layout vs Custom layout toggle** – In Global Layout, add a toggle to switch between **Box layout** (grid/box-based canvas with visible boxes and borders) and **Custom layout** (non-boxy, free-flowing template like forms or cover pages with labels, varying alignment, horizontal lines, and natural content flow—no visible boxes). Toggle styling: Box layout = bright green; Custom layout = blue.
 10. **Select nested boxes inside parent** – When a parent container has nested boxes inside it, clicking on a nested/child box currently selects the parent instead of the child. Fix: ensure child boxes receive clicks (e.g. higher z-index for contained boxes) so users can select and use "Move to canvas" on nested boxes.
+11. **Table resize to fill gap** – Empty gap between the table (below "Data" row) and the container fields (Container No(s), Seal No(s), Size/Type). When dragging the table's bottom resize handle down: (1) the table should extend to fill that gap and share borders with the container fields; (2) the canvas scrollbar should NOT move—currently the canvas scrolls instead of resizing. Fix both.

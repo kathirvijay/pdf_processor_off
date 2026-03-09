@@ -1355,6 +1355,14 @@ const TemplateEditor = () => {
     const canvas = e.currentTarget.closest('.canvas');
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.style.userSelect = 'none';
+    const editorMain = document.querySelector('.editor-main');
+    if (editorMain) {
+      editorMain.dataset.overflowBeforeResize = editorMain.style.overflow || '';
+      editorMain.style.overflow = 'hidden';
+    }
     setResizingBox(boxId);
     setResizeHandleName(handle);
     setResizeStart({
@@ -1480,17 +1488,29 @@ const TemplateEditor = () => {
         // For south resize (s, sw, se): do NOT limit maxH by boxes below – we will push those boxes down instead
         const myRight0 = resizeStart.left + resizeStart.width;
         const myBottom0 = resizeStart.top + resizeStart.height;
+        const getBoxBottom = (b) => (b.position?.y ?? 0) + (dataTableLayout?.effectiveHeightByBoxId?.[b.id] ?? b.size?.height ?? 20);
+        const getBoxTop = (b) => (b.position?.y ?? 0) + (dataTableLayout?.boxYOffset?.[b.id] ?? 0);
+        const isVariablePlaceholderInGap = (b) => {
+          const fn = (b.fieldName && String(b.fieldName).trim().toLowerCase()) || '';
+          const cnt = (b.content && String(b.content).trim()) || '';
+          return fn === 'data' || /^\{\{\s*data\s*\}\}$/i.test(cnt);
+        };
+        let maxHToFillGap = Infinity;
         prev.forEach((b) => {
           if (b.id === resizingBox) return;
           const or = b.position.x + b.size.width;
-          const ob = b.position.y + b.size.height;
-          const verticalOverlap = !(top + height <= b.position.y - gap || b.position.y + b.size.height <= top - gap);
+          const ob = getBoxBottom(b);
+          const verticalOverlap = !(top + height <= b.position.y - gap || ob <= top - gap);
           const horizontalOverlap = !(left + width <= b.position.x - gap || b.position.x + b.size.width <= left - gap);
           if (['e', 'ne', 'se'].includes(resizeHandle) && b.position.x > myRight0 && verticalOverlap) maxW = Math.min(maxW, b.position.x - left - gap);
           if (['w', 'nw', 'sw'].includes(resizeHandle) && or < resizeStart.left && verticalOverlap) minLeft = Math.max(minLeft, b.position.x + b.size.width + gap);
-          if (!['s', 'sw', 'se'].includes(resizeHandle) && b.position.y > myBottom0 && horizontalOverlap) maxH = Math.min(maxH, b.position.y - top - gap);
-          if (['n', 'nw', 'ne'].includes(resizeHandle) && ob < resizeStart.top && horizontalOverlap) minTop = Math.max(minTop, b.position.y + b.size.height + gap);
+          if (!['s', 'sw', 'se'].includes(resizeHandle) && b.position.y > myBottom0 && horizontalOverlap) maxH = Math.min(maxH, getBoxTop(b) - top - gap);
+          if (['n', 'nw', 'ne'].includes(resizeHandle) && ob < resizeStart.top && horizontalOverlap) minTop = Math.max(minTop, getBoxBottom(b) + gap);
+          if (['s', 'sw', 'se'].includes(resizeHandle) && b.position.y > myBottom0 && horizontalOverlap && !isVariablePlaceholderInGap(b)) {
+            maxHToFillGap = Math.min(maxHToFillGap, getBoxTop(b) - top);
+          }
         });
+        if (['s', 'sw', 'se'].includes(resizeHandle) && maxHToFillGap < Infinity) maxH = Math.min(maxH, maxHToFillGap);
         if (['w', 'nw', 'sw'].includes(resizeHandle) && minLeft > 0) left = Math.max(left, minLeft);
         if (['w', 'nw', 'sw'].includes(resizeHandle)) width = resizeStart.left + resizeStart.width - left;
         if (['n', 'nw', 'ne'].includes(resizeHandle) && minTop > 0) top = Math.max(top, minTop);
@@ -1500,9 +1520,10 @@ const TemplateEditor = () => {
         if (['w', 'nw', 'sw'].includes(resizeHandle)) left = resizeStart.left + resizeStart.width - width;
         if (['n', 'nw', 'ne'].includes(resizeHandle)) top = resizeStart.top + resizeStart.height - height;
 
-        // South resize: push boxes below down instead of overlapping
+        // South resize: data table extends to fill gap (point 11); other boxes push below (point 4)
+        const isDataTable = box?.type === 'table' && box?.tableConfig?.dynamicRowsFromData;
         const pushDownMap = {};
-        if (['s', 'sw', 'se'].includes(resizeHandle)) {
+        if (['s', 'sw', 'se'].includes(resizeHandle) && !isDataTable) {
           const newBottom = top + height;
           const horizOverlaps = (b) => !(left + width <= b.position.x - gap || b.position.x + b.size.width <= left - gap);
           const overlapsNewRect = (b) => horizOverlaps(b) && !(newBottom + gap <= b.position.y || b.position.y + (b.size?.height ?? 20) <= top - gap);
@@ -1517,7 +1538,6 @@ const TemplateEditor = () => {
             lastBottom = newY + boxH;
           });
         }
-
         return prev.map((b) => {
           if (b.id === resizingBox) return { ...b, position: { x: left, y: top }, size: { width, height } };
           if (pushDownMap[b.id] != null) return { ...b, position: { ...b.position, y: pushDownMap[b.id] } };
@@ -1526,14 +1546,34 @@ const TemplateEditor = () => {
       });
     };
     const handleUp = () => {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.body.style.userSelect = '';
+      const editorMain = document.querySelector('.editor-main');
+      if (editorMain && editorMain.dataset.overflowBeforeResize !== undefined) {
+        editorMain.style.overflow = editorMain.dataset.overflowBeforeResize;
+        delete editorMain.dataset.overflowBeforeResize;
+      }
       setResizingBox(null);
       setResizeHandleName(null);
       setResizeStart({ x: 0, y: 0, width: 0, height: 0, left: 0, top: 0 });
     };
-    document.addEventListener('mousemove', handleMove);
+    const handleMoveWithPrevent = (e) => {
+      e.preventDefault();
+      handleMove(e);
+    };
+    document.addEventListener('mousemove', handleMoveWithPrevent, { passive: false });
     document.addEventListener('mouseup', handleUp);
     return () => {
-      document.removeEventListener('mousemove', handleMove);
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.body.style.userSelect = '';
+      const editorMain = document.querySelector('.editor-main');
+      if (editorMain && editorMain.dataset.overflowBeforeResize !== undefined) {
+        editorMain.style.overflow = editorMain.dataset.overflowBeforeResize;
+        delete editorMain.dataset.overflowBeforeResize;
+      }
+      document.removeEventListener('mousemove', handleMoveWithPrevent);
       document.removeEventListener('mouseup', handleUp);
     };
   }, [resizingBox, resizeHandle, resizeStart, dataTableLayout, globalPadding]);
@@ -3809,7 +3849,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           )}
         </aside>
 
-        <main className="editor-main">
+        <main className={`editor-main ${resizingBox ? 'editor-main-resizing' : ''}`}>
           <div className="canvas-wrapper">
             {(() => {
               const numPages = Math.max(1, Math.min(100, dataTableLayout.numPages || 1));

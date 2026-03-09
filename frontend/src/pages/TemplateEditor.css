@@ -995,6 +995,12 @@
   align-items: flex-start;
 }
 
+.editor-main.editor-main-resizing {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
 .canvas-wrapper {
   background: var(--color-bg-elevated);
   padding: 24px;
