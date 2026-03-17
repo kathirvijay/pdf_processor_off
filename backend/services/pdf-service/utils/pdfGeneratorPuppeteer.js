@@ -13,7 +13,6 @@ const {
   DATA_TABLE_HEADER_ROW_PX,
   DATA_TABLE_ROW_HEIGHT_PX,
   DATA_TABLE_ATTACHED_LIST_THRESHOLD,
-  EMPTY_BOX_BELOW_TABLE_PX,
 } = require('./pdfGenerator');
 
 const DATA_TABLE_ATTACHED_LIST_GAP_PX = 100;
@@ -139,9 +138,7 @@ async function generatePdfPuppeteer(template, data, uploadsDir) {
     const singleDataPageNoAttachedList = ranges.length === 1 && rowCount > 0 && (ranges[0].endRow - ranges[0].startRow >= rowCount);
     if (singleDataPageNoAttachedList && rowHeightsPx.length > 0) {
       const sum = rowHeightsPx.reduce((a, b) => a + b, 0);
-      const rowsOnFirst = Math.max(1, Number(box.tableConfig?.rowsOnFirstPage) || 3);
-      const includeGap = rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
-      layoutEffectiveHeightByBoxId[box.id] = DATA_TABLE_HEADER_ROW_PX + sum + (includeGap ? EMPTY_BOX_BELOW_TABLE_PX : 0);
+      layoutEffectiveHeightByBoxId[box.id] = DATA_TABLE_HEADER_ROW_PX + sum;
     }
   });
 
@@ -175,7 +172,6 @@ async function generatePdfPuppeteer(template, data, uploadsDir) {
     .pdf-box { position: absolute; padding: 4px; white-space: normal; word-break: break-word; overflow-wrap: break-word; border: 1px solid #000; }
     .pdf-box-table { border: none; padding: 0; }
     .pdf-box-table table { width: 100%; border-collapse: collapse; font-size: 11px; border: 1px solid #000; }
-    .pdf-box-table.pdf-box-table-with-gap table { border: none; }
     /* Page 0 data table: outer wrapper shows full design-height box; inner table has no outer border to avoid double line */
     .pdf-box-table.pdf-box-table-page0-fullheight { border: 1px solid #000; }
     .pdf-box-table.pdf-box-table-page0-fullheight table { border: none; }
@@ -310,18 +306,11 @@ async function generatePdfPuppeteer(template, data, uploadsDir) {
           /* Page 0: always use the table height from template (sidebar) so PDF matches */
           h = Math.max(20, Number(box.size?.height) || 20);
         }
-        const rowsOnFirst = Math.max(1, Number(box.tableConfig?.rowsOnFirstPage) || 3);
-        const tableIncludesGap = pageIndex === 0 && rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
-        const gapDiv = tableIncludesGap ? `<div style="width:100%;height:${EMPTY_BOX_BELOW_TABLE_PX}px;flex-shrink:0;"></div>` : '';
-        /* On page 0 use design-height box with outer border so table border extends full height (e.g. 450px), not just inner table height */
+        /* On page 0 use design-height box with outer border so table border extends full height, not just inner table height */
         const page0FullHeight = pageIndex === 0;
-        const tableClass = tableIncludesGap
-          ? 'pdf-box pdf-box-table pdf-box-table-with-gap'
-          : page0FullHeight
-            ? 'pdf-box pdf-box-table pdf-box-table-page0-fullheight'
-            : 'pdf-box pdf-box-table';
-        const tableStyle = `left:${x}px;top:${y}px;width:${w}px;height:${h}px;font-size:${fontSize}px;${(tableIncludesGap || page0FullHeight) ? 'border:1px solid #000;display:flex;flex-direction:column;' : ''}`;
-        htmlParts.push(`<div class="${tableClass}" style="${tableStyle}">${tableHtml}${gapDiv}</div>`);
+        const tableClass = page0FullHeight ? 'pdf-box pdf-box-table pdf-box-table-page0-fullheight' : 'pdf-box pdf-box-table';
+        const tableStyle = `left:${x}px;top:${y}px;width:${w}px;height:${h}px;font-size:${fontSize}px;${page0FullHeight ? 'border:1px solid #000;display:flex;flex-direction:column;' : ''}`;
+        htmlParts.push(`<div class="${tableClass}" style="${tableStyle}">${tableHtml}</div>`);
         continue;
       }
 

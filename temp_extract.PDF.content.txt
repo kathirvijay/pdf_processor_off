@@ -1,0 +1,584 @@
+SHIPPER (Complete Name/Street Address)                                           MANIFEST NO.
+EXPORT REFERENCE
+CONSIGNEE (Not Negotiable Unless consigned "To order")
+POINT AND COUNTRY OF ORIGIN
+FORWARDING AGENT - REFERENCES
+NOTIFY PARTY (Complete Name/Street Address)                                     ALSO NOTIFY,ROUTING & INSTRUCTIONS
+PRE-CARRIAGE BY (MODE)                  PLACE OF RECEIPT
+PORT OF LOADINGOCEAN VESSEL/VOYAGE
+PLACE OF DELIVERYPORT OF DISCHARGE
+FOR DELIVERY OF GOODS PLEASE APPLY TO:
+BILL OF LADING NO.
+MARKS AND NUMBERS
+CONTAINER & SEAL NUMBERS
+NUMBER AND DESCRIPTION OF PACKAGES AND GOODS GROSS WEIGHT   MEASUREMENT
+PARTICULARS DECLARED BY THE MERCHANT
+FREIGHT PAYABLE AT               TOTAL
+FREIGHT
+PLACE AND DATE OF ISSUE
+NUMBER OF ORIGINAL BILLS OF LADING
+LADEN ON BOARD DATE
+FREIGHT/CHARGES,ITEM NO.RATE/RATE BASIS                                             EXCESS VALUE DECLARATION:
+REFER TO CLAUSE 6 (4)(B) + (C) ON REVERSE SIDE
+RECEIVED by the carrier the Goods as  specified above in apparent good order and condition
+unless otherwise stated, the Goods as  specified above for carriage by ocean vessel and/or
+other modes of transport  from  the  place of receipt or port of loading to  the  port  of
+discharge or place of delivery as indicated above.  The Goods to be delivered at the above 
+mentioned port of discharge or place of delivery whichever applies. In accepting this Bill 
+of Lading the Merchant(s) agree to be bound by all the stipulations, exceptions, terms and 
+conditions on the front or back hereof,  whether printed,  stamped,  written  or otherwise 
+incorporated.In witness whereof three (3) original Bills of Lading have been signed,if not 
+otherwise stated  above,  all of  this  tenor  and date.  One original Bill of Lading duly 
+endorsed must be  surrendered  in exchange  for the Goods or Delivery Order for same, upon 
+which the other(s) shall stand void.
+Signed as Agent For the Carrier: FAR EAST CARGO LINE
+PURCHASE ORDER NUMBER
+/ITEM NUMBER
+PREPAID            COLLECT
+* APPLICABLE ONLY WHEN USED AS A  MULTIMODAL  TRANSPORT DOCUMENT INSOFAR 
+AS THIS BILL OF LADING IS ISSUED  AS A MULTIMODAL  TRANSPORT DOCUMENT IT
+IS BASED ON THE I.C.C. UNIFORM RILES FOR A MULTIMODAL TRANSPORT DOCUMENT 
+(I.C.C. PUBLICATION NO.481)
+for multimodal transport
+and port to port shipment
+BILL OF LADING
+----------------Page (0) Break----------------
+1 DEFINITIONS
+"Carriage" means the whole or any part of the operations and services of whatsoever 
+nature undertaken by or performed by or on behalf of the Carrier in relation to 
+the Goods covered by this bill of lading including but not limited to the 
+loading, transport, unloading, storage, warehousing and handling of the goods.
+"Carrier" means Far East Cargo Line Ltd. trading in the name of FAR EAST CARGO 
+LINE. 
+"Charges" includes freight, demurrage and all expenses and monetary obligations, 
+including but not limited to duties, taxes and dues, incurred by the Carrier and 
+payable by the Merchant.
+"COGSA" means the Carriage of Goods by Sea Ad of the United States of America 
+approved on 16th April 1936.
+"Combined Transport" arises where an address (and not just the name of a Port) is 
+indicated as the Place of Receipt and/or the Place of Delivery on the face of 
+this bill of lacing in the relevant space.
+"Consignee" means the party named as Consignee on the face of this bill of lading 
+in the relevant space.
+“Consolidation" includes stuffing, packing, loading or securing of Goods on or 
+within Containers and Consolidate shall be construed accordingly.
+“Container" includes any container (including but not limited to open top 
+containers), transportable tank, platform, lift van, flat, pallet or any similar 
+article of transport used to consolidate goods and any ancillary equipment.
+"Goods" means the whole or any part of the cargo received by the Carrier from the 
+Shipper and includes any packing and any equipment or Container not supplied by 
+or on behalf of the Carrier (but excludes any Container supplied by or on behalf 
+of the Carrier).
+“Hague Roles" means the provisions of the International Convention for Unification 
+of certain Rules relating to bills of lading signed at Brussels on 25th August 
+1924.
+"Hague-Visby Rules" means the Hague Rules as amended by the Protocol signed at 
+Brussels an 23rd February 1968. (It is expressly provided that nothing in this 
+bill of lading shall be construed as contractually applying the Hague-Visby 
+Rules).
+"Holder" means any Person for the time being in lawful possession of, or lawfully 
+entitled to possession, of this bill of lading to or in whom rights of suit 
+and/or liability under this bill of lading have been lawfully transferred or 
+vested.
+"Indemnify” includes defend, indemnify and hold harmless, including in respect of 
+legal fees and costs, whether or not the obligation to indemnify arises out of 
+negligent or non-negligent acts or omissions of the Carrier, his servants, 
+agents or Sub-Contractors.
+"Merchant" includes the Shipper, the Consignee, the receiver of the Goods, the 
+Holder of this bill of lading, any Person owning or lawfully entitled to the 
+possession of the Goods or this bill of lading, any Person acting on behalf of 
+any of the above mentioned Persons.
+"Package" where a Container is loaded with more than one package or unit, the 
+packages or other shipping units enumerated on the face of this bill of lading 
+as packed in such Container and entered in the box on the face hereof entitled 
+“Total number of Containers or Packages received by the Carrier" are each deemed 
+a Package.
+ "Person" includes an individual, corporation or other legal entity.
+ "Port to Port Shipment"  arises if the Carriage is not Combined Transport.
+"Sub-Contractor" includes, but is not limited to, owners, charterers and operators of 
+Vessels (other than the Carrier), stevedores, terminal and/or groupage operators, 
+road, rail and air transport operators, warehousemen, longshoremen, customs 
+inspection stations, port authorities, pilots and any independent contractor employed 
+by the Carrier in performance of the Carriage and any direct or indirect sub-
+contractors, servants or agents thereof, whether in direct contractual privity with 
+the Carrier or not.
+ "Terminal Operators"  means any persons who provide port storage or handling services.
+"Terms and Conditions" means all terms, rights, defenses, provisions, conditions, 
+exceptions, limitations and liberties herein.
+“Vessel" means my waterborne craft used in the Carriage under this bill of lading 
+including but not limited to a feeder vessel or ocean vessel.
+2 CARRIER'S TARIFF
+The provisions of the Carrier's applicable tariff if any, are incorporated herein. 
+Particular attention is dawn to the provisions therein, if any, relating to free 
+storage time and to container and vehicle demurrage. Copies of such provisions are 
+obtainable from the Carrier or his agents upon request or, where applicable from a 
+government body with whom the tariff has been filed. In the case of inconsistency 
+between this bill of lading and the applicable tariff, this bill of lading shall 
+prevail.
+3 WARRANTY
+The Merchant warrants in agreeing to the Terms and Conditions hereof he is or is 
+the agent of and has the authority of the Person owning or entitled to the 
+possession of the Goods and this bill of lading or any Person who has a present or 
+future interest in the Goods and this bill of lading.
+4 NEGOTIABILITY AND TITLE TO THE GOODS
+(1) This bill of lading shall be non-negotiable unless made out “to order" to 
+which event it shall be negotiable and shall constitute title to the Goods 
+and the Holder shall be entitled to receive or to transfer the Goods herein 
+described.
+(2) This bill of lading shall be prima facie evidence of the taking in charge by 
+the Carrier of the Goods as herein described. However proof to the contrary 
+shall not be admissible when this bill of lading has been negotiated or 
+transferred for valuable consideration to a third party acting in good faith.
+5 CERTAIN RIGHTS AND IMMUNITIES FOR THE CARRIER AND OTHER PERSONS
+(1) The Carrier shall be entitled to sub-contract on any terms whatsoever the 
+whole or any part of the Carriage.
+(2) The Merchant undertakes that no claim or allegation shall be made against any 
+Person or Vessel whatsoever, other than the Carrier, including, but not 
+limited to, the Carrier’s servants or agents any independent contractor and 
+his servants or agents, and all others by whom the whole or any part of the 
+Carriage, whether directly or indirectly, is procured, performed or 
+undertaken, which imposes or attempts to impose upon any such Person or Vessel 
+any liability whatsoever in connection with the Goods or the Carriage of the 
+Goods, whether or not arising in contract, bailment, tort, negligence, breach 
+of express or implied warranty or otherwise; and if any claim or allegation 
+should nevertheless be made to Indemnify the Carrier against all consequences 
+thereof. Without prejudice to the foregoing every such Person and Vessel shall 
+have the benefit of all provisions herein benefiting the Carrier inducing 
+clause 20 hereof the jurisdiction and law clause, as if such Terms and 
+Conditions (including Clause 20 hereof) were expressly for his benefit and in 
+entering into this contract the Carrier, to the extent of these provisions, 
+does so not only on his own behalf but also as agent or trustee for such 
+Persons and Vessels and such Persons and Vessels shall to this extent be or be 
+deemed to be parties to this contract.
+Without prejudice to the generality of the foregoing, if the Carriage is Port to 
+Port, Terminal Operators shall have the benefit of all provisions herein 
+benefiting the Carrier, including the exceptions and limitations set out in clause 
+6(1) and 6(3) hereof, in relation to any port storage or handling services 
+provided whether before loading or after discharge and regardless of whether the 
+Carrier's responsibility for the Goods has yet to commence or has ceased.
+(3) The Merchant shall Indemnify the Carrier against any claim or liability (and 
+any expense arising there-from) arising from the Carriage of the Goods 
+insofar as such claim or liability exceeds the Carrier's liability under this 
+bill of lading.
+(4) The defenses and limits of liability provided for in this bill of lading 
+shall apply in any action against the Carrier whether the action be found in 
+contract, bailment, tort, breach of express or implied warranty or otherwise.
+6 CARRIER'S RESPONSIBILITY
+(1) PORT TO PORT SHIPMENT
+(A) Where the Carriage is Port to Port, then the liability (if any) of the 
+Carrier for loss or damage to the Goods occurring between the time of loading 
+at the Port of Loading and the time of discharge at the Port of Delivery 
+shall be determined in accordance with any national law making the Hague 
+Rules, Hague-Visby Rules, COGSA or any other rules compulsorily applicable to 
+this bill of lading or in any other case in accordance with the Hague Rules 
+Article 1-8 inclusive (excluding Article 3 rule 8) only.
+(B) The Carrier shall be under no liability whatsoever for loss or damage to the 
+Goods while in its actual or constructive possession before loading or after 
+discharge, howsoever caused. Notwithstanding the foregoing, in case and to 
+the extent that any applicable compulsory law provides to the contrary, the 
+Carrier shall have the benefit of every right, defense, limitation and 
+liberty in the Hague Rules, Hague-Visby Rules, COGSA or any other rules as 
+applied by Clause 6(1)(A) during such additional compulsory period of 
+responsibility, notwithstanding that the loss or damage did not occur at sea.
+(C) If COGSA applies then the provisions stated in COGSA shall govern the 
+Carrier's liability throughout the Carriage by sea and the entire time that 
+the Goods are in the actual custody of the Carrier or his Sub-Contractor at 
+the container yard, freight station or area immediately adjacent to the sea 
+terminal before loading onto the vessel or alter discharge there-from as the 
+case may be. Where the Merchant requests the Carrier to procure Carriage by 
+an inland Carrier in the United States of America, such carriage shall be 
+procured by the Carrier as agent only to the Merchant and such carriage shall 
+be subject to the inland Carrier's contract tariff. If, for any reason, the 
+Carrier is denied the right to act as agent only at these times, his 
+liability for loss, damage or delay to the Goods shall be determined in 
+accordance with Clause 6(2) hereof.
+(D) If the Goods are discharged at a Port other than the Port of Discharge or 
+(save in the United States of America) at a Place of Delivery instead of the 
+Port of Discharge, and the Carrier in its absolute discretion agrees to a 
+request to such effect, such further Carriage will be undertaken on the basis 
+that the Terms and Conditions are to apply to such Carriage as if the 
+ultimate destination agreed with the Merchant had been entered on the reverse 
+side of this bill of lading as the Port of Discharge or Place of Delivery.
+(2) COMBINED TRANSPORT '-
+Save as is otherwise provided in this bill of lading, the Carrier shall be liable 
+for loss or damage to the Goods occurring from the time when he receives the Goods 
+into his charge until the time of delivery to the extent set out below:
+(A) Where the stage of Carriage where the loss or damage occurred cannot be proved 
+by the Merchant.
+(1) The Carrier shall be relieved from liability where such loss or damage was caused by
+(a) an act or omission of the Merchant or Person acting on behalf of the Merchant 
+other than the Carrier, his servant agent or Sub-Contractor;
+(b) compliance with the instructions of a Person entitled to give them;
+(c) the lack or insufficiency of or defective condition of packing in the case of 
+Goods which, by their nature are liable to wastage or to be damaged when not 
+packed or when not properly packed;
+(d) handling, loading, stowage or unloading of the Goods by or on behalf of the 
+Merchant;
+(e) inherent vice of the Goods;
+    (f) strikes or lock outs or stoppages or restraints of labor from whatsoever causes 
+whether partial or general;
+    (g) fire, unless caused by the actual fault or privacy of the Carrier, for which the 
+Merchant shall have the burden of proof.
+    (h) a nuclear incident
+    (1) any cause or event which the Carrier could not avoid as a consequence 
+whereof he could not prevent by the exercise of reasonable diligence.
+(2) The burden of proof that the loss or damage was due to one or more of the 
+muses or events specified in this Clause 6(2)(A) will rest upon the 
+fader. Save that if the Carrier establishes that, in the circumstances of 
+the case, the loss or damage could be attributed to me or more of the 
+cause or events specified in Clause 6(2)(A)(1)(c), (c) or (e), it Mal be 
+presumed that it was On used The Merchant Moll, however, be entitled to 
+prove that the loss or damage was not, in fact, used either wholly or 
+partly by me or more of these causes or events
+(B) Where the stage of Carriage where the loss or damage occurred can be proved by the 
+Merchant
+(I) The liability of the Carrier shall be determined by the provisions 
+contained in any international convention or national law of the country, 
+which provision:
+(a) Cannot be departed from by private contract to the detriment of the Merchant, 
+and
+(b) Would have applied if the Merchant had made a separate and direct 
+contract with the Carrier in respect of the particular stage of 
+Carriage where the loss or damage occurred and had received as 
+evidence thereof any particular document which must be issued in order 
+to make such international convention or national law applicable.
+(2) Where 6(2)(b)(1) above does not apply, any liability of the Carrier 
+shall be determined by 6(1) if the loss or damage occurred during a sea 
+leg or by 6(2)(A) in all other cases.
+(3) GENERAL PROVISIONS
+(A) Compensation.
+Subject to the Carrier's right to limit liability as provided for within this 
+bill of lading, the Carriers liability shall be calculated by reference to 
+the FOB/FCA invoice value plus freight and insurance if paid If there is no 
+such invoice value, the value of the Goods shall be determined according to 
+the value of the Goods at the place and time of delivery to the Merchant or 
+at the place and time when they should have been an delivered
+(B) Package or Shipping Unit limitation
+(i) Where the Hague Rules, Hague-Visby rules COGSA or any other rules 
+apply under this Bill of Lading by national law or pursuant to Game 6
+(2)(8)(1) the Carrier's liability shall in no event exceed the amounts 
+provided in the applicable national law or in the law thereby made 
+applicable
+(ii) If only the Hague Rules Articles 1-8 (excluding Article 3, Rule I) 
+apply pursuant to Clause 6(1)(A), Clause 6(1)(B) or Clause 6(2)(3)(2) 
+than the Carrier's maximum liability shall in no event exceed US$500 
+per package or unit
+(iii) Where Carriage includes Carriage to, from or through a port in the 
+United States of America and COGSA applies pursuant to clause 6(1)(A) 
+or 6(2)(B)(1) neither the Carder nor the Vessel shall in any event be 
+liable for any loss or damage to or in connection with the Carriage of 
+the Goods in an amount exceeding US$500 per Package or customary 
+freight unit.
+(iv) In all other cases compensation shall not exceed the limitation of 
+liability of US$2.00 per kilo of gross weight of the Goods lost, 
+damaged or in respect of which the claim arises.
+(C) Ad Valorem: Declared Value of Package or Shipping Unit
+The Carrier's liability may be increased to a higher value by a declaration 
+on in writing of the value of the Goods by the shipper upon delivery to the 
+Carrier of the Goods for shipment, such higher value being inserted on the 
+front of this bill of lading in the space provided and, if required by the 
+Carrier, extra freight paid. In such case, if the actual value of the Goods 
+shall exceed such declared value, the value shall nevertheless be deemed to 
+be the declared value and the Carrier's liability, if any, shall not exceed 
+the declared value and any partial loss or damage shall be adjusted pro rata 
+on the basis of such declared value.
+(D) Delay, Consequential Loss
+Save as otherwise provided herein, the Carrier shall in no circumstance be 
+liable for direct, indirect or consequential loss or damage caused by delay 
+or any other cause whatsoever and howsoever caused Without prejudice to the 
+foregoing, if the Carrier is frond liable for delay, liability shall be 
+limited to the freight applicable to the relevant stage of the transport.
+(E) Notice of Loss or Damage
+The Carrier shall be deemed prima fade to have delivered the Goods as 
+described in this bill of lacing unless notice of loss of or damage to, the 
+Goods, indicating the general nature of midi lost or damage, shall have been 
+given in writing to the Carrier or to his representative at the place of 
+delivery before or at the time of removal of the Goads into the custody of 
+the person entitled to delivery thereof under this bill of lading or, if the 
+loss or damage is not apparent, within three consecutive days thereafter.
+(F) Time-bar
+He Carrier shall be discharged of all liability whatsoever in respect of the 
+Goods unless and it brought in the proper forum and written notice thereof 
+received by the Carrier: (i) within nine months in respect of Combined 
+Transport or (ii) within 12 months in respect of Port-to-Port Shipment after 
+delivery of the Goods or the date when the Goods should have been delivered. 
+In the event that such time period shall be found contrary to any convention 
+or law compulsorily applicable, the period prescribed by such convention or 
+law shall then apply but in that circumstance only.
+7 MERCHANTS RESPONSIBILITY
+(1) The description and particulars of the Goods set out on the face hereof 
+are furnished by the Merchant and the Merchant warrants to the Carrier 
+that the description and particulars including, but not limited to, 
+weight, content, measure, quantity, quality, condition, marks, numbers 
+and value are correct.
+(2) The Merchant shall comply with all applicable laws, regulations and 
+requirements (including but not limited to any imposed at any time before 
+or during the Carriage relating to anti-terrorism measures) of customs, 
+port and other authorities and shall bear and pay all duties, taxes, 
+fines, imposts, expenses and losses (including without prejudice to the 
+generality of the foregoing, freight for any additional Carriage 
+undertaken) incurred or suffered by reason thereof or by reason of any 
+illegal, incorrect or insufficient marking, numbering or addressing of 
+the Goods.
+(3) The Merchant undertakes that the Goods are packed in a manner adequate to 
+withstand the ordinary risks of Carriage having regard to their nature 
+and in compliance with all laws, regulations and requirements which may 
+be applicable.
+(4) No Goods which are or may become dangerous (whether or not so listed in 
+codes), inflammable, damaging, injurious (including radioactive 
+materials), noxious or which are or may become liable to damage any 
+property or Person whatsoever shall be tendered to the Carrier for 
+Carriage without:
+(a)      the Carrier's express consent in writing and
+(b)      the Container and/or other covering in which the Goods are to be 
+transported and/or the Goods themselves being distinctly marked on the 
+outside so as to indicate the nature and character of any such Goods and so 
+as to comply with all applicable laws, regulations and/or requirements.
+If any such Goods are delivered to the Carrier without such written consent 
+and/or marking or if in the opinion of the Carrier the Goods are or are 
+liable to become of a dangerous, inflammable and/or damaging nature, the same 
+may at any time be unloaded, destroyed, disposed of, abandoned, or rendered 
+harmless without compensation to the Merchant and without prejudice to the 
+Carrier's right to Charges.
+(5) The Merchant shall be liable for the loss, damage, contamination, 
+soiling, detention or demurrage before, during and after the Carriage of 
+property (including, but not limited to, Containers) of the Carrier or 
+any person or Vessel (other than the Merchant) referred to in Clause 5(2) 
+above caused by the Merchant or any person acting on his behalf or for 
+which the Merchant is otherwise responsible.
+(6) The Merchant shall Indemnify the Carrier against any loss, damage, claim, 
+liability or expense whatsoever arising from any breach of the provisions 
+of this clause 7 or from my cause in connection with the Goods for which 
+the Carrier is not responsible.
+8 CONTAINERS
+(1)    Goods may be Consolidated by the Carrier in or on Containers and Goods 
+may be Consolidated with other Goods.
+(2)    The terms of this bill of lading shall govern the responsibility of the 
+Carrier in connection with or arising out of the supply of a Container to 
+the Merchant, whether supplied before or after the Goods are received by the 
+Carrier or delivered to the Merchant.
+(3) If a container has been Consolidated by or on behalf of the Merchant:
+(A) the Carrier shall not be liable for loss of or damage to the Goods:
+(i) caused by the manner in which the Container has been stuffed;
+(ii)   caused by the unsuitability of the Goods for carriage in Container actually 
+used;
+(iii)  caused by the unsuitability or defective condition of the Container 
+actually used provided that where the Container has been supplied by or on 
+behalf of the Carrier, this paragraph (iii) shall only apply if the 
+unsuitability or defective condition would have been apparent upon reasonable 
+inspection by the Merchant at or prior to the time when the Container was 
+stuffed;
+(iv)  if the Container is not sealed at the commencement of the Carriage except 
+where the Cartier has agreed to seal the Container.
+(B) the Merchant shall Indemnify the Carrier against any loss, damage, claim, 
+liability or expense whatsoever arising from one or more of the matters 
+covered by Clause 8(3)(A) above.
+(4) Where the Carrier is instructed to provide a Container, in the absence of 
+a written request to the contrary accepted by the Carrier, the Carrier 
+is not under an obligation to provide a Container of any particular 
+quality.
+9 TEMPERATURE CONTROLLED CARGO
+(1) The Merchant undertakes not to tender for Carriage any Goods which 
+require temperature control without previously giving written notice (and 
+filling in the box on the front of this bill of lading if this bill of 
+lading has been prepared by the Merchant or a person acting on his 
+behalf) of their nature and particular temperature range to be maintained 
+and in the case of a temperature controlled Container Consolidated by or 
+on behalf of the Merchant further undertakes that the Container has been 
+properly pre-cooled, that the Goods have been properly Consolidated in 
+the Container and that its thermostatic controls have been properly set 
+by the Merchant before receipt of the Goods by the Carrier.
+(2) If the above requirements are not complied with the Carrier shall not be 
+liable for any loss of or damage to the Goods caused by such non-
+compliance.
+(3) The Carrier shall not be liable for any loss of or damage to the Goods 
+arising from defects, derangement, breakdown, stoppage of the temperature 
+controlling machinery, plant, insulation or any apparatus of the 
+Container, provided that the Carrier shall before or at the beginning of 
+the Carriage exercise due diligence to maintain the refrigerated 
+Container in an efficient state.
+10 INSPECTION OF GOODS
+The Carrier or any Person authorized by the Carrier shall be entitled, but under no 
+obligation, to open and/or scan any Container or package at any time and to inspect the 
+contents. If it appears at any time that the Goods cannot safely no properly be carried, 
+or carried further, either at all or without incurring any additional expense or taking 
+measures in relation to the Container or Goods, the Carrier may without notice to the 
+Merchant (but as his agent only) take any measures and/or incur any reasonable additional 
+expense to carry or continue the Carriage thereof, and/or to sell or dispose of the Goods 
+and/or to abandon the Carriage and/or to store the Goods ashore or afloat,
+under cover or in the open, at any place, whichever the Carrier in his absolute discretion 
+considers most appropriate, which sale, disposal, abandonment or storage shall be deemed to 
+constitute due delivery under this bill of lading. The Merchant shall Indemnify the Carrier 
+against any reasonable additional expense so incurred. The Carrier in exercising the 
+liberties contained in this clause shall not be under any obligation to take any particular 
+measures and shall not be liable for any loss, delay or damage howsoever arising from any 
+action or lack of action under this clause.
+11 METHODS AND ROUTE OF TRANSPORTATION
+(1) The Carrier may at any time and without notice to the Merchant:
+(a) use any means of transport or storage whatsoever;
+(b) load or carry the Goods on any Vessel whether named on the front hereof or not;
+(c) transfer the Goods from one conveyance to another including transshipping 
+or carrying the same on a Vessel other than the Vessel named on the front 
+hereof or by any other means of transport whatsoever and even though 
+transshipment of forwarding of the Goods may not have been contemplated or 
+provided for herein;
+(d) at any place unpack and remove Goods which have been stuffed in or on a 
+Container and forward the same in any manner whatsoever;
+(e) proceed at any speed and by any route in his discretion (whether or not 
+the nearest or most direct or customary or advertised route) and proceed 
+to or stay at any place whatsoever once or more often and in any order;
+(f) load or unload the Goods from any conveyance at any place (whether or not the place is a 
+port 
+named on the front hereof as the intended Port of Loading or intended Port of Discharge);
+(g) comply with any orders or recommendations given by any government or 
+authority or any Person or body acting or purporting to act as or on 
+behalf of such government or authority or having under the terms of the 
+insurance on the conveyance employed by the Carrier the right to give 
+orders or directions;
+(h) permit the Vessel to proceed with or without pilots, to tow or be towed or to be 
+dry-docked;
+(i) permit the vessel to carry livestock, Goods of all kinds, dangerous or 
+otherwise, contraband, explosives, munitions or warlike stores and sail 
+armed or unarmed.
+(2) The liberties set out in Clause 11(1) above may be invoked by the Carrier for 
+any purposes whatsoever whether or not connected with the Carriage of the 
+Goods, inducing but not limited to loading or unloading the goods, bunkering, 
+undergoing repairs, adjusting instruments, picking up or landing any Persons, 
+including but not limited to Persons involved with the operation or 
+maintenance of the Vessel and assisting Vessels in all situations. Anything 
+done in accordance with Clause 11(I) above or any delay arising therefrom 
+shall be deemed to be within the contractual Carriage and shall not be a 
+deviation of whatsoever nature or degree.
+12 DECK CARGO AND LIVESTOCK
+(1) Goods of any description whether containerized or not may be stowed on or 
+under deck without notice to the Merchant unless on the front of this bill of 
+lading it is specifically stipulated the Containers or Goods will be carried 
+under deck and such stowage shall not be a deviation of whatsoever nature or 
+degree. If carried on deck, the Carrier shall not be rewired to note, mark or 
+stamp the bill of lading carried an deck, the Carrier shall not be required 
+to note, mark or stamp on the bill of lading any statement of such on deck 
+carriage Subject to Clause 13(2) below, such Goods whether carried on deck or 
+under deck shall participate in General Average and such Goods (other than 
+livestock) shall be deemed to be within the definition of Goods for the 
+purposes of the Hague Rules or any legislation making such rules COGSA or the 
+Hague-Visby Rules compulsorily applicable to this bill of lading.
+(2) Goods (not being Goods stuffed in or on Containers other than open flats or 
+pallets) which are stated on the front of this bill of lading to be carried 
+on deck and which are so carried (and livestock, whether or not carried on 
+deck) are carried without responsibility on the part of the Carrier for loss 
+or damage of whatsoever nature arising during carriage by sea or inland 
+waterway whether caused by unseaworthiness or negligence or any other cause 
+whatsoever. The Merchant shall Indemnify the Carrier against all and any 
+extra cost incurred for any reason whatsoever in connection with carriage of 
+livestock.
+13 DELIVERY OF THE GOODS
+(1) if any time the Carriage is or is likely to be affected by any hindrance, 
+risk, delay. difficulty or disadvantage of any kind (including the condition 
+of the Goods), whensoever and howsoever arising (whether or not the Carriage 
+has commenced) the Carrier may:
+(A) without notice to the Merchant abandon the Carriage of the Goods and where 
+reasonably possible  place the Goods or any part of them at the Merchant's 
+disposal at any place which the Carrier may deem safe and convenient, 
+whereupon delivery shall be deemed to have been made and the responsibility 
+of the Carrier in respect of such Goods shall cease;
+(B) without prejudice to the Carrier's right subsequently to abandon the 
+Carriage under Clause 13(1)(A) above, continue the Carriage.
+In any event the Carrier shall be entitled to full Charges on Goods received far 
+Carriage and the Merchant shall pay any additional costs resulting from the above 
+mentioned circumstances.
+(2) The liability of the Carrier in respect of the Goods shall cease on the 
+delivery or other disposition of the Goods in accordance with the orders or 
+recommendations given by any government or authority or any Person acting or 
+purporting to act as or on behalf of such government or authority. This shall 
+amount to due delivery to the Merchant.
+(3) Any mention herein of parties to be notified of the arrival of the Goods is 
+solely for information of the Carrier, and failure to give such notification 
+shall not involve the Carrier in any liability nor relieve the Merchant of 
+any obligation thereunder.
+(4) If delivery of the Goods or any part thereof is not taken by the Merchant at 
+the time and place when and where the Carrier is entitled to call upon the 
+Merchant to take delivery thereof, the Carrier shall be entitled and without 
+prejudice to my other rights that he may have against the Merchant without 
+notice to remove from a Container the Goods or that part thereof if 
+Consolidated in or on a Container and to store the Goods or that part thereof 
+ashore, afloat, in the open or under cover at the sole risk and expense of 
+the Merchant and the costs of such storage (if paid or payable by the Carrier 
+or any agent or Sub-Contractor of the Carrier) shall forthwith upon demand be 
+paid by the Merchant to the Carrier. Such storage shall constitute due 
+delivery hereunder, and thereupon the liability of the Carrier to respect of 
+the Goods or that part thereof shall cease.
+14 BOTH-TO-BLAME COLLISION
+If the Vessel on which the Goods are carried (the carrying Vessel) comes into 
+collision with any other Vessel or object (the non-carrying Vessel or object) as 
+a result of the negligence of the non-carrying Vessel or abject or the owner of, 
+charterer of or Person responsible for the non-carrying Vessel or object, the 
+Merchant undertakes to Indemnify the Carrier against all claims by or liability 
+to (and any expense arising there-from) any Vessel or Person in respect of any 
+loss of, or damage to, or any claim whatsoever of the Merchant paid or payable to 
+the Merchant by the non-carrying Vessel or object or the owner of, charterer of 
+or Person responsible for the non-carrying vessel or object and set-off, recouped 
+or recovered by such Vessel, object or Person(s) against the Carrier, the 
+carrying Vessel or her owners or charterers.
+15 GENERAL AVERAGE
+(1) The Carrier may declare General Average which shall be adjustable according 
+to the York/Antwerp Rules of 1974 at any place at the option of the Carrier 
+and the Amended Jason Clause as approved by BIMCO is to be considered as 
+incorporated herein and the Merchant shall provide such security as may be 
+required by the Carrier in this connection.
+(2) Notwithstanding (1) above, the Merchant shall Indemnify the Carrier in 
+respect of any claim (and any expense arising there-from) of a General 
+Average nature which may be made on the Carrier and shall provide such 
+security as may be required by the Carrier in this connection.
+(3) The Carrier shall be under no obligation to take any steps whatsoever to 
+collect security for General Average contributions due to the Merchant.
+16 CHARGES
+(1) Charges shall be deemed fully earned on receipt of the Goods by the Carrier 
+and shall be paid and non-returnable in any event.
+(2) The Charges have been calculated on the basis of particulars furnished by or 
+on behalf of the Merchant. The Carrier shall be entitled to production of the 
+commercial invoice for the Goods or true copy thereof and to inspect, 
+reweigh, remeasure and revalue the Goods and if the particulars are found by 
+the Carrier to be incorrect the Merchant shall pay the Carrier the correct 
+Charges (credit being given for the Charges charged) and the costs incurred 
+by the Carrier in establishing the correct- particulars.
+(3) All Charges shall be paid without any set-off, counter-claim, deduction or 
+stay of execution.
+(4) Despite the acceptance by the Carrier of instructions to collect freight, 
+charges or other expenses from any other person in respect of the transport 
+under this bill of lading, the Merchant shall remain responsible for such 
+monies on receipt of evidence of demand and the absence of payment for 
+whatever reason.
+17 LIEN
+The Carrier shall have a lien on Goods and any documents relating thereto for all 
+sums whatsoever due at any time to the Carrier under this contract and for General 
+Average contributions to whomsoever due. The Carrier shall also have a lien 
+against the Merchant on the Goods and any documents relating thereto for all sums 
+due from the Merchant to the Carrier under any other contract. The Carrier may 
+exercise his lien at any time and at any place in his sole discretion, whether the 
+contractual Carriage is completed or not. In any event any lien shall (a) survive 
+the delivery of the Goods and (b) extend to cover the cost of recovering any sums 
+due and for that purpose the Carrier shall have the right to sell the Goods and 
+documents by public auction or private treaty, without notice to the Merchant and 
+at the Merchant's expense and without any liability towards the Merchant.
+18 VARIATION OF THE CONTRACT
+No servant or agent of the Carrier shall have power to waive or vary any of the 
+terms hereof unless such waiver or variation is in writing and is specifically 
+authorized or ratified in writing by a director or officer of the Carrier who has 
+the actual authority of the Carrier to waive or vary.
+19 PARTIAL INVALIDITY
+If any provision in this bill of lading is held to be invalid or unenforceable by 
+any Court or regulatory or self regulatory agency or body, such invalidity or 
+unenforceability shall attach only to such provision The validity of the remaining 
+provisions shall not be affected thereby and this bill of lading contract shall be 
+carried out as if such invalid or unenforceable provision were not contained 
+herein.
+20 SURLSDICTIONAND LAW
+Whenever US COGSA applies, whether by virtue of Carriage of the Goods to or from the United 
+States of America or otherwise, or losses occur during inland Carriage within the United 
+States of America, this bill of lading is to be governed by United States law and the United 
+States Federal Court of the Southern District of New York is to have exclusive jurisdiction 
+to hear all disputes hereunder. In all other cases, this bill of lading shall be governed by 
+and construed in accordance with English law and all disputes aligns hereunder shall be 
+determined by the English High Court of Justice in London to the exclusion of the courts of 
+any other country.
+----------------Page (1) Break----------------

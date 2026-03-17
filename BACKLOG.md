@@ -1,8 +1,14 @@
 # Backlog
 
-**Status:** 15 completed | 9 pending
+**Status:** 16 completed | 13 pending
 
 Tasks to complete. Add items below as they are identified.
+
+---
+
+## Need to verify / Check first
+
+1. **Gap between Data table and container fields (loaded templates only)** – Check: with an **already loaded/saved template**, the ~80px gap between the Data table and the container fields (Container No(s), Seal No(s), Size/Type) may still appear. With a **new template**, the gap does NOT exist. Verify this behavior and fix so the gap is also resolved for loaded templates (layout/offset logic, `minY` detection, or migration of legacy template data may need adjustment).
 
 ---
 
@@ -22,6 +28,7 @@ Tasks to complete. Add items below as they are identified.
 13. **Fit template boxes to alignment guides** ✅ – "Fit to guides" button in Global Layout snaps all boxes so their edges align with the orange alignment lines and padding boundaries.
 14. **Lock guides to content area** ✅ – Replaced Fit to guides. Lock toggle: when ON, the 4 ruler guidelines drive the content area; dragging a guideline extends or compresses that edge.
 15. **Move nested boxes outside parent** ✅ – Support moving boxes enclosed inside a parent/container box out to the canvas area. Spatial containment detection; drag excludes parent from overlap check so inner boxes can be dragged out; "Move to canvas" button in Properties when box is inside another.
+16. **Table resize to fill gap** ✅ – Removed hardcoded `EMPTY_BOX_BELOW_TABLE_PX` (90px) and `tableIncludesGap` logic. Table height is now controlled only by the user via the properties panel; only an 8px gap between table and next elements.
 
 ---
 
@@ -37,4 +44,9 @@ Tasks to complete. Add items below as they are identified.
 8. **Convert Global Layout checkboxes to toggle buttons** – In Global Layout, convert "Highlight padding area on canvas" and "Highlight arrows" from checkboxes to toggle-style buttons for a more modern UI.
 9. **Box layout vs Custom layout toggle** – In Global Layout, add a toggle to switch between **Box layout** (grid/box-based canvas with visible boxes and borders) and **Custom layout** (non-boxy, free-flowing template like forms or cover pages with labels, varying alignment, horizontal lines, and natural content flow—no visible boxes). Toggle styling: Box layout = bright green; Custom layout = blue.
 10. **Select nested boxes inside parent** – When a parent container has nested boxes inside it, clicking on a nested/child box currently selects the parent instead of the child. Fix: ensure child boxes receive clicks (e.g. higher z-index for contained boxes) so users can select and use "Move to canvas" on nested boxes.
-11. **Table resize to fill gap** – Empty gap between the table (below "Data" row) and the container fields (Container No(s), Seal No(s), Size/Type). When dragging the table's bottom resize handle down: (1) the table should extend to fill that gap and share borders with the container fields; (2) the canvas scrollbar should NOT move—currently the canvas scrolls instead of resizing. Fix both.
+11. **Canvas scrollbar during table resize** – When dragging the table's bottom resize handle down, the canvas scrollbar should NOT move; currently the canvas scrolls instead of resizing. Fix: during south resize of data table, prevent canvas from scrolling; ensure canvas height updates so the table extends within view.
+12. **Separate font sizes for labels vs values** – Allow defining different font sizes for labels and values within a box (e.g. label at 8px, value at 10px).
+13. **Bold and italic formatting buttons** – Add bold and italic formatting buttons in the properties panel for text boxes.
+14. **Table font size control and Apply button** – In the table properties area: (a) Add font size control for table headings (and optionally table cells) so users can decrease font size when there are many columns; (b) Add an Apply button so font changes are reflected and applied to the table on the canvas.
+15. **Toggle to show values with {{variable}} format on canvas** – In Global Layout, add a toggle. When ON, the canvas displays values in template format (e.g. {{shipper_name}}, {{shipper_address}}) instead of only labels. This helps users see which placeholders map to each box and verify the templating engine format.
+16. **Drag to arrange value placeholders within a box** – Allow users to drag and rearrange value placeholders (e.g. {{var1}}, {{var2}}) within a box. Users can move values above/below or position them as desired. The arranged layout should be reflected when printing/exporting so values display in the correct place within the box.

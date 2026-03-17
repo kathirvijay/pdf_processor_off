@@ -105,7 +105,6 @@ const DATA_TABLE_ROW_HEIGHT_PX = 30;
 /** Full-width boxed area (px) between first three table rows and remaining content. */
 const DATA_TABLE_SPACER_PX = 120;
 /** Height (px) of the empty gap inside the table when rowCount <= 3; full width. Kept smaller so gap to next field is 2–3px. */
-const EMPTY_BOX_BELOW_TABLE_PX = 90;
 /** Gap (px) between table bottom border and the next field (e.g. Total This Page); 2px only. */
 const GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX = 8;
 /** Gap (px) between fields above and the table top; 2px. */
@@ -219,7 +218,6 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx, layoutOverrides) 
         const rowCount = getDataTableRowCount(data || {}, box.tableConfig.columnKeys);
         const rowsOnFirst = Math.max(1, Number(box?.tableConfig?.rowsOnFirstPage) || 3);
         const useAttachedListMode = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD;
-        if (!useAttachedListMode && rowCount <= rowsOnFirst) effective += EMPTY_BOX_BELOW_TABLE_PX;
         /* Respect user-configured table height: use at least designHeight so PDF matches canvas */
         effective = Math.max(Number(effective), designHeight);
       }
@@ -245,8 +243,7 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx, layoutOverrides) 
     const firstSegmentBottom = tTop + tEffective;
     const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
     const rowsOnFirst = Math.max(1, Number(t?.tableConfig?.rowsOnFirstPage) || 3);
-    const tableIncludesGap = rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
-    const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (tableIncludesGap ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX));
+    const spacerPx = GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX;
     const spacerBottom = firstSegmentBottom + spacerPx;
     boxes.forEach((b) => {
       if (b.id === t.id || b.type === 'table') return;
@@ -295,8 +292,7 @@ function buildMultiPageLayout(boxes, data, editorPageHeightPx, layoutOverrides) 
         const firstSegmentBottom = tTop + tEffective;
         const rowCount = getDataTableRowCount(data || {}, t.tableConfig.columnKeys);
         const rowsOnFirst = Math.max(1, Number(t?.tableConfig?.rowsOnFirstPage) || 3);
-        const tableIncludesGap = rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD && rowCount <= rowsOnFirst;
-        const spacerPx = rowCount > DATA_TABLE_ATTACHED_LIST_THRESHOLD ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (tableIncludesGap ? GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : (EMPTY_BOX_BELOW_TABLE_PX + GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX));
+        const spacerPx = GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX;
         const spacerBottom = firstSegmentBottom + spacerPx;
         const minY = minYBelowTable[t.id];
         if (bTop >= firstSegmentBottom) {
@@ -760,12 +756,7 @@ const generatePdf = async (template, data, uploadsDir) => {
             }
           }
           let outerTableHeight = tableY - tableStartY;
-          if (pageIndex === 0 && rowCount <= DATA_TABLE_ATTACHED_LIST_THRESHOLD) {
-            const remainingHeight = Math.max(0, availableHeight - (tableY - contentStartY));
-            const spacerHeightPt = Math.min(EMPTY_BOX_BELOW_TABLE_PX * pxToPt, remainingHeight);
-            if (spacerHeightPt > 0) outerTableHeight += spacerHeightPt;
-          }
-          /* Page 0: use design height so border extends full box (e.g. 450px). Continuation pages: border ends at last row only */
+          /* Page 0: use design height so border extends full box. Continuation pages: border ends at last row only */
           if (pageIndex === 0) {
             const designHeightPt = designHeightPx * pxToPt;
             const maxRectHeight = Math.max(0, pageHeight - margins.bottom - tableStartY);
@@ -922,6 +913,5 @@ module.exports = {
   DATA_TABLE_HEADER_ROW_PX,
   DATA_TABLE_ROW_HEIGHT_PX,
   DATA_TABLE_ATTACHED_LIST_THRESHOLD,
-  EMPTY_BOX_BELOW_TABLE_PX,
   GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX,
 };
