@@ -1,0 +1,112 @@
+{
+  "shipper_company_name": "Eval-AZ-400MT",
+  "reference_number": "SB-AZ40-26-03-0003",
+  "ocean_bill_number": "MWEEI7378837",
+  "si_reference_number": "SB-AZ40-26-03-0003",
+  "carrier_name": "CMA CGM",
+  "attn": null,
+  "from": "Eval-AZ-400MT",
+  "print_time": "March 12, 2026 at 11:56 AM",
+  "freight_charges_display": null,
+  "vessel_name": "RIENUHRO",
+  "voyage": "685t",
+  "port_of_loading": "Belgern",
+  "port_of_discharge": "Cochin",
+  "place_of_delivery": null,
+  "shipper_name": "Demo Customer - Textiles Ltd.",
+  "shipper_address": "",
+  "shipper_city": "",
+  "shipper_country": "",
+  "shipper_contact": "",
+  "shipper_tax_identifier": null,
+  "notify_party_name": "",
+  "notify_party_address": "",
+  "notify_party_city": "",
+  "notify_party_country": "",
+  "consignee_name": "Demo Customer - Trading Corp.",
+  "consignee_address": "",
+  "consignee_city": "",
+  "consignee_country": "",
+  "consignee_person": "",
+  "consignee_contact": "",
+  "notify_name": "",
+  "notify_address": "",
+  "notify_city": "",
+  "notify_country": "",
+  "containers": [
+    {
+      "container_number": "LAPT0863215",
+      "container_type": "20FR",
+      "seal_number": "0001",
+      "size_type": "20FR",
+      "movement": "CY/CY",
+      "carrier_s_o_no": "87654",
+      "items": [
+        {
+          "marks_and_numbers": "made in korea",
+          "number_of_packages": "39",
+          "packages": "39",
+          "cargo_description": "Clothing, Shoes & Jewelry, Toys & Games, Apparel & Accessories, Beauty",
+          "description": "Clothing, Shoes & Jewelry, Toys & Games, Apparel & Accessories, Beauty",
+          "commodity": "Clothing",
+          "weight": "22000",
+          "volume": "22"
+        }
+      ]
+    },
+    {
+      "container_number": "VESL0000005",
+      "container_type": "20GP",
+      "seal_number": "0002",
+      "size_type": "20GP",
+      "movement": "CY/CY",
+      "carrier_s_o_no": "12345",
+      "items": [
+        {
+          "marks_and_numbers": "made in korea",
+          "number_of_packages": "22",
+          "packages": "22",
+          "cargo_description": "Electronics",
+          "description": "Electronics",
+          "commodity": "Electronics",
+          "weight": "12500",
+          "volume": "12"
+        },
+        {
+          "marks_and_numbers": "made in korea",
+          "number_of_packages": "8",
+          "packages": "8",
+          "cargo_description": "Beauty",
+          "description": "Beauty",
+          "commodity": "Beauty",
+          "weight": "6000",
+          "volume": "6"
+        }
+      ]
+    }
+  ],
+  "consolidations": [
+    {
+      "consolidation_number": "CON-2603-40431",
+      "consolidation_id": "019cdcd8-bb1d-74d5-8a78-63196a4487b5",
+      "containers": [
+        {
+          "container_number": "DEFH4567814",
+          "container_type": "20TK",
+          "seal_number": "00001",
+          "movement": "CY/CY",
+          "carrier_s_o_no": "87124",
+          "items": [
+            {
+              "marks_and_numbers": "made in korea",
+              "packages": "23",
+              "cargo_description": "Apparel & Accessories, Toys & Games",
+              "weight": "22000",
+              "volume": "22"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

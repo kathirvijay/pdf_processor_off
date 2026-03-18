@@ -2009,14 +2009,23 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       const showPlaceholderWhenEmpty = rawPlaceholder && /\{\{/.test(rawPlaceholder);
       const valueToShow = valueEmpty && showPlaceholderWhenEmpty && !hasUserData ? rawPlaceholder : displayValue;
       const valueToShowEmpty = String(valueToShow).trim() === '';
-      const content = emptyBox ? '' : (valueOnly ? (valueToShowEmpty ? '' : escape(valueToShow)) : (labelOnly && label ? escape(label) : (label ? (valueToShowEmpty ? `${escape(label)}:` : `${escape(label)}: ${escape(valueToShow)}`) : (valueToShowEmpty ? '' : escape(valueToShow)))));
+      const useSeparateSizes = box.properties?.labelFontSize != null || box.properties?.valueFontSize != null;
+      const labelSz = box.properties?.labelFontSize ?? box.properties?.fontSize ?? 10;
+      const valueSz = box.properties?.valueFontSize ?? box.properties?.fontSize ?? 10;
+      let content;
+      if (emptyBox) content = '';
+      else if (valueOnly) content = valueToShowEmpty ? '' : (useSeparateSizes ? `<span style="font-size:${valueSz}px">${escape(valueToShow)}</span>` : escape(valueToShow));
+      else if (labelOnly && label) content = useSeparateSizes ? `<span style="font-size:${labelSz}px">${escape(label)}</span>` : escape(label);
+      else if (label) content = useSeparateSizes ? `<span style="font-size:${labelSz}px">${escape(label)}:</span>${valueToShowEmpty ? '' : ` <span style="font-size:${valueSz}px">${escape(valueToShow)}</span>`}` : (valueToShowEmpty ? `${escape(label)}:` : `${escape(label)}: ${escape(valueToShow)}`);
+      else content = valueToShowEmpty ? '' : (useSeparateSizes ? `<span style="font-size:${valueSz}px">${escape(valueToShow)}</span>` : escape(valueToShow));
       const exportLayout = { boxYOffset, effectiveHeightByBoxId };
       const edges = getBoxEdgeVisibility(box, boxes, ADJACENT_EPS, exportLayout);
       const borderLeft = edges.left ? '1px solid #000' : 'none';
       const borderRight = edges.right ? '1px solid #000' : 'none';
       const borderTop = edges.top ? '1px solid #000' : 'none';
       const borderBottom = edges.bottom ? '1px solid #000' : 'none';
-      return `<div class="template-box" style="position:absolute;left:${box.position?.x ?? 0}px;top:${top}px;width:${width}px;height:${height}px;font-size:${box.properties?.fontSize ?? 10}px;font-family:${escape(box.properties?.fontFamily || 'Arial')};color:${escape(box.properties?.fontColor || '#000')};border-left:${borderLeft};border-right:${borderRight};border-top:${borderTop};border-bottom:${borderBottom};padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">${content}</div>`;
+      const baseFontSize = box.properties?.fontSize ?? 10;
+      return `<div class="template-box" style="position:absolute;left:${box.position?.x ?? 0}px;top:${top}px;width:${width}px;height:${height}px;font-size:${baseFontSize}px;font-family:${escape(box.properties?.fontFamily || 'Arial')};color:${escape(box.properties?.fontColor || '#000')};border-left:${borderLeft};border-right:${borderRight};border-top:${borderTop};border-bottom:${borderBottom};padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">${content}</div>`;
     };
 
     const sortedBoxes = [...boxes].sort((a, b) => (a.rank || 0) - (b.rank || 0));
@@ -2495,7 +2504,15 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           var showPlaceholderWhenEmpty = rawPlaceholder && /\\{\\{/.test(rawPlaceholder);
           var valueToShow = valueEmpty && showPlaceholderWhenEmpty && !hasUserData ? rawPlaceholder : displayValue;
           var valueToShowEmpty = String(valueToShow).trim() === '';
-          var content = emptyBox ? '' : (valueOnly ? (valueToShowEmpty ? '' : escapeHtml(valueToShow)) : (labelOnly && label ? escapeHtml(label) : (label ? (valueToShowEmpty ? escapeHtml(label) + ':' : escapeHtml(label) + ': ' + escapeHtml(valueToShow)) : (valueToShowEmpty ? '' : escapeHtml(valueToShow)))));
+          var useSeparateSizes = (box.properties && box.properties.labelFontSize != null) || (box.properties && box.properties.valueFontSize != null);
+          var labelSz = (box.properties && box.properties.labelFontSize != null) ? box.properties.labelFontSize : (box.properties && box.properties.fontSize != null ? box.properties.fontSize : 10);
+          var valueSz = (box.properties && box.properties.valueFontSize != null) ? box.properties.valueFontSize : (box.properties && box.properties.fontSize != null ? box.properties.fontSize : 10);
+          var content;
+          if (emptyBox) content = '';
+          else if (valueOnly) content = valueToShowEmpty ? '' : (useSeparateSizes ? '<span style="font-size:' + valueSz + 'px">' + escapeHtml(valueToShow) + '</span>' : escapeHtml(valueToShow));
+          else if (labelOnly && label) content = useSeparateSizes ? '<span style="font-size:' + labelSz + 'px">' + escapeHtml(label) + '</span>' : escapeHtml(label);
+          else if (label) content = useSeparateSizes ? '<span style="font-size:' + labelSz + 'px">' + escapeHtml(label) + ':</span>' + (valueToShowEmpty ? '' : ' <span style="font-size:' + valueSz + 'px">' + escapeHtml(valueToShow) + '</span>') : (valueToShowEmpty ? escapeHtml(label) + ':' : escapeHtml(label) + ': ' + escapeHtml(valueToShow));
+          else content = valueToShowEmpty ? '' : (useSeparateSizes ? '<span style="font-size:' + valueSz + 'px">' + escapeHtml(valueToShow) + '</span>' : escapeHtml(valueToShow));
           var border = '1px solid #000';
           boxDivs.push('<div class="template-box" style="position:absolute;left:' + left + 'px;top:' + localTop + 'px;width:' + width + 'px;height:' + height + 'px;font-size:' + (box.properties && box.properties.fontSize != null ? box.properties.fontSize : 10) + 'px;font-family:' + escapeHtml(box.properties && box.properties.fontFamily || 'Arial') + ';color:' + escapeHtml(box.properties && box.properties.fontColor || '#000') + ';border-left:' + border + ';border-right:' + border + ';border-top:' + border + ';border-bottom:' + border + ';padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;overflow:visible;text-overflow:clip;">' + content + '</div>');
         }
@@ -3747,6 +3764,27 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                     <input type="number" value={selectedBoxData.properties?.fontSize || 12} onChange={(e) => updateBox(selectedBox, { properties: { ...selectedBoxData.properties, fontSize: parseInt(e.target.value) || 12 } })} min={6} max={72} title="Points (pt); matches PDF output" />
                   </div>
                   <div className="property-group">
+                    <div className="checkbox-row">
+                      <input id="prop-separate-font-sizes" type="checkbox" checked={!!(selectedBoxData.properties?.labelFontSize != null || selectedBoxData.properties?.valueFontSize != null)} onChange={(e) => {
+                        if (!e.target.checked) updateBox(selectedBox, { properties: { ...selectedBoxData.properties, labelFontSize: undefined, valueFontSize: undefined } });
+                        else updateBox(selectedBox, { properties: { ...selectedBoxData.properties, labelFontSize: selectedBoxData.properties?.fontSize || 12, valueFontSize: selectedBoxData.properties?.fontSize || 12 } });
+                      }} />
+                      <label htmlFor="prop-separate-font-sizes">Separate sizes for label and value</label>
+                    </div>
+                    {(selectedBoxData.properties?.labelFontSize != null || selectedBoxData.properties?.valueFontSize != null) && (
+                      <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
+                        <div>
+                          <label style={{ fontSize: 11, display: 'block', marginBottom: 2 }}>Label (pt):</label>
+                          <input type="number" value={selectedBoxData.properties?.labelFontSize ?? selectedBoxData.properties?.fontSize ?? 12} onChange={(e) => updateBox(selectedBox, { properties: { ...selectedBoxData.properties, labelFontSize: parseInt(e.target.value) || 12 } })} min={6} max={72} style={{ width: 56 }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 11, display: 'block', marginBottom: 2 }}>Value (pt):</label>
+                          <input type="number" value={selectedBoxData.properties?.valueFontSize ?? selectedBoxData.properties?.fontSize ?? 12} onChange={(e) => updateBox(selectedBox, { properties: { ...selectedBoxData.properties, valueFontSize: parseInt(e.target.value) || 12 } })} min={6} max={72} style={{ width: 56 }} />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="property-group">
                     <label>Font Color:</label>
                     <input type="color" value={selectedBoxData.properties?.fontColor || '#000000'} onChange={(e) => updateBox(selectedBox, { properties: { ...selectedBoxData.properties, fontColor: e.target.value } })} />
                   </div>
@@ -4256,12 +4294,17 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                                   const dataWithPages = { ...(typeof demoData === 'object' && demoData ? demoData : {}), pages: `${pageIndex + 1} of ${numP}` };
                                   const displayText = replacePlaceholdersInContent(placeholder, dataWithPages);
                                   const valueEmpty = displayText.trim() === '';
+                                  const useSeparateSizes = box.properties?.labelFontSize != null || box.properties?.valueFontSize != null;
+                                  const labelSz = box.properties?.labelFontSize ?? box.properties?.fontSize ?? 12;
+                                  const valueSz = box.properties?.valueFontSize ?? box.properties?.fontSize ?? 12;
+                                  const labelStyle = useSeparateSizes ? { fontSize: `${ptToPx(labelSz)}px` } : {};
+                                  const valueStyle = useSeparateSizes ? { fontSize: `${ptToPx(valueSz)}px` } : {};
                                   if (emptyBox) return <span></span>;
-                                  if (valueOnly) return <span>{valueEmpty ? '\u00A0' : displayText}</span>;
-                                  if (labelOnly && label) return <span>{label}</span>;
-                                  if (label) return <span><strong>{label}:</strong>{valueEmpty ? '' : ` ${displayText}`}</span>;
+                                  if (valueOnly) return <span style={valueStyle}>{valueEmpty ? '\u00A0' : displayText}</span>;
+                                  if (labelOnly && label) return <span style={labelStyle}>{label}</span>;
+                                  if (label) return <span><span style={labelStyle}><strong>{label}:</strong></span>{valueEmpty ? '' : <span style={valueStyle}>{` ${displayText}`}</span>}</span>;
                                   if (box.content && String(box.content).trim()) return replacePlaceholdersInContent(box.content, dataWithPages);
-                                  if (box.fieldName) return valueEmpty ? '\u00A0' : displayText;
+                                  if (box.fieldName) return <span style={valueStyle}>{valueEmpty ? '\u00A0' : displayText}</span>;
                                   return '\u00A0';
                                 })()}
                               </div>

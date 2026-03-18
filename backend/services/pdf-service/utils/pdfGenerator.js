@@ -780,6 +780,9 @@ const generatePdf = async (template, data, uploadsDir) => {
 
         const rawSize = box.properties?.fontSize;
         const fontSize = Math.max(8, Math.min(72, Number(rawSize) || 12));
+        const useSeparateSizes = box.properties?.labelFontSize != null || box.properties?.valueFontSize != null;
+        const labelSz = Math.max(8, Math.min(72, Number(box.properties?.labelFontSize ?? rawSize) || 12));
+        const valueSz = Math.max(8, Math.min(72, Number(box.properties?.valueFontSize ?? rawSize) || 12));
         const safeFontFamily = getPdfFontFamily(box);
         doc.font(safeFontFamily).fontSize(fontSize);
 
@@ -802,6 +805,8 @@ const generatePdf = async (template, data, uploadsDir) => {
           return raw;
         };
         let content = '';
+        let labelPart = '';
+        let valuePart = '';
         const displayLabel = getDisplayLabel(box);
         const labelOnly = !!box.properties?.labelOnly;
         const valueOnly = !!box.properties?.valueOnly;
@@ -812,14 +817,22 @@ const generatePdf = async (template, data, uploadsDir) => {
           content = '';
         } else if (valueOnly) {
           content = valueStr != null ? String(valueStr) : '';
+          if (useSeparateSizes) valuePart = content;
         } else if (labelOnly && displayLabel) {
           content = displayLabel;
+          if (useSeparateSizes) labelPart = displayLabel;
         } else if (displayLabel) {
           content = valueStr && String(valueStr).trim() ? `${displayLabel}: ${valueStr}` : `${displayLabel}:`;
+          if (useSeparateSizes) {
+            labelPart = valueStr && String(valueStr).trim() ? `${displayLabel}: ` : `${displayLabel}:`;
+            valuePart = valueStr && String(valueStr).trim() ? String(valueStr) : '';
+          }
         } else if (box.content) {
           content = replacePlaceholders(box.content || '', dataWithPages);
+          if (useSeparateSizes) valuePart = content;
         } else if (box.fieldName) {
           content = replacePlaceholders(`{{${box.fieldName}}}`, dataWithPages);
+          if (useSeparateSizes) valuePart = content;
         }
 
         const bgColor = box.properties?.backgroundColor;
@@ -852,13 +865,20 @@ const generatePdf = async (template, data, uploadsDir) => {
           const textWidthSafe = Math.max(1, textWidth);
           const lineGapPt = 1;
           const alignment = box.properties?.alignment || 'left';
-          doc.font(safeFontFamily).fontSize(fontSize).fillColor(r, g, b);
-          doc.text(content, textX, textY, {
-            width: textWidthSafe,
-            align: alignment,
-            lineGap: lineGapPt,
-            ellipsis: false
-          });
+          const textOpts = { width: textWidthSafe, align: alignment, lineGap: lineGapPt, ellipsis: false };
+          doc.font(safeFontFamily).fillColor(r, g, b);
+          if (useSeparateSizes && (labelPart || valuePart)) {
+            if (labelPart && valuePart) {
+              doc.fontSize(labelSz).text(labelPart, textX, textY, { ...textOpts, continued: true });
+              doc.fontSize(valueSz).text(valuePart, textOpts);
+            } else if (labelPart) {
+              doc.fontSize(labelSz).text(labelPart, textX, textY, textOpts);
+            } else {
+              doc.fontSize(valueSz).text(valuePart, textX, textY, textOpts);
+            }
+          } else {
+            doc.fontSize(fontSize).text(content, textX, textY, textOpts);
+          }
           doc.restore();
         }
       } catch (boxError) {

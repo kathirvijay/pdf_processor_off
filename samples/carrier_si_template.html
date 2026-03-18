@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrier SI</title>
+    <style>
+        * {
+    font-family: Arial, Helvetica, sans-serif;
+    color: rgb(16, 16, 16);
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+html {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+}
+
+.container {
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    box-sizing: border-box;
+    font-size: 10px;
+}
+
+.header {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.sub-header {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 10px;
+}
+
+.line {
+    border-top: 1px solid #000;
+    margin: 10px 0;
+}
+
+.flex-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.table-container {
+    width: 100%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border: none;
+    font-size: 10px;
+}
+
+td {
+    padding: 5px;
+    vertical-align: top;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    font-size: 10px;
+    max-width: 0;
+}
+
+th {
+    padding: 5px;
+    vertical-align: top;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    font-size: 10px;
+}
+
+.align-right {
+    text-align: right;
+}
+
+.third-column {
+    padding-left: 5px;
+}
+
+.section {
+    display: flex;
+    justify-content: space-between;
+}
+
+.align-left,
+.align-right {
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    display: inline-block;
+    width: 80px;
+    font-weight: bold;
+    min-width: 80px;
+}
+
+.column {
+    width: 50%;
+}
+
+.address {
+    margin-left: 65px;
+}
+
+.right-align {
+    margin-left: auto;
+}
+
+/* New classes for refactored inline styles */
+.container-padding {
+    padding: 10px;
+}
+
+.text-header {
+    font-weight: bold;
+    font-size: 10px;
+}
+
+.section-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.flex-column-left {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    margin-right: 20px;
+}
+
+.flex-column-right {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.reference-field {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 5px;
+    font-size: 10px;
+}
+
+.reference-label {
+    font-weight: bold;
+    margin-right: 5px;
+    white-space: nowrap;
+    font-size: 10px;
+}
+
+.reference-value {
+    font-size: 10px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.variable-value {
+    display: flex;
+    flex-wrap: wrap;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    max-width: 100%;
+}
+
+.align-left-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.title-flex {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.spacer {
+    width: 50px;
+}
+
+.right-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: left;
+    white-space: nowrap;
+    gap: 10px;
+    margin-left: 50%;
+}
+
+.title-column {
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap;
+}
+
+.title-column-normal {
+    display: flex;
+    flex-direction: column;
+    white-space: normal;
+    max-width: 100%;
+    overflow: visible;
+}
+
+.table-fixed {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.vessel-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin-top: 10px;
+}
+
+.vessel-info-cell {
+    width: 33.33%;
+    padding: 3px;
+    vertical-align: top;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    font-size: 10px;
+    max-width: 0;
+}
+
+.vessel-info-cell:last-child {
+    width: 33.34%;
+}
+
+.table-half-width {
+    width: 50%;
+    vertical-align: top;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    padding: 3px;
+    max-width: 0;
+}
+
+.table-half-width-left {
+    text-align: left;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    padding: 3px;
+    max-width: 0;
+}
+
+.table-margin-top {
+    margin-top: 10px;
+}
+
+.table-center {
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+    border-collapse: collapse;
+    border: 1px solid black;
+    page-break-inside: avoid;
+}
+
+.table-center-no-border {
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+    border-collapse: collapse;
+    page-break-inside: avoid;
+}
+
+.table-nested {
+    width: 100%;
+    text-align: center;
+}
+
+.border-bottom {
+    border-bottom: 1px solid black;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.center-text {
+    text-align: center;
+}
+
+.courier-bold-large {
+    font-family: Courier New, Courier, monospace;
+    font-weight: bold;
+    font-size: 20px !important;
+}
+
+.courier-bold-huge {
+    text-align: left;
+    font-family: Courier New, Courier, monospace;
+    font-weight: bold;
+    font-size: 20px !important;
+    margin-bottom: 0px;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+}
+
+.courier-bold-huge-bottom {
+    text-align: left;
+    font-family: Courier New, Courier, monospace;
+    font-weight: bold;
+    font-size: 20px !important;
+    margin-bottom: 0px;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+    margin-top: auto;
+}
+
+.page-break {
+    page-break-before: always;
+}
+
+.border-2 {
+    border: 2;
+}
+
+.border-collapse {
+    border-collapse: collapse;
+}
+
+.table-full-width {
+    width: 100%;
+}
+
+.section-flex-start {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+/* Variable content wrapping */
+span {
+    display: inline-block;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    white-space: normal;
+    font-size: 10px;
+}
+
+/* Consistent font sizing for all elements */
+p, div, strong, th {
+    font-size: 10px;
+}
+    </style>
+</head>
+
+<body>
+  <div class="Container container-padding">
+    <div class="text header text-header"></div>
+    <div class="container">
+      <div class="header">{{shipper_company_name}}</div>
+      <div class="sub-header">Shipment Details Cover Page</div>
+      <div class="section-flex">
+        <div class="flex-column-left">
+          <div class="reference-field">
+            <span class="reference-label">Reference No:</span>
+            <span class="reference-value">{{reference_number}}</span>
+          </div>
+          <div class="reference-field">
+            <span class="reference-label">Ocean B/L No:</span>
+            <span class="reference-value">{{ocean_bill_number}}</span>
+          </div>
+        </div>
+        <div class="flex-column-right">
+          <div class="reference-field">
+            <span class="reference-label">SI Ref No:</span>
+            <span class="reference-value">{{si_reference_number}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="line"></div>
+      <div class="section-flex-start">
+        <div class="align-left align-left-column">
+          <div class="title title-flex">To: <span class="nowrap">{{carrier_name}}</span></div>
+          <div class="title title-flex">Attn: <span class="nowrap">{{attn}}</span></div>
+          <div class="title title-flex">From: <span class="nowrap">{{from}}</span></div>
+        </div>
+        <div class="spacer"></div>
+        <div class="right-section">
+          <div class="title title-column"><span>Subject:</span>
+            <span>B/L Preparation</span></div>
+          <div class="title title-column-normal">
+            <span>Submission Time:</span> <span>{{print_time}}</span></div>
+        </div>
+      </div>
+      <div class="table-container">
+        <table class="vessel-info-table">
+          <tr>
+            <td class="vessel-info-cell">Re: Vessel: {{vessel_name}}</td>
+            <td class="vessel-info-cell">Voyage: {{voyage}}</td>
+            <td class="vessel-info-cell">Ocean Freight: {{freight_charges_display}}</td>
+          </tr>
+          <tr>
+            <td class="vessel-info-cell">Loading Port: {{port_of_loading}}</td>
+            <td class="vessel-info-cell">Dischg. Port: {{port_of_discharge}}</td>
+            <td class="vessel-info-cell">Place of Delivery: {{place_of_delivery}}</td>
+          </tr>
+        </table>
+      </div>
+      <p>We reference to above mentioned shipment please issue one set of Seaway B/L</p>
+      <div class="table-container">
+        <table class="table-margin-top table-full-width">
+          <tr>
+            <td class="table-half-width">
+              <strong>Shipper:</strong> {{shipper_name}}
+
+              <span>{{shipper_address}}</span>
+
+              <span>{{shipper_city}}</span>
+
+              <span>{{shipper_country}}</span>
+
+              <span>Tel : {{shipper_contact}} Fax:{{shipper_tax_identifier}}</span>
+
+
+            </td>
+            <td class="table-half-width table-half-width-left">
+              <strong>Notify:</strong> {{notify_party_name}}
+
+              <span>{{notify_party_address}}</span>
+
+              <span>{{notify_party_city}}</span>
+
+              <span>{{notify_party_country}}</span>
+
+
+            </td>
+          </tr>
+        </table>
+        <table class="table-margin-top table-full-width">
+          <tr>
+            <td class="table-half-width">
+              <strong>Consignee:</strong> {{consignee_name}}
+
+              <span>{{consignee_address}}</span>
+
+              <span>{{consignee_city}}</span>
+
+              <span>{{consignee_country}}</span>
+
+              <span>{{consignee_person}}</span>
+
+              <span>Tel : {{consignee_contact}}</span>
+
+
+            </td>
+            <td class="table-half-width table-half-width-left">
+              <strong>Also Notify:</strong> {{notify_name}}
+
+              <span>{{notify_address}}</span>
+
+              <span>{{notify_city}}</span>
+
+              <span>{{notify_country}}</span>
+
+            </td>
+          </tr>
+        </table>
+      </div>
+      <div class="line"></div>
+      <div class="center-text courier-bold-large">
+        Detail as per attachment</div>
+      <div class="courier-bold-huge">
+        SEND VIA EDI</div>
+      <div class="page-break"></div>
+      <!-- Booking mode: flat cargo_line_items table -->
+      <div id="cargo-booking-section" class="table-container" style="display:none;">
+        <div class="template-box template-box-table" style="width:100%;margin-top:10px;box-sizing:border-box;overflow:visible;border:1px solid #000;display:flex;flex-direction:column;">
+          <table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:10px;border:none;">
+            <colgroup>
+              <col style="width:15%">
+              <col style="width:15%">
+              <col style="width:30%">
+              <col style="width:20%">
+              <col style="width:20%">
+            </colgroup>
+            <thead>
+              <tr>
+                <th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;word-break:break-word;overflow-wrap:break-word;white-space:normal;">Marks and Numbers</th>
+                <th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;word-break:break-word;overflow-wrap:break-word;white-space:normal;">Kind & No of Packages</th>
+                <th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;word-break:break-word;overflow-wrap:break-word;white-space:normal;">Description of Goods</th>
+                <th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;word-break:break-word;overflow-wrap:break-word;white-space:normal;">Gross Weight (kg)</th>
+                <th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;word-break:break-word;overflow-wrap:break-word;white-space:normal;">Measurements (m³)</th>
+              </tr>
+            </thead>
+            <tbody id="cargo-detail-tbody">
+              <tr><td colspan="5" style="border:none;padding:8px;">No data rows</td></tr>
+            </tbody>
+          </table>
+          <div class="data-table-gap-inside" style="width:100%;height:90px;flex-shrink:0;"></div>
+        </div>
+      </div>
+      <!-- Consolidation mode: container-level blocks -->
+      <div id="cargo-consolidation-section" class="table-container" style="display:none;">
+        <div id="cargo-consolidation-content"></div>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" id="template-data">{}</script>
+  <script>
+    (function() {
+      function escapeHtml(str) {
+        if (str == null) return '';
+        var s = String(str);
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+      function getContainersWithItems(data) {
+        var list = Array.isArray(data.containers) ? data.containers : (Array.isArray(data.container) ? data.container : []);
+        if (list.length > 0) {
+          var withItems = [];
+          for (var i = 0; i < list.length; i++) {
+            var c = list[i];
+            var items = Array.isArray(c && c.items) ? c.items : [];
+            if (items.length > 0) withItems.push(c);
+          }
+          if (withItems.length > 0) return withItems;
+        }
+        if (Array.isArray(data.consolidations)) {
+          var allContainers = [];
+          for (var j = 0; j < data.consolidations.length; j++) {
+            var cons = data.consolidations[j];
+            var cList = Array.isArray(cons.containers) ? cons.containers : [];
+            for (var k = 0; k < cList.length; k++) {
+              var cc = cList[k];
+              var cItems = Array.isArray(cc && cc.items) ? cc.items : [];
+              if (cItems.length > 0) allContainers.push(cc);
+            }
+          }
+          if (allContainers.length > 0) return allContainers;
+        }
+        return [];
+      }
+      function getCargoLineItems(data) {
+        var cli = Array.isArray(data.cargo_line_items) ? data.cargo_line_items : [];
+        if (cli.length > 0) return cli;
+        if (Array.isArray(data.consolidations)) {
+          var flat = [];
+          for (var i = 0; i < data.consolidations.length; i++) {
+            var cons = data.consolidations[i];
+            var bookings = Array.isArray(cons.bookings) ? cons.bookings : [];
+            for (var j = 0; j < bookings.length; j++) {
+              var bl = Array.isArray(bookings[j].cargo_lines) ? bookings[j].cargo_lines : [];
+              for (var k = 0; k < bl.length; k++) flat.push(bl[k]);
+            }
+          }
+          return flat;
+        }
+        return [];
+      }
+      function getItemDesc(item) {
+        var d = item.cargo_description || item.description || item.commodity || '';
+        return String(d);
+      }
+      function getItemPackages(item) {
+        return item.packages != null ? item.packages : (item.number_of_packages != null ? item.number_of_packages : '');
+      }
+      function getIndividualDetails(item) {
+        var pkg = getItemPackages(item);
+        var vol = item.volume != null ? String(item.volume) : '';
+        var wgt = item.weight != null ? String(item.weight) : '';
+        var parts = [];
+        if (pkg) parts.push(pkg + ' Cartons');
+        if (vol) parts.push(vol + ' CBM');
+        if (wgt) parts.push(wgt + ' KGS');
+        return parts.join(' ');
+      }
+      function sumContainerTotals(items) {
+        var pkg = 0, vol = 0, wgt = 0;
+        for (var i = 0; i < items.length; i++) {
+          var it = items[i];
+          var p = parseFloat(it.packages || it.number_of_packages) || 0;
+          var v = parseFloat(it.volume) || 0;
+          var w = parseFloat(it.weight) || 0;
+          pkg += p; vol += v; wgt += w;
+        }
+        return { packages: pkg, volume: vol, weight: wgt };
+      }
+      function isConsolidationMode(data) {
+        return getContainersWithItems(data).length > 0;
+      }
+      function renderBookingTable(data) {
+        var items = getCargoLineItems(data);
+        var tbody = document.getElementById('cargo-detail-tbody');
+        var section = document.getElementById('cargo-booking-section');
+        var consSection = document.getElementById('cargo-consolidation-section');
+        if (!tbody || !section || !consSection) return;
+        section.style.display = 'block';
+        consSection.style.display = 'none';
+        if (items.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="border:none;padding:8px;">No data rows</td></tr>';
+          return;
+        }
+        var rows = '';
+        for (var i = 0; i < items.length; i++) {
+          var it = items[i];
+          var marks = it.marks_and_numbers != null ? String(it.marks_and_numbers) : '';
+          var pkg = getItemPackages(it) || '';
+          var desc = getItemDesc(it);
+          var wgt = it.weight != null ? String(it.weight) : '';
+          var vol = it.volume != null ? String(it.volume) : '';
+          rows += '<tr><td style="border:1px solid #000;padding:4px;word-break:break-word;overflow-wrap:break-word;white-space:normal;">' + escapeHtml(marks) + '</td>';
+          rows += '<td style="border:1px solid #000;padding:4px;word-break:break-word;overflow-wrap:break-word;white-space:normal;">' + escapeHtml(pkg) + '</td>';
+          rows += '<td style="border:1px solid #000;padding:4px;word-break:break-word;overflow-wrap:break-word;white-space:normal;">' + escapeHtml(desc) + '</td>';
+          rows += '<td style="border:1px solid #000;padding:4px;word-break:break-word;overflow-wrap:break-word;white-space:normal;">' + escapeHtml(wgt) + '</td>';
+          rows += '<td style="border:1px solid #000;padding:4px;word-break:break-word;overflow-wrap:break-word;white-space:normal;">' + escapeHtml(vol) + '</td></tr>';
+        }
+        tbody.innerHTML = rows;
+      }
+      function renderConsolidationTable(data) {
+        var containers = getContainersWithItems(data);
+        var section = document.getElementById('cargo-booking-section');
+        var consSection = document.getElementById('cargo-consolidation-section');
+        var content = document.getElementById('cargo-consolidation-content');
+        if (!section || !consSection || !content) return;
+        section.style.display = 'none';
+        consSection.style.display = 'block';
+        if (containers.length === 0) {
+          content.innerHTML = '<p style="padding:8px;">No container data</p>';
+          return;
+        }
+        var html = '';
+        for (var ci = 0; ci < containers.length; ci++) {
+          var c = containers[ci];
+          var items = Array.isArray(c.items) ? c.items : [];
+          var tot = sumContainerTotals(items);
+          var cn = (c.container_number || '') + ' ' + (c.container_type || '') + ' ' + (c.seal_number || '');
+          var movement = c.movement || 'CY/CY';
+          var carrierSo = c.carrier_booking_id || c.carrier_s_o_no || '';
+          html += '<div style="margin-top:10px;border:1px solid #000;page-break-inside:avoid;">';
+          html += '<table style="width:100%;border-collapse:collapse;font-size:10px;border:1px solid #000;">';
+          html += '<thead><tr>';
+          html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Carrier S/O No</th>';
+          html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Container No Size Seal No Movement</th>';
+          html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">CNTR Pkgs/Unit</th>';
+          html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">CNTR CBM</th>';
+          html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">CNTR KGS</th>';
+          html += '</tr></thead><tbody><tr>';
+          html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(carrierSo) + '</td>';
+          html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(cn.trim() || '-') + ' ' + escapeHtml(movement) + '</td>';
+          html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(tot.packages ? tot.packages + ' Cartons' : '') + '</td>';
+          html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(tot.volume ? String(tot.volume) : '') + '</td>';
+          html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(tot.weight ? String(tot.weight) : '') + '</td>';
+          html += '</tr></tbody></table>';
+          html += '<table style="width:100%;border-collapse:collapse;font-size:10px;border:1px solid #000;border-top:none;">';
+          html += '<thead><tr>';
+          html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Marks & Nos</th>';
+          html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Goods Description</th>';
+          html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Individual details</th>';
+          html += '</tr></thead><tbody>';
+          for (var j = 0; j < items.length; j++) {
+            var it = items[j];
+            html += '<tr>';
+            html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(it.marks_and_numbers || '') + '</td>';
+            html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(getItemDesc(it)) + '</td>';
+            html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(getIndividualDetails(it)) + '</td>';
+            html += '</tr>';
+          }
+          html += '</tbody></table></div>';
+        }
+        content.innerHTML = html;
+      }
+      function renderCargoTable() {
+        var data = {};
+        var dataEl = document.getElementById('template-data');
+        if (dataEl && dataEl.textContent) {
+          try {
+            var content = dataEl.textContent.trim();
+            if (content) data = JSON.parse(content);
+          } catch (e) { console.error('Error parsing template-data JSON:', e); }
+        }
+        if ((!data.containers || data.containers.length === 0) && (!data.cargo_line_items || data.cargo_line_items.length === 0)) {
+          if (window.templateData && typeof window.templateData === 'object') data = window.templateData;
+        }
+        if (isConsolidationMode(data)) {
+          renderConsolidationTable(data);
+        } else {
+          renderBookingTable(data);
+        }
+      }
+      function getDataToRender() {
+        if (window.templateData !== undefined && window.templateData !== null) return window.templateData;
+        var dataEl = document.getElementById('template-data');
+        if (dataEl && dataEl.textContent) {
+          try {
+            var content = dataEl.textContent.trim();
+            return content ? JSON.parse(content) : {};
+          } catch (e) { return {}; }
+        }
+        return {};
+      }
+      window.applyTemplateData = function() {
+        window.templateData = getDataToRender();
+        renderCargoTable();
+      };
+      window.loadTemplateDataFromJson = function(jsonStr) {
+        try {
+          window.templateData = JSON.parse(jsonStr);
+          renderCargoTable();
+          return true;
+        } catch (e) {
+          console.error('Invalid JSON:', e);
+          return false;
+        }
+      };
+      window.templateData = getDataToRender();
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+          window.templateData = getDataToRender();
+          renderCargoTable();
+        });
+      } else {
+        renderCargoTable();
+      }
+    })();
+  </script>
+</body>
+
+</html>

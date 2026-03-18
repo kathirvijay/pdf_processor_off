@@ -322,6 +322,10 @@ async function generatePdfPuppeteer(template, data, uploadsDir) {
       const value = box.content || `{{${box.fieldName || 'field'}}}`;
       const valueStr = replacePlaceholders(value, dataWithPages);
 
+      const useSeparateSizes = box.properties?.labelFontSize != null || box.properties?.valueFontSize != null;
+      const labelSz = Math.max(8, Math.min(72, Number(box.properties?.labelFontSize ?? box.properties?.fontSize) || 12));
+      const valueSz = Math.max(8, Math.min(72, Number(box.properties?.valueFontSize ?? box.properties?.fontSize) || 12));
+
       let content = '';
       if (emptyBox) content = '';
       else if (valueOnly) content = valueStr != null ? String(valueStr) : '';
@@ -330,9 +334,20 @@ async function generatePdfPuppeteer(template, data, uploadsDir) {
       else if (box.content) content = replacePlaceholders(box.content || '', dataWithPages);
       else if (box.fieldName) content = replacePlaceholders(`{{${box.fieldName}}}`, dataWithPages);
 
+      let innerHtml = escapeHtml(content);
+      if (useSeparateSizes && content) {
+        if (valueOnly) innerHtml = `<span style="font-size:${valueSz}px">${escapeHtml(valueStr != null ? String(valueStr) : '')}</span>`;
+        else if (labelOnly && displayLabel) innerHtml = `<span style="font-size:${labelSz}px">${escapeHtml(displayLabel)}</span>`;
+        else if (displayLabel) {
+          const labelPart = valueStr && String(valueStr).trim() ? `${displayLabel}: ` : `${displayLabel}:`;
+          const valPart = valueStr && String(valueStr).trim() ? String(valueStr) : '';
+          innerHtml = `<span style="font-size:${labelSz}px">${escapeHtml(labelPart)}</span>${valPart ? `<span style="font-size:${valueSz}px">${escapeHtml(valPart)}</span>` : ''}`;
+        } else innerHtml = `<span style="font-size:${valueSz}px">${escapeHtml(content)}</span>`;
+      }
+
       const borderCss = box.properties?.border === false ? 'border:none;' : 'border:1px solid #000;';
       const boxStyle = `left:${x}px;top:${y}px;width:${w}px;height:${h}px;font-size:${fontSize}px;font-family:${escapeHtml(fontFamily)};color:${escapeHtml(fontColor)};${borderCss}`;
-      htmlParts.push(`<div class="pdf-box" style="${boxStyle}">${escapeHtml(content)}</div>`);
+      htmlParts.push(`<div class="pdf-box" style="${boxStyle}">${innerHtml}</div>`);
     }
 
     htmlParts.push('</div></div>');

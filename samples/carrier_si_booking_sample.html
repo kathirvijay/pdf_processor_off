@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrier SI - Booking Sample</title>
+    <style>
+        * { font-family: Arial, Helvetica, sans-serif; color: rgb(16, 16, 16); word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; }
+        html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { width: 100%; margin: 0; padding: 0; font-size: 10px; }
+        .container { width: 100%; margin: 0; padding: 10px; box-sizing: border-box; font-size: 10px; }
+        .header { text-align: center; font-size: 20px; font-weight: bold; }
+        .sub-header { text-align: center; margin-bottom: 20px; font-size: 10px; }
+        .line { border-top: 1px solid #000; margin: 10px 0; }
+        .section-flex { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; flex-wrap: wrap; gap: 10px; }
+        .flex-column-left { display: flex; flex-direction: column; flex: 1; min-width: 0; margin-right: 20px; }
+        .flex-column-right { display: flex; flex-direction: column; flex: 1; min-width: 0; align-items: flex-end; text-align: right; }
+        .reference-field { display: flex; align-items: baseline; margin-bottom: 5px; font-size: 10px; }
+        .reference-label { font-weight: bold; margin-right: 5px; white-space: nowrap; }
+        .reference-value { font-size: 10px; word-break: break-word; }
+        .section-flex-start { display: flex; justify-content: flex-start; width: 100%; flex-wrap: wrap; }
+        .align-left-column { display: flex; flex-direction: column; align-items: flex-start; }
+        .title { display: inline-block; width: 80px; font-weight: bold; min-width: 80px; }
+        .title-flex { display: flex; flex-wrap: wrap; }
+        .title-column { display: flex; flex-direction: column; white-space: nowrap; }
+        .title-column-normal { display: flex; flex-direction: column; white-space: normal; max-width: 100%; overflow: visible; }
+        .spacer { width: 50px; }
+        .right-section { display: flex; flex-direction: column; align-items: flex-end; text-align: left; gap: 10px; margin-left: 50%; }
+        .table-container { width: 100%; }
+        .vessel-info-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 10px; }
+        .vessel-info-cell { width: 33.33%; padding: 3px; vertical-align: top; font-size: 10px; }
+        .table-margin-top { margin-top: 10px; }
+        .table-full-width { width: 100%; }
+        .table-half-width { width: 50%; vertical-align: top; padding: 3px; }
+        .table-half-width-left { text-align: left; padding: 3px; }
+        .center-text { text-align: center; }
+        .courier-bold-large { font-family: Courier New, Courier, monospace; font-weight: bold; font-size: 20px !important; }
+        .courier-bold-huge { font-family: Courier New, Courier, monospace; font-weight: bold; font-size: 20px !important; }
+        .page-break { page-break-before: always; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        th, td { padding: 4px; word-break: break-word; overflow-wrap: break-word; white-space: normal; }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Eval-AZ-400MT</div>
+    <div class="sub-header">Shipment Details Cover Page</div>
+    <div class="section-flex">
+      <div class="flex-column-left">
+        <div class="reference-field"><span class="reference-label">Reference No:</span><span class="reference-value">SB-AZ40-26-03-0003</span></div>
+        <div class="reference-field"><span class="reference-label">Ocean B/L No:</span><span class="reference-value">MWEEI7378837</span></div>
+      </div>
+      <div class="flex-column-right">
+        <div class="reference-field"><span class="reference-label">SI Ref No:</span><span class="reference-value">SB-AZ40-26-03-0003</span></div>
+      </div>
+    </div>
+    <div class="line"></div>
+    <div class="section-flex-start">
+      <div class="align-left-column">
+        <div class="title title-flex">To: CMA CGM</div>
+        <div class="title title-flex">Attn: </div>
+        <div class="title title-flex">From: Eval-AZ-400MT</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="right-section">
+        <div class="title title-column"><span>Subject:</span> <span>B/L Preparation</span></div>
+        <div class="title title-column-normal"><span>Submission Time:</span> March 12, 2026 at 11:56 AM</div>
+      </div>
+    </div>
+    <div class="table-container">
+      <table class="vessel-info-table">
+        <tr>
+          <td class="vessel-info-cell">Re: Vessel: RIENUHRO</td>
+          <td class="vessel-info-cell">Voyage: 685t</td>
+          <td class="vessel-info-cell">Ocean Freight: </td>
+        </tr>
+        <tr>
+          <td class="vessel-info-cell">Loading Port: Belgern</td>
+          <td class="vessel-info-cell">Dischg. Port: Cochin</td>
+          <td class="vessel-info-cell">Place of Delivery: </td>
+        </tr>
+      </table>
+    </div>
+    <p>We reference to above mentioned shipment please issue one set of Seaway B/L</p>
+    <div class="table-container">
+      <table class="table-margin-top table-full-width">
+        <tr>
+          <td class="table-half-width"><strong>Shipper:</strong> Demo Customer - Textiles Ltd.<br><span></span><span></span><span></span><span>Tel :  Fax:</span></td>
+          <td class="table-half-width table-half-width-left"><strong>Notify:</strong> <br><span></span><span></span><span></span></td>
+        </tr>
+      </table>
+      <table class="table-margin-top table-full-width">
+        <tr>
+          <td class="table-half-width"><strong>Consignee:</strong> Demo Customer - Trading Corp.<br><span></span><span></span><span></span><span></span><span>Tel : </span></td>
+          <td class="table-half-width table-half-width-left"><strong>Also Notify:</strong> <br><span></span><span></span><span></span></td>
+        </tr>
+      </table>
+    </div>
+    <div class="line"></div>
+    <div class="center-text courier-bold-large">Detail as per attachment</div>
+    <div class="courier-bold-huge">SEND VIA EDI</div>
+    <div class="page-break"></div>
+    <div class="table-container">
+      <div style="width:100%;margin-top:10px;border:1px solid #000;">
+        <table style="width:100%;border-collapse:collapse;font-size:10px;">
+          <colgroup><col style="width:15%"><col style="width:15%"><col style="width:30%"><col style="width:20%"><col style="width:20%"></colgroup>
+          <thead>
+            <tr>
+              <th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Marks and Numbers</th>
+              <th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Kind & No of Packages</th>
+              <th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Description of Goods</th>
+              <th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Gross Weight (kg)</th>
+              <th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Measurements (m³)</th>
+            </tr>
+          </thead>
+          <tbody id="cargo-detail-tbody"></tbody>
+        </table>
+        <div style="width:100%;height:90px;"></div>
+      </div>
+    </div>
+  </div>
+  <script type="application/json" id="template-data">
+    {
+      "shipper_company_name": "Eval-AZ-400MT",
+      "reference_number": "SB-AZ40-26-03-0003",
+      "ocean_bill_number": "MWEEI7378837",
+      "si_reference_number": "SB-AZ40-26-03-0003",
+      "carrier_name": "CMA CGM",
+      "vessel_name": "RIENUHRO",
+      "voyage": "685t",
+      "port_of_loading": "Belgern",
+      "port_of_discharge": "Cochin",
+      "print_time": "March 12, 2026 at 11:56 AM",
+      "shipper_name": "Demo Customer - Textiles Ltd.",
+      "consignee_name": "Demo Customer - Trading Corp.",
+      "cargo_line_items": [
+        {"marks_and_numbers": "36893", "number_of_packages": "019.00", "packages": "019.00", "cargo_description": "Mobile 1e", "description": "Mobile 1e", "commodity": "Mobile 1e", "weight": "0100.00", "volume": "020.00"},
+        {"marks_and_numbers": "47994", "number_of_packages": "098.00", "packages": "098.00", "cargo_description": "Plastic household items – storage containers and kitchen products.", "description": "Plastic household items – storage containers and kitchen products.", "commodity": "Plastic household items – storage containers and kitchen products.", "weight": "0100.00", "volume": "010.00"},
+        {"marks_and_numbers": "69373", "number_of_packages": "019.00", "packages": "019.00", "cargo_description": "Packed food items – biscuits and snacks.", "description": "Packed food items – biscuits and snacks.", "commodity": "Packed food items – biscuits and snacks.", "weight": "0100.00", "volume": "05.00"},
+        {"marks_and_numbers": "69343", "number_of_packages": "030.00", "packages": "030.00", "cargo_description": "Automobile spare parts – brake pads and oil filters.", "description": "Automobile spare parts – brake pads and oil filters.", "commodity": "Automobile spare parts – brake pads and oil filters.", "weight": "0100.00", "volume": "019.99"},
+        {"marks_and_numbers": "4694", "number_of_packages": "019.00", "packages": "019.00", "cargo_description": "Medical consumables – disposable gloves and surgical masks.", "description": "Medical consumables – disposable gloves and surgical masks.", "commodity": "Medical consumables – disposable gloves and surgical masks.", "weight": "0100.00", "volume": "020.00"},
+        {"marks_and_numbers": "A-1001", "number_of_packages": "050.00", "packages": "050.00", "cargo_description": "Electronics – smartphones, tablets and accessories.", "description": "Electronics – smartphones, tablets and accessories.", "commodity": "Electronics", "weight": "0250.00", "volume": "015.50"},
+        {"marks_and_numbers": "B-2002", "number_of_packages": "075.00", "packages": "075.00", "cargo_description": "Textiles – cotton fabrics, garments and home textiles.", "description": "Textiles – cotton fabrics, garments and home textiles.", "commodity": "Textiles", "weight": "0180.00", "volume": "025.00"},
+        {"marks_and_numbers": "C-3003", "number_of_packages": "012.00", "packages": "012.00", "cargo_description": "Industrial machinery parts – pumps, valves and fittings.", "description": "Industrial machinery parts – pumps, valves and fittings.", "commodity": "Machinery", "weight": "0500.00", "volume": "008.75"},
+        {"marks_and_numbers": "D-4004", "number_of_packages": "040.00", "packages": "040.00", "cargo_description": "Furniture – office chairs, desks and storage units.", "description": "Furniture – office chairs, desks and storage units.", "commodity": "Furniture", "weight": "0320.00", "volume": "042.00"},
+        {"marks_and_numbers": "E-5005", "number_of_packages": "028.00", "packages": "028.00", "cargo_description": "Cosmetics and personal care – skincare, haircare products.", "description": "Cosmetics and personal care – skincare, haircare products.", "commodity": "Cosmetics", "weight": "0085.00", "volume": "012.30"}
+      ],
+      "containers": []
+    }
+  </script>
+  <script>
+    (function() {
+      function escapeHtml(str) { if (str == null) return ''; var s = String(str); return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+      function getItemPackages(item) { return item.packages != null ? item.packages : (item.number_of_packages != null ? item.number_of_packages : ''); }
+      function getItemDesc(item) { var d = item.cargo_description || item.description || item.commodity || ''; return String(d); }
+      var data = {};
+      try { data = JSON.parse(document.getElementById('template-data').textContent.trim()); } catch (e) {}
+      var items = Array.isArray(data.cargo_line_items) ? data.cargo_line_items : [];
+      var tbody = document.getElementById('cargo-detail-tbody');
+      var rows = '';
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i];
+        rows += '<tr><td style="border:1px solid #000;padding:4px;">' + escapeHtml(it.marks_and_numbers || '') + '</td>';
+        rows += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(getItemPackages(it) || '') + '</td>';
+        rows += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(getItemDesc(it)) + '</td>';
+        rows += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(it.weight != null ? it.weight : '') + '</td>';
+        rows += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(it.volume != null ? it.volume : '') + '</td></tr>';
+      }
+      tbody.innerHTML = rows || '<tr><td colspan="5" style="border:none;padding:8px;">No data rows</td></tr>';
+    })();
+  </script>
+</body>
+</html>

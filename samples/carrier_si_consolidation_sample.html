@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrier SI - Consolidation Sample</title>
+    <style>
+        * { font-family: Arial, Helvetica, sans-serif; color: rgb(16, 16, 16); word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; }
+        html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { width: 100%; margin: 0; padding: 0; font-size: 10px; }
+        .container { width: 100%; margin: 0; padding: 10px; box-sizing: border-box; font-size: 10px; }
+        .header { text-align: center; font-size: 20px; font-weight: bold; }
+        .sub-header { text-align: center; margin-bottom: 20px; font-size: 10px; }
+        .line { border-top: 1px solid #000; margin: 10px 0; }
+        .section-flex { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; flex-wrap: wrap; gap: 10px; }
+        .flex-column-left { display: flex; flex-direction: column; flex: 1; min-width: 0; margin-right: 20px; }
+        .flex-column-right { display: flex; flex-direction: column; flex: 1; min-width: 0; align-items: flex-end; text-align: right; }
+        .reference-field { display: flex; align-items: baseline; margin-bottom: 5px; font-size: 10px; }
+        .reference-label { font-weight: bold; margin-right: 5px; white-space: nowrap; }
+        .reference-value { font-size: 10px; word-break: break-word; }
+        .section-flex-start { display: flex; justify-content: flex-start; width: 100%; flex-wrap: wrap; }
+        .align-left-column { display: flex; flex-direction: column; align-items: flex-start; }
+        .title { display: inline-block; width: 80px; font-weight: bold; min-width: 80px; }
+        .title-flex { display: flex; flex-wrap: wrap; }
+        .title-column { display: flex; flex-direction: column; white-space: nowrap; }
+        .title-column-normal { display: flex; flex-direction: column; white-space: normal; max-width: 100%; overflow: visible; }
+        .spacer { width: 50px; }
+        .right-section { display: flex; flex-direction: column; align-items: flex-end; text-align: left; gap: 10px; margin-left: 50%; }
+        .table-container { width: 100%; }
+        .vessel-info-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 10px; }
+        .vessel-info-cell { width: 33.33%; padding: 3px; vertical-align: top; font-size: 10px; }
+        .table-margin-top { margin-top: 10px; }
+        .table-full-width { width: 100%; }
+        .table-half-width { width: 50%; vertical-align: top; padding: 3px; }
+        .table-half-width-left { text-align: left; padding: 3px; }
+        .center-text { text-align: center; }
+        .courier-bold-large { font-family: Courier New, Courier, monospace; font-weight: bold; font-size: 20px !important; }
+        .courier-bold-huge { font-family: Courier New, Courier, monospace; font-weight: bold; font-size: 20px !important; }
+        .page-break { page-break-before: always; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        th, td { padding: 4px; word-break: break-word; overflow-wrap: break-word; white-space: normal; }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Eval-AZ-400MT</div>
+    <div class="sub-header">Shipment Details Cover Page</div>
+    <div class="section-flex">
+      <div class="flex-column-left">
+        <div class="reference-field"><span class="reference-label">Reference No:</span><span class="reference-value">SB-AZ40-26-03-0003</span></div>
+        <div class="reference-field"><span class="reference-label">Ocean B/L No:</span><span class="reference-value">MWEEI7378837</span></div>
+      </div>
+      <div class="flex-column-right">
+        <div class="reference-field"><span class="reference-label">SI Ref No:</span><span class="reference-value">SB-AZ40-26-03-0003</span></div>
+      </div>
+    </div>
+    <div class="line"></div>
+    <div class="section-flex-start">
+      <div class="align-left-column">
+        <div class="title title-flex">To: CMA CGM</div>
+        <div class="title title-flex">Attn: </div>
+        <div class="title title-flex">From: Eval-AZ-400MT</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="right-section">
+        <div class="title title-column"><span>Subject:</span> <span>B/L Preparation</span></div>
+        <div class="title title-column-normal"><span>Submission Time:</span> March 12, 2026 at 11:56 AM</div>
+      </div>
+    </div>
+    <div class="table-container">
+      <table class="vessel-info-table">
+        <tr>
+          <td class="vessel-info-cell">Re: Vessel: RIENUHRO</td>
+          <td class="vessel-info-cell">Voyage: 685t</td>
+          <td class="vessel-info-cell">Ocean Freight: </td>
+        </tr>
+        <tr>
+          <td class="vessel-info-cell">Loading Port: Belgern</td>
+          <td class="vessel-info-cell">Dischg. Port: Cochin</td>
+          <td class="vessel-info-cell">Place of Delivery: </td>
+        </tr>
+      </table>
+    </div>
+    <p>We reference to above mentioned shipment please issue one set of Seaway B/L</p>
+    <div class="table-container">
+      <table class="table-margin-top table-full-width">
+        <tr>
+          <td class="table-half-width"><strong>Shipper:</strong> Demo Customer - Textiles Ltd.<br><span></span><span></span><span></span><span>Tel :  Fax:</span></td>
+          <td class="table-half-width table-half-width-left"><strong>Notify:</strong> <br><span></span><span></span><span></span></td>
+        </tr>
+      </table>
+      <table class="table-margin-top table-full-width">
+        <tr>
+          <td class="table-half-width"><strong>Consignee:</strong> Demo Customer - Trading Corp.<br><span></span><span></span><span></span><span></span><span>Tel : </span></td>
+          <td class="table-half-width table-half-width-left"><strong>Also Notify:</strong> <br><span></span><span></span><span></span></td>
+        </tr>
+      </table>
+    </div>
+    <div class="line"></div>
+    <div class="center-text courier-bold-large">Detail as per attachment</div>
+    <div class="courier-bold-huge">SEND VIA EDI</div>
+    <div class="page-break"></div>
+    <div class="table-container" id="cargo-consolidation-content"></div>
+  </div>
+  <script type="application/json" id="template-data">
+    {
+      "shipper_company_name": "Eval-AZ-400MT",
+      "reference_number": "SB-AZ40-26-03-0003",
+      "ocean_bill_number": "MWEEI7378837",
+      "si_reference_number": "SB-AZ40-26-03-0003",
+      "carrier_name": "CMA CGM",
+      "vessel_name": "RIENUHRO",
+      "voyage": "685t",
+      "port_of_loading": "Belgern",
+      "port_of_discharge": "Cochin",
+      "print_time": "March 12, 2026 at 11:56 AM",
+      "shipper_name": "Demo Customer - Textiles Ltd.",
+      "consignee_name": "Demo Customer - Trading Corp.",
+      "containers": [
+        {
+          "container_number": "LAPT0863215",
+          "container_type": "20FR",
+          "seal_number": "0001",
+          "movement": "CY/CY",
+          "carrier_s_o_no": "87654",
+          "items": [
+            {"marks_and_numbers": "made in korea", "packages": "39", "number_of_packages": "39", "cargo_description": "Clothing, Shoes & Jewelry, Toys & Games, Apparel & Accessories, Beauty", "weight": "22000", "volume": "22"},
+            {"marks_and_numbers": "made in korea", "packages": "22", "number_of_packages": "22", "cargo_description": "Electronics", "weight": "12500", "volume": "12"}
+          ]
+        },
+        {
+          "container_number": "VESL0000005",
+          "container_type": "20GP",
+          "seal_number": "0002",
+          "movement": "CY/CY",
+          "carrier_s_o_no": "12345",
+          "items": [
+            {"marks_and_numbers": "made in korea", "packages": "22", "number_of_packages": "22", "cargo_description": "Electronics", "weight": "12500", "volume": "12"},
+            {"marks_and_numbers": "made in korea", "packages": "8", "number_of_packages": "8", "cargo_description": "Beauty", "weight": "6000", "volume": "6"}
+          ]
+        },
+        {
+          "container_number": "DEFH4567814",
+          "container_type": "20TK",
+          "seal_number": "00001",
+          "movement": "CY/CY",
+          "carrier_s_o_no": "87124",
+          "items": [
+            {"marks_and_numbers": "made in korea", "packages": "23", "number_of_packages": "23", "cargo_description": "Apparel & Accessories, Toys & Games", "weight": "22000", "volume": "22"}
+          ]
+        },
+        {
+          "container_number": "JHYU8765421",
+          "container_type": "20FR",
+          "seal_number": "00002",
+          "movement": "CY/CY",
+          "carrier_s_o_no": "63097",
+          "items": [
+            {"marks_and_numbers": "made in korea", "packages": "22", "number_of_packages": "22", "cargo_description": "Toys & Games, Clothing, Shoes & Jewelry, Furniture", "weight": "22000", "volume": "22"}
+          ]
+        },
+        {
+          "container_number": "ABCD1234786",
+          "container_type": "20FR",
+          "seal_number": "0003",
+          "movement": "CY/CY",
+          "carrier_s_o_no": "1234576",
+          "items": [
+            {"marks_and_numbers": "made in korea", "packages": "32", "number_of_packages": "32", "cargo_description": "Household Appliances, Apparel & Accessories, Furniture", "weight": "24000", "volume": "24"}
+          ]
+        },
+        {
+          "container_number": "FLRT9834022",
+          "container_type": "20FR",
+          "seal_number": "0001",
+          "movement": "CY/CY",
+          "carrier_s_o_no": "1234567",
+          "items": [
+            {"marks_and_numbers": "korea", "packages": "21", "number_of_packages": "21", "cargo_description": "Toys & Games", "weight": "10000", "volume": "10"}
+          ]
+        }
+      ]
+    }
+  </script>
+  <script>
+    (function() {
+      function escapeHtml(str) { if (str == null) return ''; var s = String(str); return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+      function getItemDesc(item) { var d = item.cargo_description || item.description || item.commodity || ''; return String(d); }
+      function getItemPackages(item) { return item.packages != null ? item.packages : (item.number_of_packages != null ? item.number_of_packages : ''); }
+      function getIndividualDetails(item) {
+        var pkg = getItemPackages(item);
+        var vol = item.volume != null ? String(item.volume) : '';
+        var wgt = item.weight != null ? String(item.weight) : '';
+        var parts = [];
+        if (pkg) parts.push(pkg + ' Cartons');
+        if (vol) parts.push(vol + ' CBM');
+        if (wgt) parts.push(wgt + ' KGS');
+        return parts.join(' ');
+      }
+      function sumContainerTotals(items) {
+        var pkg = 0, vol = 0, wgt = 0;
+        for (var i = 0; i < items.length; i++) {
+          var it = items[i];
+          pkg += parseFloat(it.packages || it.number_of_packages) || 0;
+          vol += parseFloat(it.volume) || 0;
+          wgt += parseFloat(it.weight) || 0;
+        }
+        return { packages: pkg, volume: vol, weight: wgt };
+      }
+      var data = {};
+      try { data = JSON.parse(document.getElementById('template-data').textContent.trim()); } catch (e) {}
+      var containers = Array.isArray(data.containers) ? data.containers : [];
+      var content = document.getElementById('cargo-consolidation-content');
+      var html = '';
+      for (var ci = 0; ci < containers.length; ci++) {
+        var c = containers[ci];
+        var items = Array.isArray(c.items) ? c.items : [];
+        var tot = sumContainerTotals(items);
+        var cn = (c.container_number || '') + ' ' + (c.container_type || '') + ' ' + (c.seal_number || '');
+        var movement = c.movement || 'CY/CY';
+        var carrierSo = c.carrier_s_o_no || c.carrier_booking_id || '';
+        html += '<div style="margin-top:10px;border:1px solid #000;page-break-inside:avoid;">';
+        html += '<table style="width:100%;border-collapse:collapse;font-size:10px;border:1px solid #000;">';
+        html += '<thead><tr>';
+        html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Carrier S/O No</th>';
+        html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Container No Size Seal No Movement</th>';
+        html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">CNTR Pkgs/Unit</th>';
+        html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">CNTR CBM</th>';
+        html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">CNTR KGS</th>';
+        html += '</tr></thead><tbody><tr>';
+        html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(carrierSo) + '</td>';
+        html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(cn.trim() || '-') + ' ' + escapeHtml(movement) + '</td>';
+        html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(tot.packages ? tot.packages + ' Cartons' : '') + '</td>';
+        html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(tot.volume ? String(tot.volume) : '') + '</td>';
+        html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(tot.weight ? String(tot.weight) : '') + '</td>';
+        html += '</tr></tbody></table>';
+        html += '<table style="width:100%;border-collapse:collapse;font-size:10px;border:1px solid #000;border-top:none;">';
+        html += '<thead><tr>';
+        html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Marks & Nos</th>';
+        html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Goods Description</th>';
+        html += '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;">Individual details</th>';
+        html += '</tr></thead><tbody>';
+        for (var j = 0; j < items.length; j++) {
+          var it = items[j];
+          html += '<tr>';
+          html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(it.marks_and_numbers || '') + '</td>';
+          html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(getItemDesc(it)) + '</td>';
+          html += '<td style="border:1px solid #000;padding:4px;">' + escapeHtml(getIndividualDetails(it)) + '</td>';
+          html += '</tr>';
+        }
+        html += '</tbody></table></div>';
+      }
+      content.innerHTML = html || '<p style="padding:8px;">No container data</p>';
+    })();
+  </script>
+</body>
+</html>
