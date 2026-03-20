@@ -40,6 +40,16 @@ export const pdfService = {
     });
     return data;
   },
+
+  /** Upload raw HTML for editor preview and export (placeholders + #template-data). */
+  importHtml: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { data } = await apiJson.post('/pdf/import-html', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+  },
 };
 
 export default pdfService;

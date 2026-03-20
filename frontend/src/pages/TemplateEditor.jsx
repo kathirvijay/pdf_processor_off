@@ -231,6 +231,33 @@ function replacePlaceholdersInContent(content, data) {
   });
 }
 
+/** Apply demo data to imported HTML: {{keys}} only outside &lt;script&gt; blocks; inject or replace #template-data JSON. */
+function prepareImportedHtmlForDisplay(html, data) {
+  if (!html || typeof html !== 'string') return '';
+  const dataObj = data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+  const scriptRe = /<script\b[^>]*>[\s\S]*?<\/script>/gi;
+  let out = '';
+  let last = 0;
+  let m;
+  while ((m = scriptRe.exec(html)) !== null) {
+    out += replacePlaceholdersInContent(html.slice(last, m.index), dataObj);
+    out += m[0];
+    last = m.index + m[0].length;
+  }
+  out += replacePlaceholdersInContent(html.slice(last), dataObj);
+  const jsonEscaped = JSON.stringify(dataObj).replace(/<\/script/gi, '<\\/script');
+  const templateDataScript = `<script type="application/json" id="template-data">${jsonEscaped}</script>`;
+  const existingTd = /<script\b[^>]*\bid\s*=\s*["']template-data["'][^>]*>[\s\S]*?<\/script>/i;
+  if (existingTd.test(out)) {
+    out = out.replace(existingTd, templateDataScript);
+  } else {
+    const bodyClose = /<\/body\s*>/i;
+    if (bodyClose.test(out)) out = out.replace(bodyClose, `\n${templateDataScript}\n$&`);
+    else out += `\n${templateDataScript}\n`;
+  }
+  return out;
+}
+
 /** Resolved value for a text box (placeholder replaced). Used to hide key-value boxes when value is empty. */
 function getResolvedValueForBox(box, data) {
   if (!box || box.type === 'table' || box.type === 'logo') return null;
@@ -534,10 +561,12 @@ const TemplateEditor = () => {
     demoData: true,
     csvImport: false,
     pdfImport: false,
+    htmlImport: false,
     boxLibrary: false,
     templateSettings: false,
     properties: true,
   });
+  const [importedHtmlContent, setImportedHtmlContent] = useState(null);
   const [demoDataJson, setDemoDataJson] = useState('');
   const [demoData, setDemoData] = useState(null);
   const [demoDataParseError, setDemoDataParseError] = useState('');
@@ -1769,6 +1798,7 @@ const TemplateEditor = () => {
     setSelection([]);
     setBoxLibrary([]);
     setCanvasBackgroundImage(null);
+    setImportedHtmlContent(null);
   };
 
   const handleConfirmDeleteTemplate = async () => {
@@ -1791,6 +1821,19 @@ const TemplateEditor = () => {
   };
 
   const handleExportToHtml = () => {
+    if (importedHtmlContent) {
+      const data = demoData && typeof demoData === 'object' && !Array.isArray(demoData) ? demoData : {};
+      const html = prepareImportedHtmlForDisplay(importedHtmlContent, data);
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(templateName || 'template').replace(/[^a-zA-Z0-9_-]/g, '_')}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('HTML exported successfully.');
+      return;
+    }
     const dims = getCanvasDimensions();
     const w = dims.width;
     const h = dims.height;
@@ -2699,6 +2742,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
     if (!file) return;
     try {
       setLoading(true);
+      setImportedHtmlContent(null);
       const response = await csvService.importStructure(file);
       const { boxes: importedBoxes, templateName: importedTemplateName } = response.data;
       // Place all boxes below the document title / black line (no overlap with template name)
@@ -2736,6 +2780,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
     if (!file) return;
     try {
       setLoading(true);
+      setImportedHtmlContent(null);
       const response = await pdfService.importTemplate(file);
       const { boxes: importedBoxes, templateName: importedTemplateName, pageSize: importedPageSize, orientation: importedOrientation, message } = response;
       if (message && (!importedBoxes || importedBoxes.length === 0)) {
@@ -2780,10 +2825,48 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
     }
   };
 
+  const handleHtmlImport = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+      setLoading(true);
+      const response = await pdfService.importHtml(file);
+      const html = response.htmlContent;
+      const name = response.templateName;
+      if (!html || typeof html !== 'string') {
+        toast.error('Server did not return HTML content.');
+        return;
+      }
+      setImportedHtmlContent(html);
+      setBoxes([]);
+      setNextRank(1);
+      setSelection([]);
+      setCanvasBackgroundImage(null);
+      if (name) {
+        setDocumentTitle(name);
+        setTemplateName(name);
+      }
+      toast.success('HTML imported. Use Demo data to fill placeholders and preview.');
+    } catch (err) {
+      console.error('HTML import error:', err);
+      const msg = err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to import HTML';
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+      event.target.value = '';
+    }
+  };
+
+  const handleClearImportedHtml = () => {
+    setImportedHtmlContent(null);
+    toast.success('Imported HTML cleared.');
+  };
+
   const handleLoadTemplate = async (id) => {
     try {
       setLoading(true);
       setCanvasBackgroundImage(null);
+      setImportedHtmlContent(null);
       const res = await templateService.getTemplate(id);
       const t = res.data;
       setTemplateName(t.name);
@@ -2836,6 +2919,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
   const handleLoadDesign = async (id) => {
     try {
       setLoading(true);
+      setImportedHtmlContent(null);
       const res = await templateDesignService.getById(id);
       const d = res.data;
       if (d?.design?.pages?.[0]?.boxes) {
@@ -3235,7 +3319,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
       <button type="button" className="toolbar-button generate-button" onClick={handleGenerate} disabled={loading || !currentTemplateId || hasUnsavedChanges} title={hasUnsavedChanges ? 'Save the template first so PDF reflects your changes.' : ''}>
         📄 Create PDF
       </button>
-      <button type="button" className="toolbar-button export-html-btn" onClick={handleExportToHtml} disabled={!boxes.length} title="Export as HTML">
+      <button type="button" className="toolbar-button export-html-btn" onClick={handleExportToHtml} disabled={!boxes.length && !importedHtmlContent} title="Export as HTML">
         🌐 Export HTML
       </button>
       <button type="button" className="toolbar-button export-variables-btn" onClick={handleExportVariables} disabled={!boxes.length} title="Export template variables (JSON for application)">
@@ -3464,7 +3548,7 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
             </h3>
             {expandedSections.demoData && (
               <div className="demo-data-content">
-                <p className="save-template-section-hint">JSON key-value pairs to preview and fill the template. Used in View, Export HTML, and Create PDF.</p>
+                <p className="save-template-section-hint">JSON key-value pairs to preview and fill the template. Used in View, Export HTML, Create PDF, and <strong>Import from HTML</strong> preview.</p>
                 <p className="save-template-section-hint" style={{ marginTop: 4 }}>For multi-row tables (e.g. marks_and_numbers_1 … _25): add a <strong>Data Table (loop)</strong> from the Box Library, or select one box in the row and use <strong>Convert row to Data Table (loop)</strong> in Properties.</p>
                 <textarea
                   className="demo-data-json-input"
@@ -3526,6 +3610,35 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
                   />
                   <span className="csv-button">Import from PDF</span>
                 </label>
+              </div>
+            )}
+          </div>
+
+          <div className="sidebar-section">
+            <h3 className="section-header" onClick={() => handleSectionToggle('htmlImport')}>
+              <span>🌍 Import from HTML</span>
+              <span className="expand-icon">{expandedSections.htmlImport ? '▼' : '▶'}</span>
+            </h3>
+            {expandedSections.htmlImport && (
+              <div className="csv-import-buttons">
+                <p className="csv-import-hint">
+                  <strong>Upload HTML template:</strong> Loads the file into the canvas preview. Demo data replaces <code>{'{{placeholders}}'}</code> (outside script tags) and updates <code>#template-data</code> for scripts that read it.
+                </p>
+                <label className="csv-import-label">
+                  <input
+                    type="file"
+                    accept=".html,.htm,text/html"
+                    onChange={handleHtmlImport}
+                    style={{ display: 'none' }}
+                    disabled={loading}
+                  />
+                  <span className="csv-button">Import from HTML</span>
+                </label>
+                {importedHtmlContent && (
+                  <button type="button" className="toolbar-button admin-btn-secondary" style={{ width: '100%', marginTop: 8 }} onClick={handleClearImportedHtml}>
+                    Clear imported HTML
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -3887,13 +4000,50 @@ if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnK
           )}
         </aside>
 
-        <main className={`editor-main ${resizingBox ? 'editor-main-resizing' : ''}`}>
+        <main className={`editor-main ${resizingBox ? 'editor-main-resizing' : ''} ${importedHtmlContent ? 'editor-main-html-import' : ''}`}>
           <div className="canvas-wrapper">
             {(() => {
               const numPages = Math.max(1, Math.min(100, dataTableLayout.numPages || 1));
               const canvasHeight = numPages > 1
                 ? numPages * canvasDims.height + (numPages - 1) * PAGE_GAP
                 : canvasDims.height + (Math.max(0, Number(dataTableLayout.totalExtraHeight)) || 0);
+              if (importedHtmlContent) {
+                const preparedHtml = prepareImportedHtmlForDisplay(importedHtmlContent, demoData);
+                return (
+                  <div className="canvas-with-rulers canvas-with-rulers-html-import">
+                    <div className="ruler-top-row">
+                      <div className="ruler-corner" style={{ width: RULER_SIZE_PX, height: RULER_SIZE_PX }} />
+                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', paddingLeft: 8, minHeight: RULER_SIZE_PX, minWidth: 0, fontSize: 12, color: '#555' }}>
+                        Imported HTML preview — edit <strong>Demo data</strong> to refresh placeholders and <code>#template-data</code>
+                      </div>
+                    </div>
+                    <div className="ruler-canvas-row">
+                      <RulerVertical height={Math.max(canvasHeight, 480)} arrowPositions={rulerArrowPositions.left} onArrowDrag={handleLeftRulerArrowDrag} showArrows={false} />
+                      <div ref={canvasAreaRef} className="canvas-area" style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+                          <button type="button" className="toolbar-button admin-btn-secondary" onClick={handleClearImportedHtml}>
+                            Clear imported HTML
+                          </button>
+                        </div>
+                        <iframe
+                          title="Imported HTML preview"
+                          sandbox="allow-same-origin allow-scripts"
+                          srcDoc={preparedHtml}
+                          style={{
+                            width: '100%',
+                            minWidth: 0,
+                            minHeight: Math.max(560, canvasDims.height, Math.round(typeof window !== 'undefined' ? window.innerHeight * 0.65 : 560)),
+                            border: '1px solid rgba(0,0,0,0.12)',
+                            borderRadius: 4,
+                            background: '#fff',
+                            display: 'block',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
               return (
               <div className="canvas-with-rulers">
                 <div className="ruler-top-row">

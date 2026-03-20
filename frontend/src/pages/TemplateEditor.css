@@ -1001,6 +1001,37 @@
   touch-action: none;
 }
 
+/* Imported HTML preview: use full editor width (inline-flex would shrink-wrap and look “compressed”). */
+.editor-main.editor-main-html-import {
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.editor-main.editor-main-html-import .canvas-wrapper {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+}
+
+.canvas-with-rulers.canvas-with-rulers-html-import {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+.canvas-with-rulers.canvas-with-rulers-html-import .ruler-top-row {
+  width: 100%;
+  min-width: 0;
+}
+
+.canvas-with-rulers.canvas-with-rulers-html-import .ruler-canvas-row {
+  width: 100%;
+  min-width: 0;
+}
+
 .canvas-wrapper {
   background: var(--color-bg-elevated);
   padding: 24px;

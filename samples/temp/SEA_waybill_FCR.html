@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SEA waybill  FCR</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    .template-page { position: relative; }
+    .template-title { position: absolute; top: 0; left: 0; right: 0; font-weight: bold; text-align: center; padding: 10px 0; }
+    .template-box { overflow: visible; white-space: normal; word-break: break-word; overflow-wrap: break-word; text-overflow: clip; }
+    .template-box-table { overflow: visible; }
+    .terms-col .indent-1 { padding-left: 1.2em; display: block; }
+    .terms-col .indent-2 { padding-left: 2.4em; display: block; }
+    @media print {
+      .template-page { page-break-after: always; margin-bottom: 0 !important; }
+      .template-page:last-child { page-break-after: auto; }
+      .template-page:not(:first-child) { padding-top: 32px !important; }
+    }
+  </style>
+</head>
+<body>
+  <!--
+  EXPORT HTML - Data injection supported for use in other modules.
+  Supported: multiple data table rows (e.g. marks_and_numbers_1..N), Label only / Value only per box, placeholders {{key}}, pages.
+  HOW TO LOAD / PASS DATA:
+  Option 1 - Use the "Load custom data" panel below: paste JSON and click Apply data (no console needed).
+  Option 2 - Data is in the script tag id="template-data". Replace that JSON in the file to change default data.
+  Option 3 - In console: window.loadTemplateDataFromJson('{"port_of_loading":"NY","marks_and_numbers_1":"1-UP",...}'); or set window.templateData then window.applyTemplateData();
+  -->
+  <!-- Load custom data / Apply data section commented out - export shows template only
+  <div id="template-data-panel" style="max-width:900px;margin:10px auto;padding:12px;background:#f5f5f5;border:1px solid #ccc;border-radius:6px;font-family:Arial,sans-serif;">
+    <button type="button" id="template-data-toggle" style="padding:8px 14px;cursor:pointer;background:#333;color:#fff;border:none;border-radius:4px;font-size:14px;">Load custom data (paste JSON)</button>
+    <div id="template-data-form" style="display:none;margin-top:12px;">
+      <textarea id="template-data-json" placeholder='Paste your JSON here, e.g. {"port_of_loading":"New York","marks_and_numbers_1":"1-UP",...}' style="width:100%;min-height:120px;padding:8px;box-sizing:border-box;font-family:monospace;font-size:12px;"></textarea>
+      <button type="button" id="template-data-apply" style="margin-top:8px;padding:8px 16px;cursor:pointer;background:#0a7;color:#fff;border:none;border-radius:4px;font-size:14px;">Apply data</button>
+      <span id="template-data-msg" style="margin-left:10px;font-size:13px;"></span>
+    </div>
+  </div>
+  -->
+  <div id="template-root"><div class="template-page" style="page-break-after: always; width: 794px; height: 1123px; padding: 36px; box-sizing: border-box; margin: 20px auto 32px auto; position: relative; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); "><div class="template-page-inner" style="position: absolute; left: 36px; top: 36px; width: 722px; height: 1051px; overflow: hidden;"><div class="template-page-content" style="width: 794px; height: 1123px; transform: scale(0.9093198992443325, 0.9358860195903829); transform-origin: 0 0;"><div class="template-title">SEA WAYBILL</div>
+<div class="template-box" style="position:absolute;left:41px;top:107px;width:357px;height:85.91215526046986px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:1px solid #000;border-top:1px solid #000;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">SHIPPER (Complete Name/Street Address): {{shipper_name}}
+{{shipper_address}}</div>
+<div class="template-box" style="position:absolute;left:397.0403225806451px;top:107px;width:174.66129032258064px;height:23.975485188968335px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:1px solid #000;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">MANIFEST NO.: {{manifest_no}}</div>
+<div class="template-box" style="position:absolute;left:571.7016129032259px;top:107px;width:183.2983870967742px;height:23.975485188968335px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:1px solid #000;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">SEA WAYBILL NO.: {{sea_waybill_no}}</div>
+<div class="template-box" style="position:absolute;left:397.0403225806451px;top:131.9744637385087px;width:357.9596774193548px;height:61.93667007150153px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">EXPORT REFERENCE: {{export_reference}}</div>
+<div class="template-box" style="position:absolute;left:41px;top:193.9111338100102px;width:357px;height:96.90091930541368px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:none;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">CONSIGNEE: {{consignee_name}}
+{{consignee_address}}</div>
+<div class="template-box" style="position:absolute;left:397.0403225806451px;top:193.9111338100102px;width:357.9596774193548px;height:81.91624106230847px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">CARRIER REFERENCES : {{carrier_references}}</div>
+<div class="template-box" style="position:absolute;left:397.0403225806451px;top:275.8273748723187px;width:357.9596774193548px;height:16px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">POINT AND COUNTRY OF ORIGIN: {{country_of_origin}}</div>
+<div class="template-box" style="position:absolute;left:41px;top:289.81307456588354px;width:357px;height:84.91317671092952px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:none;border-top:none;border-bottom:none;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">NOTIFY PARTY (Complete Name/Street Address): {{notify_party_name}}
+{{notify_party_address}}</div>
+<div class="template-box" style="position:absolute;left:397.0403225806451px;top:289.81307456588354px;width:357.9596774193548px;height:84.91317671092952px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:none;border-bottom:none;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">ALSO NOTIFY,ROUTING &amp; INSTRUCTIONS: {{notify_routing_instructions}}</div>
+<div class="template-box" style="position:absolute;left:397.0403225806451px;top:375.7252298263534px;width:357.9596774193548px;height:88.9090909090909px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:1px solid #000;border-top:1px solid #000;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">FOR DELIVERY OF GOODS PLEASE APPLY TO:: {{delivery_of_goods_apply_to}}</div>
+<div class="template-box" style="position:absolute;left:41px;top:403.69662921348316px;width:169px;height:34.964249233912156px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:1px solid #000;border-top:1px solid #000;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">OCEAN VESSEL/VOYAGE: {{ocean_vessel_voyage}}</div>
+<div class="template-box" style="position:absolute;left:41px;top:437.66189989785494px;width:169px;height:26.972420837589375px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">PORT OF DISCHARGE: {{port_of_discharge}}</div>
+<div class="template-box" style="position:absolute;left:41px;top:464.6343207354443px;width:714px;height:17.98161389172625px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">BELOW PARTICULARS OF THE GOODS DECLARED BY THE SHIPPER AND UNKNOWN TO THE CARRIER</div>
+<div class="template-box" style="position:absolute;left:40px;top:859.4923391215526px;width:191.93548387096772px;height:120px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:1px solid #000;border-top:1px solid #000;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">FREIGHT/CHARGES,ITEM NO.RATE/RATE BASIS: {{freight_charges_item}}</div>
+<div class="template-box" style="position:absolute;left:232.93548387096772px;top:858.6159346271706px;width:85.41129032258065px;height:120.87640449438202px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:1px solid #000;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">PREPAID: {{prepaid}}</div>
+<div class="template-box" style="position:absolute;left:318.3467741935484px;top:858.6159346271706px;width:78.69354838709677px;height:120.87640449438202px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:1px solid #000;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">COLLECT: {{collect}}</div>
+<div class="template-box" style="position:absolute;left:397.0403225806451px;top:858.6159346271706px;width:357.9596774193548px;height:20.97854954034729px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:1px solid #000;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">Excess Limit Declaration As Per Clause 15 2</div>
+<div class="template-box" style="position:absolute;left:397.0403225806451px;top:880.5934627170583px;width:357.9596774193548px;height:179px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">Far East Container Line Received The Goods Specified Above In Apparent Good Orde: {{far_east_container_line_received_the_goods_specified_above_in_apparent_good_orde}}</div>
+<div class="template-box" style="position:absolute;left:41px;top:979.4923391215527px;width:134.3548387096774px;height:28.970377936670072px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">FREIGHT PAYABLE AT: {{freight_payable_at}}</div>
+<div class="template-box" style="position:absolute;left:175.3548387096774px;top:979.4923391215527px;width:57.58064516129032px;height:28.970377936670072px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">TOTAL FREIGHT: {{total_freight}}</div>
+<div class="template-box" style="position:absolute;left:232.93548387096772px;top:979.4923391215527px;width:85.41129032258065px;height:28.970377936670072px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">{{field_32}}</div>
+<div class="template-box" style="position:absolute;left:318.3467741935484px;top:979.4923391215527px;width:78.69354838709677px;height:28.970377936670072px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:none;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">{{field_33}}</div>
+<div class="template-box" style="position:absolute;left:41px;top:1008.4627170582228px;width:191.93548387096772px;height:25.97344228804903px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:1px solid #000;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">NUMBER OF ORIGINAL SEA WAYBILL: {{number_of_original_sea_waybill}}</div>
+<div class="template-box" style="position:absolute;left:232.93548387096772px;top:1008.4627170582228px;width:164.1048387096774px;height:51.94688457609806px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:none;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">PLACE AND DATE OF ISSUE: {{place_and_date_of_issue}}</div>
+<div class="template-box" style="position:absolute;left:41px;top:1034.4361593462718px;width:191.93548387096772px;height:25.97344228804903px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:none;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">LADEN ON BOARD DATE: {{laden_on_board_date}}</div>
+<div class="template-box" style="position:absolute;left:210px;top:374.72625127681306px;width:187.04032258064512px;height:29.27374872318694px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:none;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">PLACE OF RECEIPT: {{place_of_receipt}}</div>
+<div class="template-box" style="position:absolute;left:210px;top:404px;width:187.04032258064512px;height:33px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:none;border-top:none;border-bottom:1px solid #000;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">PORT OF LOADING: {{port_of_loading}}</div>
+<div class="template-box" style="position:absolute;left:210px;top:437px;width:187.04032258064512px;height:27.634320735444305px;font-size:6px;font-family:Arial;color:#000000;border-left:none;border-right:none;border-top:none;border-bottom:none;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">PLACE OF DELIVERY: {{place_of_delivery}}</div>
+<div class="template-box" style="position:absolute;left:40px;top:379.30337078651684px;width:170px;height:23.696629213483163px;font-size:6px;font-family:Arial;color:#000000;border-left:1px solid #000;border-right:none;border-top:none;border-bottom:none;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;">FIRST LEG CARRIAGE BY (MODE): {{first_leg_carriage}}</div>
+<div class="template-box template-box-table" style="position:absolute;left:41px;top:490.6159346271706px;width:713px;height:360px;padding:4px;box-sizing:border-box;overflow:visible;border:1px solid #000;display:flex;flex-direction:column;"><table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:6px;border:none;"><colgroup><col style="width:20%"><col style="width:20%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr><th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;word-break:break-word;overflow-wrap:break-word;white-space:normal;">MARKS AND NUMBERS CONTAINER &amp; SEAL NU...</th><th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;word-break:break-word;overflow-wrap:break-word;white-space:normal;">PURCHASE ORDER NUMBER /ITEM NUMBER</th><th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;word-break:break-word;overflow-wrap:break-word;white-space:normal;">NUMBER AND DESCRIPTION OF PACKAGES AN...</th><th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;word-break:break-word;overflow-wrap:break-word;white-space:normal;">GROSS WEIGHT</th><th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;word-break:break-word;overflow-wrap:break-word;white-space:normal;">MEASUREMENT</th></tr></thead><tbody><tr><td colspan="5" style="border:none;padding:8px;">No data rows</td></tr></tbody></table><div class="data-table-gap-inside" style="width:100%;height:90px;flex-shrink:0;"></div></div></div></div></div></div>
+  <script type="application/json" id="template-data">{}</script>
+  <script type="application/json" id="template-config">{"boxes":[{"id":"box_1773728730472_1","type":"text","position":{"x":41,"y":107},"size":{"width":357,"height":85.91215526046986},"labelName":"SHIPPER (Complete Name/Street Address)","fieldName":"shipper_complete_name","content":"{{shipper_name}}\n{{shipper_address}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":1},{"id":"box_1773728730472_2","type":"text","position":{"x":397.0403225806451,"y":107},"size":{"width":174.66129032258064,"height":23.975485188968335},"labelName":"MANIFEST NO.","fieldName":"manifest_no","content":"{{manifest_no}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":2},{"id":"box_1773728730472_3","type":"text","position":{"x":571.7016129032259,"y":107},"size":{"width":183.2983870967742,"height":23.975485188968335},"labelName":"SEA WAYBILL NO.","fieldName":"sea_waybill_no","content":"{{sea_waybill_no}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":3},{"id":"box_1773728730472_4","type":"text","position":{"x":397.0403225806451,"y":131.9744637385087},"size":{"width":357.9596774193548,"height":61.93667007150153},"labelName":"EXPORT REFERENCE","fieldName":"export_reference","content":"{{export_reference}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":4},{"id":"box_1773728730472_5","type":"text","position":{"x":41,"y":193.9111338100102},"size":{"width":357,"height":96.90091930541368},"labelName":"CONSIGNEE","fieldName":"consignee","content":"{{consignee_name}}\n{{consignee_address}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":5},{"id":"box_1773728730472_6","type":"text","position":{"x":397.0403225806451,"y":193.9111338100102},"size":{"width":357.9596774193548,"height":81.91624106230847},"labelName":"CARRIER REFERENCES ","fieldName":"carrier_references","content":"{{carrier_references}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":6},{"id":"box_1773728730472_7","type":"text","position":{"x":397.0403225806451,"y":275.8273748723187},"size":{"width":357.9596774193548,"height":16},"labelName":"POINT AND COUNTRY OF ORIGIN","fieldName":"point_and_country_of_origin","content":"{{country_of_origin}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":7},{"id":"box_1773728730472_8","type":"text","position":{"x":41,"y":289.81307456588354},"size":{"width":357,"height":84.91317671092952},"labelName":"NOTIFY PARTY (Complete Name/Street Address)","fieldName":"notify_party_complete_name_street_address","content":"{{notify_party_name}}\n{{notify_party_address}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":8},{"id":"box_1773728730472_9","type":"text","position":{"x":397.0403225806451,"y":289.81307456588354},"size":{"width":357.9596774193548,"height":84.91317671092952},"labelName":"ALSO NOTIFY,ROUTING & INSTRUCTIONS","fieldName":"also_notify_routing_instructions","content":"{{notify_routing_instructions}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":9},{"id":"box_1773728730472_11","type":"text","position":{"x":397.0403225806451,"y":375.7252298263534},"size":{"width":357.9596774193548,"height":88.9090909090909},"labelName":"FOR DELIVERY OF GOODS PLEASE APPLY TO:","fieldName":"for_delivery_of_goods_please_apply_to","content":"{{delivery_of_goods_apply_to}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":11},{"id":"box_1773728730472_12","type":"text","position":{"x":41,"y":403.69662921348316},"size":{"width":169,"height":34.964249233912156},"labelName":"OCEAN VESSEL/VOYAGE","fieldName":"ocean_vessel_voyage_port_of_loading","content":"{{ocean_vessel_voyage}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":12},{"id":"box_1773728730472_13","type":"text","position":{"x":41,"y":437.66189989785494},"size":{"width":169,"height":26.972420837589375},"labelName":"PORT OF DISCHARGE","fieldName":"port_of_discharge","content":"{{port_of_discharge}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":13},{"id":"box_1773728730472_14","type":"text","position":{"x":41,"y":464.6343207354443},"size":{"width":714,"height":17.98161389172625},"labelName":"BELOW PARTICULARS OF THE GOODS DECLARED BY THE SHIPPER AND UNKNOWN TO THE CARRIER","fieldName":"below_particulars_of_the_goods_declared_by_the_shipper_and_unknown_to_the_carrier","content":"{{below_particulars_of_the_goods_declared_by_the_shipper_and_unknown_to_the_carrier}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0},"valueOnly":false,"labelOnly":true,"emptyBox":false},"rank":14},{"id":"box_1773728730472_25","type":"text","position":{"x":40,"y":864.1031664964248},"size":{"width":191.93548387096772,"height":120},"labelName":"FREIGHT/CHARGES,ITEM NO.RATE/RATE BASIS","fieldName":"freight_charges_item_no_rate_rate_basis","content":"{{freight_charges_item}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":25},{"id":"box_1773728730472_26","type":"text","position":{"x":232.93548387096772,"y":863.2267620020428},"size":{"width":85.41129032258065,"height":120.87640449438202},"labelName":"PREPAID","fieldName":"prepaid","content":"{{prepaid}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":26},{"id":"box_1773728730472_27","type":"text","position":{"x":318.3467741935484,"y":863.2267620020428},"size":{"width":78.69354838709677,"height":120.87640449438202},"labelName":"COLLECT","fieldName":"collect","content":"{{collect}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":27},{"id":"box_1773728730472_28","type":"text","position":{"x":397.0403225806451,"y":863.2267620020428},"size":{"width":357.9596774193548,"height":20.97854954034729},"labelName":"Excess limit declaration as per Claus...","fieldName":"excess_limit_declaration_as_per_clause_15_2","content":"{{excess_limit_declaration_as_per_clause_15_2}}","properties":{"border":true,"emptyBox":false,"fontSize":6,"alignment":"left","fontColor":"#000000","labelOnly":true,"valueOnly":false,"fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":28},{"id":"box_1773728730472_29","type":"text","position":{"x":397.0403225806451,"y":885.2042900919305},"size":{"width":357.9596774193548,"height":179},"labelName":"Far East Container Line received the ...","fieldName":"far_east_container_line_received_the_goods_specified_above_in_apparent_good_orde","content":"{{far_east_container_line_received_the_goods_specified_above_in_apparent_good_orde}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":29},{"id":"box_1773728730472_30","type":"text","position":{"x":41,"y":984.1031664964249},"size":{"width":134.3548387096774,"height":28.970377936670072},"labelName":"FREIGHT PAYABLE AT","fieldName":"freight_payable_at","content":"{{freight_payable_at}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":30},{"id":"box_1773728730472_31","type":"text","position":{"x":175.3548387096774,"y":984.1031664964249},"size":{"width":57.58064516129032,"height":28.970377936670072},"labelName":"TOTAL FREIGHT","fieldName":"total_freight","content":"{{total_freight}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":31},{"id":"box_1773728730472_32","type":"text","position":{"x":232.93548387096772,"y":984.1031664964249},"size":{"width":85.41129032258065,"height":28.970377936670072},"labelName":"","fieldName":"field_32","content":"{{field_32}}","properties":{"border":true,"emptyBox":false,"fontSize":6,"alignment":"left","fontColor":"#000000","labelOnly":false,"valueOnly":true,"fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":32},{"id":"box_1773728730472_33","type":"text","position":{"x":318.3467741935484,"y":984.1031664964249},"size":{"width":78.69354838709677,"height":28.970377936670072},"labelName":"","fieldName":"field_33","content":"{{field_33}}","properties":{"border":true,"emptyBox":false,"fontSize":6,"alignment":"left","fontColor":"#000000","labelOnly":false,"valueOnly":true,"fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":33},{"id":"box_1773728730472_34","type":"text","position":{"x":41,"y":1013.073544433095},"size":{"width":191.93548387096772,"height":25.97344228804903},"labelName":"NUMBER OF ORIGINAL SEA WAYBILL","fieldName":"number_of_original_sea_waybill","content":"{{number_of_original_sea_waybill}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":34},{"id":"box_1773728730472_35","type":"text","position":{"x":232.93548387096772,"y":1013.073544433095},"size":{"width":164.1048387096774,"height":51.94688457609806},"labelName":"PLACE AND DATE OF ISSUE","fieldName":"place_and_date_of_issue","content":"{{place_and_date_of_issue}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":35},{"id":"box_1773728730472_36","type":"text","position":{"x":41,"y":1039.046986721144},"size":{"width":191.93548387096772,"height":25.97344228804903},"labelName":"LADEN ON BOARD DATE","fieldName":"laden_on_board_date","content":"{{laden_on_board_date}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":36},{"id":"box_1773729816598","type":"text","position":{"x":210,"y":374.72625127681306},"size":{"width":187.04032258064512,"height":29.27374872318694},"labelName":"PLACE OF RECEIPT","fieldName":"place_of_receipt","content":"{{place_of_receipt}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":38},{"id":"box_1773729818907","type":"text","position":{"x":210,"y":404},"size":{"width":187.04032258064512,"height":33},"labelName":"PORT OF LOADING","fieldName":"port_of_loading","content":"{{port_of_loading}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":39},{"id":"box_1773729820616","type":"text","position":{"x":210,"y":437},"size":{"width":187.04032258064512,"height":27.634320735444305},"labelName":"PLACE OF DELIVERY","fieldName":"place_of_delivery","content":"{{place_of_delivery}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":40},{"id":"box_1773730086779","type":"text","position":{"x":40,"y":379.30337078651684},"size":{"width":170,"height":23.696629213483163},"labelName":"FIRST LEG CARRIAGE BY (MODE)","fieldName":"first_leg_carriage_by_mode","content":"{{first_leg_carriage}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":41},{"id":"box_1773730490671","type":"table","position":{"x":41,"y":490.6159346271706},"size":{"width":713,"height":270},"tableConfig":{"rows":1,"columns":5,"headers":["MARKS AND NUMBERS CONTAINER & SEAL NU...","PURCHASE ORDER NUMBER /ITEM NUMBER","NUMBER AND DESCRIPTION OF PACKAGES AN...","GROSS WEIGHT","MEASUREMENT"],"columnKeys":["marks_and_numbers_container_seal_numbers","purchase_order_number_item_number","number_and_description_of_packages_and_goods","gross_weight","measurement"],"fieldNames":["marks_and_numbers_container_seal_numbers","purchase_order_number_item_number","number_and_description_of_packages_and_goods","gross_weight","measurement"],"columnWidths":[20,20,20,20,20],"contentFields":["marks_and_numbers_container_seal_numbers","purchase_order_number_item_number","number_and_description_of_packages_and_goods","gross_weight","measurement"],"rowsOnFirstPage":3,"rowsOnOtherPages":null,"dynamicRowsFromData":true},"labelName":"Table list","fieldName":"table_list","content":"{{table_list}}","properties":{"border":true,"fontSize":6,"alignment":"left","fontColor":"#000000","fontFamily":"Arial","fontWeight":"normal","backgroundColor":"transparent","contentPosition":{"x":0,"y":0}},"rank":42}],"w":794,"h":1123,"singlePageHeight":1123,"documentTitle":"SEA WAYBILL","TITLE_AREA_HEIGHT":90,"PAGE_PADDING_PX":36,"PAGE_GAP_BETWEEN_PX":32,"DATA_TABLE_HEADER_ROW_PX":28,"DATA_TABLE_ROW_HEIGHT_PX":30,"DATA_TABLE_SPACER_PX":90,"GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX":8,"DATA_TABLE_ATTACHED_LIST_THRESHOLD":3,"DATA_TABLE_ATTACHED_LIST_GAP_PX":100,"headerRowPx":28,"rowHeightPx":22,"initialData":{},"contentW":722,"contentH":1051,"scaleX":0.9093198992443325,"scaleY":0.9358860195903829}</script>
+  <script>
+    (function() {
+      // Data-driven template: set window.templateData = { ... } then call window.applyTemplateData()
+      // to re-render with your data (same rules: <=3 items on first page, >3 use attached list, heading on every page).
+      var configEl = document.getElementById('template-config');
+      if (!configEl) return;
+      var c = JSON.parse(configEl.textContent);
+      var boxes = c.boxes;
+      var TITLE_AREA = c.TITLE_AREA_HEIGHT;
+      var PAGE_PAD = c.PAGE_PADDING_PX;
+      var PAGE_GAP = c.PAGE_GAP_BETWEEN_PX;
+      var HEADER_PX = c.DATA_TABLE_HEADER_ROW_PX;
+      var ROW_PX = c.DATA_TABLE_ROW_HEIGHT_PX;
+      var SPACER_PX = c.DATA_TABLE_SPACER_PX;
+      var GAP_BETWEEN_PX = c.GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX != null ? c.GAP_BETWEEN_TABLE_AND_NEXT_FIELD_PX : 8;
+      var THRESH = c.DATA_TABLE_ATTACHED_LIST_THRESHOLD;
+      var GAP_PX = c.DATA_TABLE_ATTACHED_LIST_GAP_PX;
+      var headerRowPx = c.headerRowPx;
+      var rowHeightPx = c.rowHeightPx;
+      var singlePageHeight = c.singlePageHeight;
+      var contentH = c.contentH;
+      var w = c.w;
+    
+      function getContainerTableRowsFlat(data) {
+        if (!data || typeof data !== 'object' || Array.isArray(data)) return [];
+        var containersList = Array.isArray(data.containers) ? data.containers : (Array.isArray(data.container) ? data.container : []);
+        if (containersList.length === 0) return [];
+        var flat = [];
+        for (var c = 0; c < containersList.length; c++) {
+          var container = containersList[c];
+          flat.push({ type: 'container', container: container, item: null });
+          var items = Array.isArray(container && container.items) ? container.items : [];
+          for (var j = 0; j < items.length; j++) flat.push({ type: 'item', container: container, item: items[j] });
+        }
+        return flat;
+      }
+      function getDataTableCellContainerHeading(container, colIndex) {
+        if (colIndex !== 0) return '';
+        var cn = container && container.container_number;
+        var ct = container && container.container_type;
+        return (cn && ct) ? cn + ', ' + ct : (cn || ct || '');
+      }
+      function getDataTableCellContainerItem(item, baseKey) {
+        var b = String(baseKey || '').trim().toLowerCase();
+        if (b === 'marks_and_numbers') return item && item.marks_and_numbers != null ? String(item.marks_and_numbers) : '';
+        if (b === 'kind_no_of_packages' || b === 'kind_&_no_of_packages') return item && item.packages != null ? String(item.packages) : '';
+        if (b === 'description_of_goods') return (item && (item.description != null ? item.description : item.commodity)) || '';
+        if (b === 'gross_weight_kg' || b === 'gross_weight_(kg)') return item && item.weight != null ? String(item.weight) : '';
+        if (b === 'measurements_m' || b === 'measurements_m³' || b === 'measurements_(m³)') return item && item.volume != null ? String(item.volume) : '';
+        return '';
+      }
+      function getDataTableRowMeta(data, columnKeys, row1) {
+        var flat = getContainerTableRowsFlat(data);
+        if (flat.length === 0) return undefined;
+        var row = flat[row1 - 1];
+        return row && row.type === 'container' ? { isContainerHeading: true } : undefined;
+      }
+      function getDataTableRowCount(data, columnKeys) {
+        if (!data || typeof data !== 'object' || Array.isArray(data) || !Array.isArray(columnKeys) || !columnKeys.length) return 0;
+        var containerFlat = getContainerTableRowsFlat(data);
+        if (containerFlat.length > 0) return Math.min(500, containerFlat.length);
+        var maxN = 0;
+        for (var bi = 0; bi < columnKeys.length; bi++) {
+          var base = String(columnKeys[bi]).trim();
+          if (!base) continue;
+          for (var i = 1; i <= 500; i++) {
+            if (data[base + '_' + i] === undefined) break;
+            maxN = Math.max(maxN, i);
+          }
+        }
+        return Math.min(500, Math.max(0, maxN));
+      }
+      function getDataTableCell(data, columnKeys, row1, colIndex) {
+        if (!data || !columnKeys || !columnKeys[colIndex]) return '';
+        var base = String(columnKeys[colIndex] || '').trim();
+        var containerFlat = getContainerTableRowsFlat(data);
+        if (containerFlat.length > 0) {
+          var row = containerFlat[row1 - 1];
+          if (row) {
+            if (row.type === 'container') return getDataTableCellContainerHeading(row.container, colIndex);
+            if (row.type === 'item' && row.item) return getDataTableCellContainerItem(row.item, base) || '';
+          }
+        }
+        var key = base + '_' + row1;
+        var v = data[key];
+        if (v == null && (base === 'measurements_m' || base === 'measurements_m³')) v = data['measurements_m3_' + row1];
+        return v != null ? String(v) : '';
+      }
+      function getDataTableRowRangeForPage(box, tablePageIndex, rowCount, pageHeightPx) {
+        var rowsOnFirst = Math.max(3, Math.max(1, Number(box.tableConfig && box.tableConfig.rowsOnFirstPage) || 3));
+        var rowsOnOther = box.tableConfig && box.tableConfig.rowsOnOtherPages != null ? Math.max(1, Number(box.tableConfig.rowsOnOtherPages)) : null;
+        var tablePage = Math.max(0, parseInt(tablePageIndex, 10) || 0);
+        var useAttached = rowCount > THRESH;
+        if (tablePage === 0) {
+          if (useAttached) return { startRow: 0, endRow: 0 };
+          return { startRow: 0, endRow: Math.min(rowsOnFirst, rowCount) };
+        }
+        if (useAttached) {
+          var rowsPerPage = rowsOnOther != null ? rowsOnOther : Math.max(1, Math.floor((pageHeightPx - HEADER_PX) / ROW_PX));
+          var startRow = (tablePage - 1) * rowsPerPage;
+          var endRow = Math.min(startRow + rowsPerPage, rowCount);
+          return { startRow: Math.min(startRow, rowCount), endRow: Math.max(endRow, startRow) };
+        }
+        var afterFirst = rowsOnFirst;
+        if (afterFirst >= rowCount) return { startRow: rowCount, endRow: rowCount };
+        var rpp = rowsOnOther != null ? rowsOnOther : Math.max(1, Math.floor((pageHeightPx - HEADER_PX) / ROW_PX));
+        var s = Math.min(rowCount, afterFirst + (tablePage - 1) * rpp);
+        var e = Math.min(s + rpp, rowCount);
+        return { startRow: s, endRow: Math.max(e, s) };
+      }
+      function getDataTableFirstSegmentHeight(box, data) {
+        if (!box.tableConfig || !Array.isArray(box.tableConfig.columnKeys)) return null;
+        var rowCount = getDataTableRowCount(data, box.tableConfig.columnKeys);
+        var rowsOnFirst = Math.max(3, Math.max(1, Number(box.tableConfig.rowsOnFirstPage) || 3));
+        if (rowCount > THRESH) return HEADER_PX + GAP_PX;
+        var rowsToShow = Math.min(rowsOnFirst, Math.max(0, rowCount));
+        return HEADER_PX + rowsToShow * ROW_PX;
+      }
+      function buildLayout(data) {
+        data = data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+        var effectiveHeightByBoxId = {};
+        var boxYOffset = {};
+        var i, b, t, tEff, tTop, firstBottom, spacerPx, rowCount, minY, offset, bTop, bHeight, bBottom, isDataTable, spacerBottom, minYVal, totalHeight;
+        for (i = 0; i < boxes.length; i++) {
+          b = boxes[i];
+          var designH = Math.max(20, b.size && b.size.height != null ? b.size.height : 20);
+          var eff = getDataTableFirstSegmentHeight(b, data);
+          effectiveHeightByBoxId[b.id] = eff != null ? Math.max(eff, designH) : designH;
+          if (eff != null && b.type === 'table' && b.tableConfig && Array.isArray(b.tableConfig.columnKeys)) {
+            rowCount = getDataTableRowCount(data, b.tableConfig.columnKeys);
+            var rowsOnFirstB = Math.max(3, Math.max(1, Number(b.tableConfig.rowsOnFirstPage) || 3));
+            if (rowCount <= THRESH && rowCount <= rowsOnFirstB) effectiveHeightByBoxId[b.id] += SPACER_PX;
+            effectiveHeightByBoxId[b.id] = Math.max(effectiveHeightByBoxId[b.id], designH);
+          }
+        }
+        var isEmpty = function(b) {
+          var hasF = (b.fieldName && String(b.fieldName).trim()) || (b.labelName && String(b.labelName).trim());
+          var hasC = b.content && String(b.content).trim() && !/^\{\{\s*\}\}$/.test(String(b.content).trim());
+          return !hasF && !hasC && b.type !== 'table' && b.type !== 'logo';
+        };
+        for (i = 0; i < boxes.length; i++) {
+          t = boxes[i];
+          if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnKeys)) continue;
+          tEff = effectiveHeightByBoxId[t.id];
+          if (tEff == null) continue;
+          tTop = (t.position && t.position.y) != null ? t.position.y : 0;
+          firstBottom = tTop + tEff;
+          rowCount = getDataTableRowCount(data, t.tableConfig.columnKeys);
+          var rowsOnFirstT = Math.max(3, Math.max(1, Number(t.tableConfig.rowsOnFirstPage) || 3));
+          var tableIncludesGap = rowCount <= THRESH && rowCount <= rowsOnFirstT;
+          spacerPx = rowCount > THRESH ? 0 : (tableIncludesGap ? GAP_BETWEEN_PX : SPACER_PX + GAP_BETWEEN_PX);
+          for (var j = 0; j < boxes.length; j++) {
+            b = boxes[j];
+            if (b.id === t.id || b.type === 'table') continue;
+            var bTop0 = (b.position && b.position.y) != null ? b.position.y : 0;
+            var bH0 = b.size && b.size.height != null ? b.size.height : 20;
+            if (spacerPx > 0 && bTop0 < firstBottom + spacerPx && bTop0 + bH0 > firstBottom && isEmpty(b)) effectiveHeightByBoxId[b.id] = 0;
+          }
+        }
+        var minYBelow = {};
+        for (i = 0; i < boxes.length; i++) {
+          t = boxes[i];
+          if (t.type !== 'table' || !t.tableConfig || !Array.isArray(t.tableConfig.columnKeys)) continue;
+          tEff = effectiveHeightByBoxId[t.id];
+          if (tEff == null) continue;
+          tTop = (t.position && t.position.y) != null ? t.position.y : 0;
+          firstBottom = tTop + tEff;
+          minY = Infinity;
+          for (j = 0; j < boxes.length; j++) {
+            b = boxes[j];
+            if (b.id === t.id) continue;
+            var beff = effectiveHeightByBoxId[b.id] != null ? effectiveHeightByBoxId[b.id] : (b.size && b.size.height != null ? b.size.height : 20);
+            if (beff <= 0) continue;
+            bTop0 = (b.position && b.position.y) != null ? b.position.y : 0;
+            var bBottom0 = bTop0 + (b.size && b.size.height != null ? b.size.height : 20);
+            if (bTop0 >= firstBottom || bBottom0 > firstBottom) minY = Math.min(minY, bTop0);
+          }
+          minYBelow[t.id] = minY === Infinity ? null : minY;
+        }
+        for (i = 0; i < boxes.length; i++) {
+          b = boxes[i];
+          offset = 0;
+          bTop = (b.position && b.position.y) != null ? b.position.y : 0;
+          bHeight = effectiveHeightByBoxId[b.id] != null ? effectiveHeightByBoxId[b.id] : (b.size && b.size.height != null ? b.size.height : 20);
+          bBottom = bTop + Math.max(0, bHeight);
+          for (j = 0; j < boxes.length; j++) {
+            t = boxes[j];
+            if (t.id === b.id) continue;
+            tEff = effectiveHeightByBoxId[t.id];
+            var tDesign = (t.size && t.size.height != null) ? t.size.height : 20;
+            tTop = (t.position && t.position.y) != null ? t.position.y : 0;
+            isDataTable = t.type === 'table' && t.tableConfig && Array.isArray(t.tableConfig.columnKeys);
+            if (isDataTable && tEff != null) {
+              firstBottom = tTop + tEff;
+              rowCount = getDataTableRowCount(data, t.tableConfig.columnKeys);
+              rowsOnFirstT = Math.max(3, Math.max(1, Number(t.tableConfig.rowsOnFirstPage) || 3));
+              tableIncludesGap = rowCount <= THRESH && rowCount <= rowsOnFirstT;
+              spacerPx = rowCount > THRESH ? 0 : (tableIncludesGap ? GAP_BETWEEN_PX : SPACER_PX + GAP_BETWEEN_PX);
+              spacerBottom = firstBottom + spacerPx;
+              minYVal = minYBelow[t.id];
+              if (bTop >= firstBottom) offset += minYVal != null ? spacerBottom - minYVal : (tEff + spacerPx) - tDesign;
+              else if (bBottom > firstBottom) offset += Math.max(0, spacerBottom - bTop);
+              else if (bTop < firstBottom && bBottom > tTop) offset += Math.max(0, spacerBottom - bTop);
+            } else if (tEff != null && tEff > tDesign && bTop >= tTop + tDesign) offset += tEff - tDesign;
+          }
+          boxYOffset[b.id] = offset;
+        }
+        totalHeight = singlePageHeight;
+        for (i = 0; i < boxes.length; i++) {
+          b = boxes[i];
+          var top = ((b.position && b.position.y) != null ? b.position.y : 0) + (boxYOffset[b.id] || 0);
+          var h = effectiveHeightByBoxId[b.id] != null ? effectiveHeightByBoxId[b.id] : (b.size && b.size.height != null ? b.size.height : 20);
+          totalHeight = Math.max(totalHeight, top + h);
+        }
+        for (i = 0; i < boxes.length; i++) {
+          b = boxes[i];
+          if (b.type !== 'table' || !b.tableConfig || !Array.isArray(b.tableConfig.columnKeys)) continue;
+          var tableTop = ((b.position && b.position.y) != null ? b.position.y : 0) + (boxYOffset[b.id] || 0);
+          var firstSeg = effectiveHeightByBoxId[b.id] || 0;
+          rowCount = getDataTableRowCount(data, b.tableConfig.columnKeys);
+          var useAtt = rowCount > THRESH;
+          totalHeight = Math.max(totalHeight, tableTop + firstSeg);
+          if (useAtt && rowCount > 0) {
+            var tp = 1;
+            while (true) {
+              var r = getDataTableRowRangeForPage(b, tp, rowCount, contentH);
+              if (r.endRow <= r.startRow) break;
+              totalHeight = Math.max(totalHeight, tp * singlePageHeight + HEADER_PX + (r.endRow - r.startRow) * ROW_PX);
+              if (r.endRow >= rowCount) break;
+              tp++;
+            }
+          }
+        }
+        var numPages = Math.max(1, Math.ceil(totalHeight / singlePageHeight));
+        var dataTableSpacerTop = null, dataTableSpacerLeft = 0, dataTableSpacerWidth = null, exportAttached = false, dataTableIncludesGapOnFirstPage = false;
+        var dataTables = boxes.filter(function(x) { return x.type === 'table' && x.tableConfig && Array.isArray(x.tableConfig.columnKeys); });
+        if (dataTables.length > 0) {
+          var first = dataTables[0];
+          for (var di = 1; di < dataTables.length; di++) {
+            var gy = (dataTables[di].position && dataTables[di].position.y != null ? dataTables[di].position.y : 0) + (boxYOffset[dataTables[di].id] || 0);
+            var firstGy = (first.position && first.position.y != null ? first.position.y : 0) + (boxYOffset[first.id] || 0);
+            if (gy < firstGy) first = dataTables[di];
+          }
+          dataTableSpacerTop = (first.position && first.position.y != null ? first.position.y : 0) + (boxYOffset[first.id] || 0) + (effectiveHeightByBoxId[first.id] != null ? effectiveHeightByBoxId[first.id] : (first.size && first.size.height != null ? first.size.height : 20));
+          dataTableSpacerLeft = (first.position && first.position.x != null) ? first.position.x : 0;
+          dataTableSpacerWidth = first.size && first.size.width != null ? first.size.width : null;
+          rowCount = getDataTableRowCount(data, first.tableConfig.columnKeys || []);
+          exportAttached = rowCount > THRESH;
+          dataTableIncludesGapOnFirstPage = rowCount <= THRESH && rowCount <= Math.max(3, Math.max(1, Number(first.tableConfig && first.tableConfig.rowsOnFirstPage) || 3));
+        }
+        return { boxYOffset: boxYOffset, effectiveHeightByBoxId: effectiveHeightByBoxId, numPages: numPages, dataTableSpacerTop: dataTableSpacerTop, dataTableSpacerLeft: dataTableSpacerLeft, dataTableSpacerWidth: dataTableSpacerWidth, exportAttachedListMode: exportAttached, dataTableIncludesGapOnFirstPage: dataTableIncludesGapOnFirstPage };
+      }
+      function escapeHtml(s) {
+        s = String(s == null ? '' : s);
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+      function findDataValue(data, key) {
+        if (data[key] !== undefined && data[key] !== null) return data[key];
+        var keyLower = key.toLowerCase();
+        for (var dk in data) { if (Object.prototype.hasOwnProperty.call(data, dk) && dk.toLowerCase() === keyLower) return data[dk]; }
+        return undefined;
+      }
+      function replacePlaceholders(content, data) {
+        if (!content || typeof content !== 'string') return '';
+        data = data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+        return content.replace(/\{\{([^}]+)\}\}/g, function(match, key) {
+          var k = key.trim();
+          var val = findDataValue(data, k);
+          return val !== undefined && val !== null ? String(val) : '';
+        });
+      }
+      function render(data) {
+        data = data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+        var layout = buildLayout(data);
+        var boxYOffset = layout.boxYOffset;
+        var effectiveHeightByBoxId = layout.effectiveHeightByBoxId;
+        var numPages = layout.numPages;
+        var dataTableSpacerTop = layout.dataTableSpacerTop;
+        var dataTableSpacerLeft = layout.dataTableSpacerLeft;
+        var dataTableSpacerWidth = layout.dataTableSpacerWidth;
+        var exportAttached = layout.exportAttachedListMode;
+        var includesGapOnFirstPage = layout.dataTableIncludesGapOnFirstPage === true;
+        var sorted = boxes.slice().sort(function(a, b) { return (a.rank || 0) - (b.rank || 0); });
+        var contentW = c.w - 2 * PAGE_PAD;
+        var scaleX = contentW / c.w;
+        var scaleY = contentH / singlePageHeight;
+        var out = [];
+        for (var pageIndex = 0; pageIndex < numPages; pageIndex++) {
+          var pageTop = pageIndex * singlePageHeight;
+          var pageBottom = (pageIndex + 1) * singlePageHeight;
+          var titleBlock = '<div class="template-title">' + escapeHtml(c.documentTitle) + '</div>';
+          var spacerHeight = includesGapOnFirstPage ? 0 : (dataTableSpacerTop != null && !exportAttached ? Math.min(SPACER_PX, singlePageHeight - dataTableSpacerTop) : 0);
+          var spacerBlock = (pageIndex === 0 && dataTableSpacerTop != null && spacerHeight > 0) ? '<div class="template-box data-table-spacer-box" style="position:absolute;left:' + dataTableSpacerLeft + 'px;top:' + dataTableSpacerTop + 'px;width:' + (dataTableSpacerWidth != null ? dataTableSpacerWidth : w) + 'px;height:' + spacerHeight + 'px;border:1px solid #000;background:#fff;box-sizing:border-box;"></div>\n' : '';
+          var boxDivs = [];
+          for (var bi = 0; bi < sorted.length; bi++) {
+            var box = sorted[bi];
+            var globalTop = ((box.position && box.position.y) != null ? box.position.y : 0) + (boxYOffset[box.id] || 0);
+            if (box.type === 'table' && box.tableConfig && Array.isArray(box.tableConfig.columnKeys)) {
+              var rc = getDataTableRowCount(data, box.tableConfig.columnKeys);
+              var range = getDataTableRowRangeForPage(box, pageIndex, rc, contentH);
+              if (range.endRow <= range.startRow && !(pageIndex === 0 && rc > THRESH) && !(pageIndex === 0 && rc === 0)) continue;
+            } else {
+              var boxH = effectiveHeightByBoxId[box.id] != null ? effectiveHeightByBoxId[box.id] : (box.size && box.size.height != null ? box.size.height : 20);
+              if (boxH <= 0) continue;
+              if (globalTop + boxH <= pageTop || globalTop >= pageBottom) continue;
+            }
+            var width = (box.size && box.size.width != null) ? box.size.width : (box.type === 'table' ? 600 : 60);
+            var fullHeight = effectiveHeightByBoxId[box.id] != null ? effectiveHeightByBoxId[box.id] : (box.size && box.size.height != null ? box.size.height : 20);
+            var clipBottom = pageBottom - globalTop;
+            var height = Math.min(fullHeight, clipBottom);
+            var tableRowRange = null;
+            var localTop = Math.max(0, globalTop - pageTop);
+            if (box.type === 'table' && box.tableConfig && Array.isArray(box.tableConfig.columnKeys)) {
+              rc = getDataTableRowCount(data, box.tableConfig.columnKeys);
+              if (rc > 0) {
+                range = getDataTableRowRangeForPage(box, pageIndex, rc, contentH);
+                var rowsOnFirstBox = Math.max(3, Math.max(1, Number(box.tableConfig && box.tableConfig.rowsOnFirstPage) || 3));
+                var tableIncludesGapEmbed = pageIndex === 0 && rc <= THRESH && rc <= rowsOnFirstBox;
+                if (range.endRow > range.startRow) {
+                  tableRowRange = range;
+                  height = tableIncludesGapEmbed ? Math.min(fullHeight, clipBottom) : (headerRowPx + (range.endRow - range.startRow) * rowHeightPx);
+                  if (pageIndex > 0 || range.startRow > 0) localTop = 0;
+                } else if (pageIndex === 0 && rc > THRESH) {
+                  tableRowRange = { startRow: 0, endRow: 0 };
+                  height = headerRowPx + GAP_PX;
+                }
+              }
+            }
+            if (globalTop < pageTop && !tableRowRange) height = Math.min(fullHeight, singlePageHeight);
+            var left = (box.position && box.position.x != null) ? box.position.x : 0;
+            if (box.type === 'table' && box.tableConfig && Array.isArray(box.tableConfig.columnKeys)) {
+              var columnKeys = box.tableConfig.columnKeys;
+              var rowCount = getDataTableRowCount(data, columnKeys);
+              var colCount = columnKeys.length;
+              var colWidths = (box.tableConfig.columnWidths && Array.isArray(box.tableConfig.columnWidths) && box.tableConfig.columnWidths.length === colCount) ? box.tableConfig.columnWidths : Array.from({ length: colCount }, function() { return 100 / colCount; });
+              var cellWrap = 'word-break:break-word;overflow-wrap:break-word;white-space:normal;';
+              var cellWrapPreLine = 'word-break:break-word;overflow-wrap:break-word;white-space:pre-line;';
+              var colgroup = colWidths.map(function(pct) { return '<col style="width:' + Math.max(1, Math.min(100, Number(pct) || 100 / colCount)) + '%">'; }).join('');
+              var headers = (box.tableConfig.headers || []).map(function(hd) { return '<th style="border:1px solid #000;padding:4px;text-align:left;background:#f0f0f0;' + cellWrap + '">' + escapeHtml(hd || '') + '</th>'; }).join('');
+              var r = tableRowRange || { startRow: 0, endRow: rowCount };
+              var bodyRows = '';
+              if (rowCount === 0) bodyRows = '<tr><td colspan="' + columnKeys.length + '" style="border:none;padding:8px;">No data rows</td></tr>';
+              else if (rowCount > THRESH && r.endRow === r.startRow) bodyRows = '<tr style="height:' + GAP_PX + 'px"><td colspan="' + columnKeys.length + '" style="border:none;padding:8px;font-style:italic;text-align:center;vertical-align:bottom;height:' + GAP_PX + 'px;">Find the details of elements in attached list.</td></tr>';
+              else {
+                for (var ri = r.startRow; ri < r.endRow; ri++) {
+                  var rowMeta = getDataTableRowMeta(data, columnKeys, ri + 1);
+                  var trStyle = rowMeta && rowMeta.isContainerHeading ? 'font-weight:bold;' : '';
+                  var cells = [];
+                  for (var ci = 0; ci < columnKeys.length; ci++) {
+                    var cellBold = rowMeta && rowMeta.isContainerHeading && ci === 0 ? 'font-weight:bold;' : '';
+                    cells.push('<td style="border:none;padding:4px;' + cellBold + cellWrapPreLine + '">' + escapeHtml(getDataTableCell(data, columnKeys, ri + 1, ci)) + '</td>');
+                  }
+                  bodyRows += '<tr style="' + trStyle + '">' + cells.join('') + '</tr>';
+                }
+              }
+              var tableBorderEmbed = tableIncludesGapEmbed ? 'border:none;' : '';
+              var tableHtml = '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:' + (box.properties && box.properties.fontSize != null ? box.properties.fontSize : 11) + 'px;' + tableBorderEmbed + '"><colgroup>' + colgroup + '</colgroup><thead><tr>' + headers + '</tr></thead><tbody>' + bodyRows + '</tbody></table>';
+              var gapBlockEmbed = tableIncludesGapEmbed ? ('<div class="data-table-gap-inside" style="width:100%;height:' + SPACER_PX + 'px;flex-shrink:0;"></div>') : '';
+              boxDivs.push('<div class="template-box template-box-table" style="position:absolute;left:' + left + 'px;top:' + localTop + 'px;width:' + width + 'px;height:' + height + 'px;padding:4px;box-sizing:border-box;overflow:visible;border:1px solid #000;display:flex;flex-direction:column;">' + tableHtml + gapBlockEmbed + '</div>');
+            } else {
+              var rawLabel = box.labelName || (box.fieldName ? String(box.fieldName).replace(/_/g, ' ').replace(/\b\w/g, function(ch) { return ch.toUpperCase(); }) : '');
+              var label = (rawLabel && String(rawLabel).trim().slice(-3) === '...' && box.fieldName) ? String(box.fieldName).replace(/_/g, ' ').replace(/\b\w/g, function(ch) { return ch.toUpperCase(); }) : rawLabel;
+              var labelOnly = !!(box.properties && box.properties.labelOnly);
+              var valueOnly = !!(box.properties && box.properties.valueOnly);
+              var emptyBox = !!(box.properties && box.properties.emptyBox);
+              var rawPlaceholder = box.content || '{{' + (box.fieldName || 'field') + '}}';
+              var dataWithPages = {};
+              for (var dk in data) { if (Object.prototype.hasOwnProperty.call(data, dk)) dataWithPages[dk] = data[dk]; }
+              dataWithPages.pages = (pageIndex + 1) + ' of ' + numPages;
+              var displayValue = replacePlaceholders(rawPlaceholder, dataWithPages);
+              var valueEmpty = String(displayValue).trim() === '';
+              var hasUserData = false;
+              for (var dk in dataWithPages) { if (dk !== 'pages' && dataWithPages[dk] != null) { hasUserData = true; break; } }
+              var showPlaceholderWhenEmpty = rawPlaceholder && /\{\{/.test(rawPlaceholder);
+              var valueToShow = valueEmpty && showPlaceholderWhenEmpty && !hasUserData ? rawPlaceholder : displayValue;
+              var valueToShowEmpty = String(valueToShow).trim() === '';
+              var content = emptyBox ? '' : (valueOnly ? (valueToShowEmpty ? '' : escapeHtml(valueToShow)) : (labelOnly && label ? escapeHtml(label) : (label ? (valueToShowEmpty ? escapeHtml(label) + ':' : escapeHtml(label) + ': ' + escapeHtml(valueToShow)) : (valueToShowEmpty ? '' : escapeHtml(valueToShow)))));
+              var border = '1px solid #000';
+              boxDivs.push('<div class="template-box" style="position:absolute;left:' + left + 'px;top:' + localTop + 'px;width:' + width + 'px;height:' + height + 'px;font-size:' + (box.properties && box.properties.fontSize != null ? box.properties.fontSize : 10) + 'px;font-family:' + escapeHtml(box.properties && box.properties.fontFamily || 'Arial') + ';color:' + escapeHtml(box.properties && box.properties.fontColor || '#000') + ';border-left:' + border + ';border-right:' + border + ';border-top:' + border + ';border-bottom:' + border + ';padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;overflow:visible;text-overflow:clip;">' + content + '</div>');
+            }
+          }
+          out.push('<div class="template-page" style="page-break-after:always;width:' + w + 'px;height:' + singlePageHeight + 'px;padding:' + PAGE_PAD + 'px;box-sizing:border-box;margin:20px auto ' + PAGE_GAP + 'px auto;position:relative;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.1);"><div class="template-page-inner" style="position:absolute;left:' + PAGE_PAD + 'px;top:' + PAGE_PAD + 'px;width:' + contentW + 'px;height:' + contentH + 'px;overflow:hidden;"><div class="template-page-content" style="width:' + w + 'px;height:' + singlePageHeight + 'px;transform:scale(' + scaleX + ',' + scaleY + ');transform-origin:0 0;">' + titleBlock + '\n' + spacerBlock + boxDivs.join('\n') + '</div></div></div>');
+        }
+        return out.join('');
+      }
+      function getDataToRender() {
+        if (window.templateData !== undefined && window.templateData !== null) return window.templateData;
+        var dataEl = document.getElementById('template-data');
+        if (dataEl && dataEl.textContent) {
+          try { return JSON.parse(dataEl.textContent); } catch (e) {}
+        }
+        return c.initialData || {};
+      }
+      var TERMS_PAGE_HTML = '<div class="template-page" style="page-break-after:auto;width:794px;height:1123px;padding:36px;box-sizing:border-box;margin:20px auto 32px auto;position:relative;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.1);"><div class="template-page-inner" style="position:absolute;left:36px;top:36px;width:722px;height:1051px;overflow:hidden;"><div class="template-page-content" style="width:794px;height:1123px;transform:scale(0.9093198992443325,0.9358860195903829);transform-origin:0 0;"><div class="template-title">TERMS AND CONDITIONS</div><div class="template-box terms-col" style="position:absolute;left:41px;top:90px;width:350px;height:950px;font-size:5.5px;font-family:Consolas,\'Courier New\',monospace;color:#000;line-height:1.2;border:none;border-right:1px solid #999;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;"><b>1.</b> In this Sea Waybill, the following words have the following meanings: "Carrier" means FAR EAST CONTAINER LINE LIMITED trading in the name of FAR EAST CONTAINER LINE. "COGSA" means the Carriage of Goods by Sea Act of the United States of America approved on 16 April 1936. "Merchant" means and includes the shipper, the consignee and/or the owner of the goods. "goods" includes goods, wares, merchandise and articles of every kind whatever; and any container, trailer, tank or pallet (including similar articles of transport used to store or consolidate goods) not supplied by or on behalf of the Carrier. notwithstanding that the value of any such goods may be shown, declared or indicated on any documents accompanying such goods. "Dangerous Goods" includes goods which are of dangerous, explosive, inflammable, radioactive or damaging nature. "Hague Rules" means the International Convention for the Unification of certain Rules of Law relating to Bills of Lading signed at Brussels on 25 August 1924. "Hague-Visby Rules" means the Hague Rules as amended by the Protocol signed at Brussels on 23 February 1968. "Services" means any services of the Carrier provided for the Merchant e.g. carriage of goods by sea, inland waterway, road, rail and/or air; and/or storage, loading, unloading, packing, unpacking, consolidation, de-consolidation, collection, delivery and/or other handling of goods. "SDR" means Special Drawing Rights as defined by the International Monetary Fund. The goods that are likely to cause damage include goods that are likely to cause damage to other goods, property, life or health, or that are likely to encourage vermin or other pests.<br><br><b>2.1.</b> If at any time one or more of the terms of this Sea Waybill becomes invalid or illegal, the validity or legality of the remaining terms of this Sea Waybill shall not in any way be affected.<br><br><b>2.2.</b> The Carrier shall be entitled to all the rights, immunities, exceptions and limitations conferred on the carrier or the owner of the vessel by any applicable law or legislation.<br><br><b>2.3.</b> Carriage of goods by sea or inland waterway covers the period from the time when the goods are loaded on to the time they are discharged from the vessel. The loading takes place either when the goods pass the vessel\'s rail and are on board the vessel or when the vessel\'s tackle is attached to the goods for taking them on board. The discharge ends either when the goods pass the vessel\'s rail and are off the vessel or when the vessel\'s tackle is removed from the goods deposited quayside. As far as carriage of goods by sea or inland waterway is concerned, the Carrier\'s liability shall be determined by the Hague Rules or any legislation making such Rules or the Hague-Visby Rules compulsorily applicable (such as COGSA) to this Sea Waybill, the Hague Rules or the Hague-Visby Rules shall prevail in so far as they are inconsistent with any other terms of this Sea Waybill. For the purpose of application of the Hague Rules or the Hague-Visby Rules, this Sea Waybill shall be deemed as a bill of lading. The limitation amount in Article IV (5) of the Hague Rules is deemed to be the nominal value of 100 pounds sterling. Article IX of the Hague Rules is deemed to be deleted. The limitation amount according to COGSA is US$500 per package or customary freight unit, unless the nature and value of the goods have been declared by the shipper before shipment and inserted in this Sea Waybill.<br><br><b>2.4.</b> Regarding the responsibility and liability of the Carrier for loss of or damage to, or in connection with, the custody and care and handling of the goods prior to the loading on the vessel, and subsequent to the discharge from the vessel, such shall be determined by the terms of this Sea Waybill but not by the Hague Rules nor the Hague Visby Rules.<br><br><b>2.5.</b> The Services are subject to the terms of this Sea Waybill.<br><br><b>2.6.</b> In this Sea Waybill, words importing the singular include the plural and vice versa; words importing a gender include every gender.<br><br><b>2.7.</b> Wherever it is provided in this Sea Waybill that notice shall be dispatched by the Carrier to the Merchant, such notice shall be deemed as having been dispatched if (i) the Carrier does not know the address, e-mail address or fax number of the Merchant or (ii) the notice cannot reach the Merchant through its address, e-mail address or fax number last known to the Carrier.<br><br><b>2.8.</b> The Merchant\'s liability under this Sea Waybill shall be joint and several.<br><br><b>3.1.</b> This Sea Waybill is not negotiable and does not constitute title to the goods. The Carrier is entitled to deliver the goods to the consignee without production of any original of this Sea Waybill.<br><br><b>3.2.</b> This Sea Waybill is the evidence of receipt of the goods by the Carrier.<br><br><b>4.1.</b> The Merchant entering into any business with the Carrier warrants to the Carrier that the Merchant is either the owner of the goods or the authorized agent of the owner of the goods and that it is authorized to accept the terms of this Sea Waybill not only for itself but also for the owner of the goods.<br><br><b>4.2.</b> The Merchant further warrants that: (a) all the goods have been properly and sufficiently packed and that the Carrier has no liability for any loss of, damage to or any other claims relating to the goods which are improperly or insufficiently packed; and (b) the goods are fit and suitable for the carriage, storage and any other handling in accordance with the Merchant\'s instructions; and (c) it shall fully comply with applicable laws and regulations of ports, Customs or other authorities.<br><br><b>5.1.</b> The Merchant shall indemnify the Carrier against all claims, liability, losses, damage, costs and expenses (including but not limited to loss of and/or damage to any container and/or vessel) arising out of the Carrier acting in accordance with the Merchant\'s instructions, or arising from a breach of warranty or obligation on the part of the Merchant, or arising from the inaccurate information or the insufficient instructions provided by the Merchant, or arising from the mistake, negligence or wilful default of the Merchant.<br><br><b>5.2.</b> The Merchant undertakes that no claim shall be made against any employee, agent or sub-contractor of the Carrier if such claim imposes upon them any liability in connection with any Services provided by the Carrier. If any such claim should nevertheless be made, the Merchant shall indemnify the Carrier against all consequences. Every such employee, agent and sub-contractor shall have the benefit of all the terms herein benefiting the Carrier as if such terms were expressly provided for his or its benefit. For these purposes, the Carrier contracts for itself and also as agent and trustee for each such employee, agent and sub-contractor.<br><br><b>5.3.</b> The Merchant shall defend, indemnify and hold harmless the Carrier from and against all claims, costs and demands whatsoever and by whomsoever made or preferred in excess of the liability of the Carrier under the terms of this Sea Waybill, and such indemnity shall include all claims, costs and demands arising from the negligence or mistake of the Carrier or from the mistake, negligence, wilful default or deliberate wrongdoing of the Carrier\'s employee, agent or sub-contractor. However, if the Carrier is still legally held liable for the aforesaid claim despite the aforesaid provision, the Carrier\'s liability shall not exceed a total of 2 SDR per kilogram of the gross weight of that part of the goods in respect of which the claim arises.<br><br><b>5.4.</b> The Merchant shall defend, indemnify and hold harmless the Carrier in respect of any General Average claim and any Salvage claim that may be made against the Carrier, and the Merchant shall provide such security as may be required by the Carrier.<br><br><b>5.5.</b> If the vessel carrying the goods (the carrying vessel) collides with any other vessel (the non-carrying vessel) as a result of the negligence of both the vessels, the Merchant undertakes to defend, indemnify and hold harmless the Carrier against any liability to any other party in so far as such liability relates to any claim whatsoever made against the non-carrying vessel by the Merchant.<br><br><b>5.6.</b> In the event of accident, danger, damage or disaster before or after the commencement of the voyage, resulting from any cause whatsoever, whether due to negligence or not, for which or for the consequence of which, the Carrier is not responsible, by Statute, contract or otherwise, the goods, Shipper, Consignee or owners of the goods shall contribute with the Carrier in General Average to the payment of any sacrifices, losses or expenses of a General Average nature that may be made or incurred and shall pay salvage and special charges incurred in respect of the goods. If a salving vessel is owned or operated by the Carrier, salvages shall be paid for as fully as if the said salving vessel or vessels belonged to strangers. Such deposit as the Carrier, or its agent, may deem sufficient to cover the estimated contribution of the goods and any salvage and special charges thereon shall, if required, be made by the goods, Shipper, Consignee or owners of the goods to the Carrier before delivery.<br><br><b>6.</b> Except under special arrangements previously made in writing, the Merchant warrants that the goods are not Dangerous Goods, nor are goods of comparable hazard, nor are goods otherwise likely to cause damage. Should the Merchant nevertheless deliver any such goods to the Carrier or cause the Carrier to handle any such goods otherwise than under special arrangements previously made in writing, then whether or not the Carrier is aware of the nature of such goods, the Merchant shall be liable for all expenses, losses or damage whatsoever caused by or to or in connection with such goods and howsoever arising, and shall indemnify the Carrier against all penalties, claims, damages, costs, expenses and any other liability whatsoever arising in connection with such goods, and such goods may be destroyed or otherwise dealt with at the risk and expenses of the Merchant in the sole discretion of and without any liability to the Carrier. If such goods are handled by the Carrier under arrangements previously made in writing, they may nevertheless be destroyed at the risk and expenses of the Merchant in the sole discretion of and without any liability to the Carrier on account of risk to the Carrier.</div><div class="template-box terms-col" style="position:absolute;left:401px;top:90px;width:321px;height:950px;font-size:5.5px;font-family:Consolas,\'Courier New\',monospace;color:#000;line-height:1.2;border:none;padding:4px;box-sizing:border-box;white-space:normal;word-break:break-word;overflow-wrap:break-word;"><b>7.</b> Except under special arrangements previously made in writing, the Carrier will not deal with bullion, bank notes, coins, cheques, bonds, negotiable documents and securities, precious stones, precious metal objects, jewellery, valuables, antiques, valuable works of art, live animals or plants. Should the Merchant nevertheless deliver any such goods to the Carrier or cause the Carrier to handle any such goods otherwise than under special arrangements previously made in writing, the Carrier shall be under no liability whatsoever in connection with such goods (including any loss, damage, misdelivery, misdirection or delay howsoever caused) and notwithstanding that the value of any such goods may be shown, declared or indicated on any documents accompanying such goods.<br><br><b>8.1.</b> If delivery of the goods is not taken by the Merchant at the time and place when and where delivery should be taken, the Carrier shall be entitled (but is not obliged) to store the goods at the sole risk of the Merchant, whereupon any liability which the Carrier may have in respect of the goods stored as aforesaid shall wholly cease and the cost of such storage shall be paid by the Merchant to the Carrier.<br><br><b>8.2.</b> The Carrier is entitled (but not obliged) to sell by public auction or private treaty or to dispose of all goods which in the opinion of the Carrier cannot be delivered either because the consignee\'s address is incorrect or because the goods are not collected or accepted by the Merchant within 14 days after notice has been dispatched to the Merchant\'s address, e-mail address or fax number last known to the Carrier. In case the Merchant does not receive the notice dispatched by the Carrier asking the Merchant to take delivery of the goods, such shall not affect the Carrier\'s aforesaid right to sell or dispose of the uncollected goods. The Merchant shall pay all costs and expenses (including but not limited to storage costs and demurrage charges) incurred in connection with the storage and the sale and/or disposal of the goods.<br><br><b>8.3.</b> All goods and documents relating thereto shall be subject to a particular and general lien for monies due in respect of such goods, or for any particular or general balance or other monies due from the Merchant to the Carrier. If any such monies due to the Carrier are not paid within 14 days after notice has been dispatched to the Merchant\'s address, e-mail address or fax number last known to the Carrier, the goods may be sold by public auction or private treaty or may be disposed of at the sole discretion of the Carrier at the expense of the Merchant, and the proceeds if any (net of the expenses in connection with such sale) shall be applied in satisfaction of such debts, and the Carrier shall not be liable for any reduction in value received on the sale of the goods, nor shall the Merchant be relieved from the liability of any outstanding debts merely because the goods have been sold or disposed of. In case the Merchant does not receive the notice dispatched by the Carrier asking the Merchant to pay the outstanding monies, such shall not affect the Carrier\'s aforesaid right to sell or dispose of the goods. The Merchant is responsible for payment of all costs and expenses (including but not limited to storage costs and demurrage charges) being incurred when the goods are being liened.<br><br><b>9.1.</b> Charges for the Services shall be deemed fully earned and non-returnable upon receipt of the goods by the Carrier. The Merchant shall pay to the Carrier all sums immediately when due without deduction on account of any claim, counterclaim or set-off. Payment to the Carrier is due as soon as an invoice is rendered to the Merchant. For any amount unpaid within 30 days from the date of the invoice, the Carrier shall be entitled to interest from the date of the invoice until payment at 2% per month.<br><br><b>9.2.</b> If the shipment is on the freight collect basis but the consignee does not take delivery of the goods within 14 days from the date of the goods\' arrival at the port of discharge or place of delivery, the shipper shall be responsible for payment of all the outstanding freight charges, and costs and expenses (including but not limited to storage costs and demurrage charges) incurred until the goods are duly delivered or are sold or disposed of as per Clauses 8.2 and/or 8.3.<br><br><b>10.1.</b> The Carrier shall be entitled to sub-contract on any terms to any agents and/or sub-contractors the whole or any part of the Services whatsoever undertaken by the Carrier.<br><br><b>10.2.</b> The Carrier reserves to itself absolute discretion as to the means, the manner, the routes and the procedures to be followed in the performance of the Services including the carriage, the storage and the other handling of the goods. The Carrier has liberty to use any means, routes or procedures, including using any vessel whether or not named on the front page of this Sea Waybill or stowing the goods on or under deck. Anything done in accordance with the aforesaid discretion or liberty shall not be a deviation of whatsoever nature or degree.<br><br><b>11.</b> If there is any loss, damage, deterioration, non-compliance or miscompliance of instructions, non-delivery, misdelivery (other than the one described in Clause 12), unauthorised delivery or misdirection of or to or in connection with the goods that arises from the negligence or mistake of the Carrier or that arises from the negligence, mistake, wilful default or deliberate wrongdoing of the Carrier\'s employee, agent or sub-contractor, the Carrier shall be liable for any claim relating to the aforesaid incident. However, the Carrier\'s aforesaid liability shall not exceed a total of 2 SDR per kilogram of the gross weight of that part of the goods in respect of which a claim arises.<br><br><b>12.</b> If the Carrier\'s agent or sub-contractor negligently or deliberately misdelivers the goods to a person (not entitled to receive the goods) without the Carrier\'s instruction or prior approval, the Carrier shall be liable for any claim relating to the aforesaid misdelivery of goods. However, the Carrier\'s aforesaid liability shall not exceed a total of 2 SDR per kilogram of the gross weight of that part of the goods misdelivered.<br><br><b>13.</b> Notwithstanding any other terms in this Sea Waybill to the contrary but subject to Clause 2.3, the Carrier shall not be liable for any claim relating to: (a) any delay, goods shut out or off loaded, goods\' departure or arrival time; or (b) any special, incidental, indirect, consequential or economic loss (including but not limited to loss of market, profit, tax, tax return, revenue, business or goodwill); or (c) any loss, damage, expense or cost arising from fire, flood, storm, typhoon, explosion, deviation, port congestion, strike, lock out, stoppage or restraint of labour; or (d) any loss of or damage to the goods (which are stated on the front page of this Sea Waybill to be carried on deck and which are so carried) even if the aforesaid incident arises from the negligence or mistake of the Carrier or from the negligence, mistake, wilful default or deliberate wrongdoing of the Carrier\'s employee, agent or sub-contractor.<br><br><b>14.</b> If there is any claim that the Carrier is legally held liable, and no other terms in this Sea Waybill (limiting or excluding the Carrier\'s liability) are suited to that claim, the Carrier\'s aforesaid liability shall not exceed a total of 2 SDR per kilogram of the gross weight of that part of the goods in respect of which the claim arises.<br><br><b>15.</b> The Carrier may accept liability in excess of the limits set out in Clauses 11, 12, 13 and 14 provided that (i) the value of the goods has been declared in writing by the shipper and accepted by the Carrier and (ii) the Merchant pay to the Carrier additional charges as decided by the Carrier. Details of the additional charges will be provided upon written request by the shipper. The declared value accepted shall be the Carrier\'s limit of liability and shall replace the limits in Clauses 11, 12, 13 and 14. General Average shall be adjusted according to the York-Antwerp Rules 1974 or any amendment thereto or the York-Antwerp Rules 1994 or any modification thereof at the option of the Carrier. All goods shall be subject to a lien for General Average and/or Salvage security. If the Merchant fails to provide General Average and/or Salvage security acceptable to the Carrier within 14 days after notice has been dispatched to the Merchant\'s address, e-mail address or fax number last known to the Carrier, the goods may be sold by public auction or private treaty or may be disposed of at the sole discretion of the Carrier at the expense of the Merchant, and the proceeds if any (net of the expenses in connection with such sale) shall be applied in satisfaction of General Average and/or Salvage contribution. In case the Merchant does not receive the notice dispatched by the Carrier asking the Merchant to provide General Average and/or Salvage security, such shall not affect the Carrier\'s aforesaid right to sell or dispose of the goods. The Merchant is responsible for payment of all costs and expenses (including but not limited to storage costs and demurrage charges) being incurred when the goods are being liened for General Average and/or Salvage security.<br><br><b>16.</b> All and any Services provided by the Carrier gratuitously are provided on the basis that the Carrier will not accept any liability whatsoever.<br><br><b>17.</b> It is agreed that superficial rust, oxidation, discoloration, or any like condition due to moisture is not a condition of damage but is inherent to the nature of the goods, and acknowledgement of receipt of the goods by the Carrier in apparent good order and condition is not a representation that such conditions of rust, oxidation, discoloration, or the like did not exist on receipt.<br><br><b>18.</b> If the Services are or are likely to be affected by any risk, delay, hindrance, difficulty or disadvantage of any kind whensoever and howsoever arising (including but not limited to port congestion, strike, lock out, stoppage and/or restraint of labour), the Carrier may terminate and/or abandon the Services and place the goods at any place for the Merchant to dispose of the goods, whereupon the Carrier\'s liability and responsibility in respect of the goods shall cease. If the Merchant does not dispose of the goods within 14 days after notice has been dispatched to the Merchant\'s address, e-mail address or fax number last known to the Carrier, the Carrier is entitled (but not obliged) to sell by public auction or private treaty or to dispose of the goods at the expense of the Merchant. In case the Merchant does not receive the notice dispatched by the Carrier asking the Merchant to dispose of the goods, such shall not affect the Carrier\'s aforesaid right to sell or dispose of the goods. The Merchant is responsible for payment of all the outstanding freight charges, and costs and expenses (including but not limited to storage costs and demurrage charges) incurred until the goods are disposed of or sold.<br><br><b>19.</b> Any claim notice against the Carrier must be in writing and delivered to the Carrier within 14 days from the date of delivery of the goods or the date the goods should have been delivered or the date the Merchant first knows about the event that may give rise to the claim, whichever is the earliest. If the Merchant fails to deliver the aforesaid written claim notice to the Carrier and thereby prejudices the Carrier\'s position in the claim, the Carrier shall in any event be discharged of all liability whatsoever and howsoever arising in respect of the claim.<br><br><b>20.</b> The Carrier shall in any event be discharged of all liability whatsoever and howsoever arising in respect of the Services, unless suit is brought against the Carrier in the court of the Hong Kong Special Administrative Region within nine months from the date of delivery of the goods or the date the goods should have been delivered or the date of the event giving rise to the claim, whichever is the earliest.<br><br><b>21.</b> The defences, exemptions and limitations of liability provided for in this Sea Waybill shall apply in any action against the Carrier whether such action is founded in contract or in tort.<br><br><b>22.</b> The contract evidenced by this Sea Waybill is governed by the laws of the Hong Kong Special Administrative Region. Any claim or dispute must be determined exclusively by the courts in the Hong Kong Special Administrative Region and no other court.<br><br>CSHB06-V1</div></div></div></div>';
+      var root = document.getElementById('template-root');
+      if (root) root.innerHTML = render(getDataToRender()) + TERMS_PAGE_HTML;
+      window.applyTemplateData = function() {
+        var r = document.getElementById('template-root');
+        if (r) r.innerHTML = render(getDataToRender()) + TERMS_PAGE_HTML;
+      };
+      window.loadTemplateDataFromJson = function(jsonStr) {
+        try {
+          window.templateData = JSON.parse(jsonStr);
+          window.applyTemplateData();
+          return true;
+        } catch (e) {
+          console.error('Invalid JSON:', e);
+          return false;
+        }
+      };
+    })();
+    </script>
+  <!-- Apply data / Load custom data panel script commented out - export shows template only
+  <script>
+    (function(){
+      var toggle = document.getElementById('template-data-toggle');
+      var form = document.getElementById('template-data-form');
+      var ta = document.getElementById('template-data-json');
+      var applyBtn = document.getElementById('template-data-apply');
+      var msg = document.getElementById('template-data-msg');
+      if (toggle && form) toggle.addEventListener('click', function(){
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        if (ta && !ta.value) {
+          var dataEl = document.getElementById('template-data');
+          if (dataEl && dataEl.textContent) ta.value = dataEl.textContent.trim();
+        }
+      });
+      if (applyBtn && ta && msg) applyBtn.addEventListener('click', function(){
+        msg.textContent = '';
+        try {
+          var data = JSON.parse(ta.value);
+          window.templateData = data;
+          if (typeof window.applyTemplateData === 'function') window.applyTemplateData();
+          msg.textContent = 'Data applied.';
+          msg.style.color = '#0a7';
+        } catch (e) {
+          msg.textContent = 'Invalid JSON: ' + e.message;
+          msg.style.color = '#c00';
+        }
+      });
+    })();
+  </script>
+  -->
+</body>
+</html>

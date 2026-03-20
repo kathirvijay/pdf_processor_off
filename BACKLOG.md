@@ -1,6 +1,6 @@
 # Backlog
 
-**Status:** 16 completed | 13 pending
+**Status:** 17 completed | 16 pending
 
 Tasks to complete. Add items below as they are identified.
 
@@ -29,6 +29,7 @@ Tasks to complete. Add items below as they are identified.
 14. **Lock guides to content area** ✅ – Replaced Fit to guides. Lock toggle: when ON, the 4 ruler guidelines drive the content area; dragging a guideline extends or compresses that edge.
 15. **Move nested boxes outside parent** ✅ – Support moving boxes enclosed inside a parent/container box out to the canvas area. Spatial containment detection; drag excludes parent from overlap check so inner boxes can be dragged out; "Move to canvas" button in Properties when box is inside another.
 16. **Table resize to fill gap** ✅ – Removed hardcoded `EMPTY_BOX_BELOW_TABLE_PX` (90px) and `tableIncludesGap` logic. Table height is now controlled only by the user via the properties panel; only an 8px gap between table and next elements.
+17. **Import from HTML (editor)** ✅ – `POST /api/pdf/import-html` returns raw HTML + template name (`<title>` or filename). Template Editor: sidebar **Import from HTML**, iframe preview with demo data (`{{placeholders}}` outside `<script>`, `#template-data` JSON), Export HTML, clear on new/load/CSV/PDF import.
 
 ---
 

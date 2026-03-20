@@ -28,3 +28,8 @@ Coordinates are in pixels (editor canvas; A4 width ≈ 794px). Adjust X, Y, Widt
 2. Click **Import Structure** and choose one of these CSV files.
 3. The canvas will be filled with boxes; the first row’s **Template Name** (if present) sets the template title.
 4. Click **Save** to create or update the template, then **Create PDF** to generate a PDF.
+
+## Demo JSON (HTML templates)
+
+- **`demo-data/`** — Sample JSON for exported HTML templates (FCR, CSDE BOL, SEA waybill, TELEX) with **25** indexed cargo rows, plus a **25-line** Carrier SI–style booking payload. See `demo-data/README.md`.
+- **`temp/`** — Copies of those HTML files for pairing with `demo-data/*.json`. See `temp/README.md`.

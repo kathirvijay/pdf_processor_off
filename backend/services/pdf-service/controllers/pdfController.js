@@ -3,6 +3,7 @@ const { getStaticUserId } = require('../../../shared/config/staticUser');
 const { generatePdf } = require('../utils/pdfGenerator');
 const { generatePdfPuppeteer } = require('../utils/pdfGeneratorPuppeteer');
 const { pdfToTemplate } = require('../utils/pdfToTemplate');
+const { extractTemplateNameFromHtml } = require('../utils/htmlImport');
 const path = require('path');
 const fs = require('fs');
 
@@ -36,6 +37,43 @@ const pdfController = {
       console.error('Import PDF template error:', error);
       res.status(500).json({
         message: error.message || 'Error converting PDF to template',
+        error: error.message,
+      });
+    }
+  },
+
+  importHtml: async (req, res) => {
+    let filePath = null;
+    try {
+      if (!req.file || !req.file.path) {
+        return res.status(400).json({ message: 'HTML file is required' });
+      }
+      filePath = path.isAbsolute(req.file.path) ? req.file.path : path.resolve(process.cwd(), req.file.path);
+      const htmlContent = fs.readFileSync(filePath, 'utf8');
+      try {
+        fs.unlinkSync(filePath);
+      } catch (_) {
+        /* ignore */
+      }
+      filePath = null;
+      const stem = String(req.file.originalname || 'template').replace(/\.(html?|htm)$/i, '');
+      const templateName = extractTemplateNameFromHtml(htmlContent, stem);
+      res.json({
+        message: 'HTML imported successfully',
+        htmlContent,
+        templateName,
+      });
+    } catch (error) {
+      if (filePath) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (_) {
+          /* ignore */
+        }
+      }
+      console.error('Import HTML error:', error);
+      res.status(500).json({
+        message: error.message || 'Error reading HTML file',
         error: error.message,
       });
     }
